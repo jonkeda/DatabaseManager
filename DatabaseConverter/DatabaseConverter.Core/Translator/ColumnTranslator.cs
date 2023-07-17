@@ -151,7 +151,7 @@ namespace DatabaseConverter.Core
             bool hasScale = false;
             string scale = null;
 
-            if (DataTypeHelper.IsDateOrTimeType(column.DataType) && defaultValue.Count(item => item == '(') == 1 && defaultValue.EndsWith(')')) //timestamp(scale)
+            if (DataTypeHelper.IsDateOrTimeType(column.DataType) && defaultValue.Count(item => item == '(') == 1 && defaultValue.EndsWith(")")) //timestamp(scale)
             {
                 int index = defaultValue.IndexOf('(');
                 hasScale = true;
@@ -494,7 +494,7 @@ namespace DatabaseConverter.Core
                         }
                         else
                         {
-                            string[] items = defaultValue.Split(".");
+                            string[] items = defaultValue.Split('.');
                             string schema = items[0].Trim();
 
                             if (this.Option.SchemaMappings.Any())
@@ -582,11 +582,11 @@ namespace DatabaseConverter.Core
                 }
             }
 
-            if (computeExp.Contains("concat")) //use "||" instead of "concat"
+            if (computeExp.Contains("concat", StringComparison.OrdinalIgnoreCase)) //use "||" instead of "concat"
             {
                 if (this.targetDbType == DatabaseType.Postgres || this.targetDbType == DatabaseType.Oracle)
                 {
-                    column.ComputeExp = column.ComputeExp.Replace("concat", "", StringComparison.OrdinalIgnoreCase).Replace(",", "||");
+                    column.ComputeExp = column.ComputeExp.ReplaceOrdinalIgnoreCase("concat", "").Replace(",", "||");
 
                     if (this.targetDbType == DatabaseType.Oracle)
                     {
@@ -597,7 +597,7 @@ namespace DatabaseConverter.Core
 
             if (!string.IsNullOrEmpty(this.sourceDbInterpreter.STR_CONCAT_CHARS))
             {
-                string[] items = column.ComputeExp.Split(this.sourceDbInterpreter.STR_CONCAT_CHARS);
+                string[] items = column.ComputeExp.SplitByString(this.sourceDbInterpreter.STR_CONCAT_CHARS);
 
                 var charColumns = this.columns.Where(c => items.Any(item => this.GetTrimedName(c.Name) == this.GetTrimedName(item.Trim('(', ')')) && DataTypeHelper.IsCharType(c.DataType)))
                                   .Select(c => c.Name);
@@ -619,7 +619,7 @@ namespace DatabaseConverter.Core
             }
 
             //check whether column datatype is char/varchar type
-            string[] items = computeExp.Split(concatChars);
+            string[] items = computeExp.SplitByString(concatChars);
 
             List<string> list = new List<string>();
             bool changed = false;

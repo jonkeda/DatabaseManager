@@ -511,13 +511,13 @@ namespace DatabaseInterpreter.Core
 
             var columns = await base.GetDbObjectsAsync<TableIndexItem>(this.GetSqlForIndexColumns(items));
 
-            foreach (var item in items)
+            foreach (var item1 in items)
             {
-                var column = columns.FirstOrDefault(item => item.Name == item.Name);
+                var column = columns.FirstOrDefault(item => item1.Name == item.Name);
 
                 if (column != null)
                 {
-                    item.ColumnName = column.ColumnName;
+                    item1.ColumnName = column.ColumnName;
                 }
             }
 
@@ -892,13 +892,13 @@ namespace DatabaseInterpreter.Core
             {
                 int index = item.IndexOf("(");
 
-                columNames = item.Substring(index + 1).Trim().TrimEnd(')').Split(',').Select(item => item.Trim()).ToList();
+                columNames = item.Substring(index + 1).Trim().TrimEnd(')').Split(',').Select(item1 => item1.Trim()).ToList();
             }
             else
             {
-                item = columnItems.Skip(startIndex + 1).FirstOrDefault(item => item.Trim().StartsWith("("));
+                item = columnItems.Skip(startIndex + 1).FirstOrDefault(item1 => item1.Trim().StartsWith("("));
 
-                columNames = item.Trim().Trim('(', ')').Split(',').Select(item => item.Trim()).ToList();
+                columNames = item.Trim().Trim('(', ')').Split(',').Select(item1 => item1.Trim()).ToList();
             }
 
             return columNames;
@@ -916,7 +916,7 @@ namespace DatabaseInterpreter.Core
             }
             else
             {
-                return columnItems.Skip(startIndex + 1).FirstOrDefault(item => item.Trim().Length > 0);
+                return columnItems.Skip(startIndex + 1).FirstOrDefault(item1 => item1.Trim().Length > 0);
             }
         }
 

@@ -39,7 +39,7 @@ namespace SqlAnalyser.Core
             {
                 if (setName.Name.Symbol.Contains("."))
                 {
-                    tableNameOrAliases.Add(setName.Name.Symbol.Split(".")[0].Trim().ToLower());
+                    tableNameOrAliases.Add(setName.Name.Symbol.Split('.')[0].Trim().ToLower());
                 }
             }
 

@@ -395,7 +395,8 @@ namespace DatabaseConverter.Core
 
                     if (this.Option.UseTransaction)
                     {
-                        this.transaction = await dbConnection.BeginTransactionAsync();
+                        //this.transaction = await dbConnection.BeginTransactionAsync();
+                        this.transaction = dbConnection.BeginTransaction();
                         canCommit = true;
                     }
                 }
@@ -684,7 +685,7 @@ namespace DatabaseConverter.Core
                                         }
                                         else
                                         {
-                                            var items = script.Split(delimiter);
+                                            var items = script.SplitByString(delimiter);
 
                                             int count = 0;
 

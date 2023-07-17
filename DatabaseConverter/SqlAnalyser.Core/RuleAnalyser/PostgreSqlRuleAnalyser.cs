@@ -756,14 +756,14 @@ namespace SqlAnalyser.Core
             return statement;
         }
 
-        private CreateTableStatement ParseCreateTable(CreatestmtContext node)
+        private CreateTableStatement ParseCreateTable(CreatestmtContext node1)
         {
             CreateTableStatement statement = new CreateTableStatement();
 
             TableInfo tableInfo = new TableInfo();
 
-            var tableName = node.qualified_name().FirstOrDefault();
-            var columns = node.opttableelementlist().tableelementlist().tableelement();
+            var tableName = node1.qualified_name().FirstOrDefault();
+            var columns = node1.opttableelementlist().tableelementlist().tableelement();
 
             tableInfo.Name = new TableName(tableName);
 

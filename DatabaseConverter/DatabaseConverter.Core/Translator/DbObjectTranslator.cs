@@ -326,7 +326,7 @@ namespace DatabaseConverter.Core
 
                 Func<string, bool> isQuoted = (content) =>
                 {
-                    return content.StartsWith('\'');
+                    return content.StartsWith("\'");
                 };
 
                 Dictionary<string, string> defaults = this.GetFunctionDefaults(targetFunctionInfo);
@@ -375,14 +375,14 @@ namespace DatabaseConverter.Core
                                     value = getTrimedContent(value);
                                 }
 
-                                if(content.StartsWith('\''))
+                                if(content.StartsWith("\'"))
                                 {
                                     sbArgs.Append('\'');
                                 }
 
                                 sbArgs.Append(value);
 
-                                if (content.EndsWith('\''))
+                                if (content.EndsWith("\'"))
                                 {
                                     sbArgs.Append('\'');
                                 }                                
@@ -405,7 +405,7 @@ namespace DatabaseConverter.Core
 
                             if (formulaArgs.Count > sd.Index)
                             {
-                                var args = formulaArgs[sd.Index].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                                var args = formulaArgs[sd.Index].SplitByString(" ", StringSplitOptions.RemoveEmptyEntries);
 
                                 if (details.Where(item => item.Type != FunctionArgumentItemDetailType.Whitespace).Count() == args.Length)
                                 {
@@ -448,14 +448,14 @@ namespace DatabaseConverter.Core
                                         value = getTrimedContent(value);
                                     }
 
-                                    if (dc.StartsWith('\''))
+                                    if (dc.StartsWith("\'"))
                                     {
                                         sbArgs.Append('\'');
                                     }
 
                                     sbArgs.Append(value);
 
-                                    if (dc.EndsWith('\''))
+                                    if (dc.EndsWith("\'"))
                                     {
                                         sbArgs.Append('\'');
                                     }
@@ -485,7 +485,7 @@ namespace DatabaseConverter.Core
                     {
                         if (targetFunctionName == "CAST")
                         {
-                            string[] items = sbArgs.ToString().Split("AS");
+                            string[] items = sbArgs.ToString().SplitByString("AS");
                             string dataType = items.LastOrDefault().Trim();
 
                             if (DataTypeHelper.IsCharType(dataType))
@@ -626,7 +626,7 @@ namespace DatabaseConverter.Core
 
                     if (item.Contains(" "))
                     {
-                        string[] details = item.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        string[] details = item.SplitByString(" ", StringSplitOptions.RemoveEmptyEntries);
 
                         for (int j = 0; j < details.Length; j++)
                         {

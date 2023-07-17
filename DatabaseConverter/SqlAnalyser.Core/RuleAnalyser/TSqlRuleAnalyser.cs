@@ -1961,7 +1961,7 @@ namespace SqlAnalyser.Core
                 {
                     string text = tni.GetText();
 
-                    if (text.EndsWith('\''))
+                    if (text.EndsWith("\'"))
                     {
                         statement.Content = new TokenInfo(tni);
                     }
@@ -1995,12 +1995,12 @@ namespace SqlAnalyser.Core
             return statement;
         }
 
-        private CreateTableStatement ParseCreateTableStatement(Create_tableContext node)
+        private CreateTableStatement ParseCreateTableStatement(Create_tableContext node1)
         {
             CreateTableStatement statement = new CreateTableStatement(); ;
 
-            Table_nameContext name = node.table_name();
-            var columns = node.column_def_table_constraints().column_def_table_constraint();
+            Table_nameContext name = node1.table_name();
+            var columns = node1.column_def_table_constraints().column_def_table_constraint();
 
             TableInfo tableInfo = new TableInfo();
 

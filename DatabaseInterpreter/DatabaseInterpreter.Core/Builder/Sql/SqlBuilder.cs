@@ -13,7 +13,7 @@ namespace DatabaseInterpreter.Core
 
         public void Append(string sql)
         {
-            string[] items = sql.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+            string[] items = sql.Split(new []{ Environment.NewLine}, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var item in items)
             {

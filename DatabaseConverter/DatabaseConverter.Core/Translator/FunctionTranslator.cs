@@ -60,7 +60,7 @@ namespace DatabaseConverter.Core
         {
             if (this.sourceDbType == DatabaseType.Postgres)
             {
-                value = value.Replace(@"""substring""", "substring", System.StringComparison.OrdinalIgnoreCase);
+                value = value.ReplaceOrdinalIgnoreCase(@"""substring""", "substring");
             }
 
             List<FunctionFormula> formulas = GetFunctionFormulas(this.sourceDbInterpreter, value);

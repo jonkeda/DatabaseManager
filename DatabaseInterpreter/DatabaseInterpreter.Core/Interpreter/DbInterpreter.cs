@@ -1,5 +1,5 @@
 ﻿using Dapper;
-using DatabaseInterpreter.Geometry;
+//using DatabaseInterpreter.Geometry;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using Npgsql;
@@ -620,7 +620,7 @@ namespace DatabaseInterpreter.Core
 
             if (this.DatabaseType == DatabaseType.Oracle)
             {
-                GeometryUtility.Hook();
+                //GeometryUtility.Hook();
             }
 
             DbDataReader reader = await dbConnection.ExecuteReaderAsync(sql);
@@ -868,11 +868,11 @@ namespace DatabaseInterpreter.Core
                                 }
                             }
                         }
-                        else if (value is PgGeom.Geometry pg && tableColumn.DataType == "geography")
+/*                        else if (value is PgGeom.Geometry pg && tableColumn.DataType == "geography")
                         {
                             pg.UserData = new PostgresGeometryCustomInfo() { IsGeography = true };
                         }
-
+*/
                         dicField.Add(columnName, value);
                     }
 
@@ -1139,7 +1139,7 @@ namespace DatabaseInterpreter.Core
             {
                 string trimedValue = column.DefaultValue.Trim('(', ')').Trim().ToUpper();
 
-                if (!trimedValue.StartsWith('\'') && !trimedValue.StartsWith("N'"))
+                if (!trimedValue.StartsWith("\'") && !trimedValue.StartsWith("N'"))
                 {
                     return $"'{column.DefaultValue}'";
                 }

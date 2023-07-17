@@ -16,6 +16,30 @@ using System.Text.RegularExpressions;
 
 namespace DatabaseConverter.Core
 {
+    public static class StringExtensions
+    {
+        public static bool Contains(this string str, string value, StringComparison stringComparison)
+        {
+            return str.IndexOf(value, stringComparison) >= 0;
+        }
+
+        // todo check this if it works the same as Split by string in .net 2.1
+        public static string[] SplitByString(this string str, string delimiter)
+        {
+            return str.Split(new string[] { delimiter }, StringSplitOptions.None);
+        }
+
+        public static string[] SplitByString(this string str, string delimiter, StringSplitOptions stringSplitOptions)
+        {
+            return str.Split(new string[] { delimiter }, stringSplitOptions);
+        }
+
+        public static string ReplaceOrdinalIgnoreCase(this string str, string oldValue, string newValue)
+        {
+            return Regex.Replace(str, Regex.Escape(oldValue), newValue, RegexOptions.IgnoreCase);
+        }
+    }
+
     public class ConcatCharsHelper
     {
         public const string KEYWORDS = "AND|NOT|NULL|IS|CASE|WHEN|THEN|ELSE|END|LIKE|FOR|IN|OR";
@@ -304,7 +328,7 @@ namespace DatabaseConverter.Core
                         {
                             if (value.StartsWith("@")
                               || Regex.IsMatch(value.Trim('(', ')', ' '), RegexHelper.NameRegexPattern)
-                              || (value.Contains(".") && value.Split(".").All(item => Regex.IsMatch(item.Trim().Trim(quotationChars), RegexHelper.NameRegexPattern)))
+                              || (value.Contains(".") && value.Split('.').All(item => Regex.IsMatch(item.Trim().Trim(quotationChars), RegexHelper.NameRegexPattern)))
                               || Regex.IsMatch(TranslateHelper.ExtractNameFromParenthesis(value.Trim()), RegexHelper.NameRegexPattern)
                               )
                             {
@@ -496,7 +520,7 @@ namespace DatabaseConverter.Core
 
                 string content = StringHelper.GetBalanceParenthesisTrimedValue(value.Substring(index));
 
-                string[] items = content.Split(specification.Delimiter ?? ",");
+                string[] items = content.SplitByString(specification.Delimiter ?? ",");
 
                 string dataType = null;
 

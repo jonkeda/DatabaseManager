@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
-
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net7.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <RootNamespace>DatabaseManager</RootNamespace>
     <Authors>victor-wiki</Authors>
@@ -15,13 +14,11 @@
     <AssemblyVersion>2.1.2</AssemblyVersion>
     <FileVersion>2.1.2</FileVersion>
   </PropertyGroup>
-	
   <ItemGroup>
     <PackageReference Include="DiffPlex" Version="1.6.2" />
     <PackageReference Include="Microsoft.SqlServer.Types" Version="160.1000.6" />
     <PackageReference Include="ObjectListView.Repack.Core3" Version="2.9.2" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\DatabaseConverter\DatabaseConverter.Core\DatabaseConverter.Core.csproj" />
     <ProjectReference Include="..\..\DatabaseInterpreter\DatabaseInterpreter.Core\DatabaseInterpreter.Core.csproj" />
@@ -30,7 +27,6 @@
     <ProjectReference Include="..\DatabaseManager.Core\DatabaseManager.Core.csproj" />
     <ProjectReference Include="..\DatabaseManager.Profile\DatabaseManager.Profile.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <Compile Update="Controls\PropertyGrid\FilteredPropertyGrid.cs">
       <SubType>Component</SubType>
@@ -254,7 +250,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
-
   <ItemGroup>
     <EmbeddedResource Update="Controls\UC_DataViewer.resx">
       <DependentUpon>UC_DataViewer.cs</DependentUpon>
@@ -366,5 +361,4 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-
 </Project>

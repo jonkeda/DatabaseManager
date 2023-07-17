@@ -92,7 +92,7 @@ namespace DatabaseConverter.Core
                 nextValueFlag = SequenceTranslator.OracleSequenceNextValueFlag;
             }
 
-            sequencePart = StringHelper.GetBalanceParenthesisTrimedValue(value.Replace(nextValueFlag, "", StringComparison.OrdinalIgnoreCase).Trim()).Trim('\'');
+            sequencePart = StringHelper.GetBalanceParenthesisTrimedValue(value.ReplaceOrdinalIgnoreCase(nextValueFlag, "").Trim()).Trim('\'');
 
             string schema = null, seqenceName = null;
 

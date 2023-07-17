@@ -11,7 +11,7 @@ using System.Text.RegularExpressions;
 
 namespace SqlAnalyser.Core
 {
-    public class AnalyserHelper
+    public static class AnalyserHelper
     {
         public static char[] QuotationChars = { '[', ']', '"', '`' };
         public static char[] TrimChars = { '@', '[', ']', '"', '`', ':' };
@@ -119,7 +119,7 @@ namespace SqlAnalyser.Core
 
             if (symbol.Contains("="))
             {
-                string[] items = symbol.Split("=");
+                string[] items = symbol.Split('=');
 
                 string assignName = items[0].Trim(TrimChars).Trim();
 
@@ -162,7 +162,7 @@ namespace SqlAnalyser.Core
 
         public static bool IsNameQuoted(string name)
         {
-            return QuotationChars.Any(item => name.StartsWith(item) && name.EndsWith(item));
+            return QuotationChars.Any(item => name.StartsWith(item.ToString()) && name.EndsWith(item.ToString()));
         }
 
         public static TokenInfo GetIntoTableName(SelectStatement statement)

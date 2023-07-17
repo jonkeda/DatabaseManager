@@ -308,14 +308,14 @@ namespace DatabaseConverter.Core
 
         public static bool IsNameQuoted(string name, char[] trimChars)
         {
-            return trimChars.Any(item => name.StartsWith(item) && name.EndsWith(item));
+            return trimChars.Any(item => name.StartsWith(item.ToString()) && name.EndsWith(item.ToString()));
         }
 
         public static bool IsAssignClause(string value, char[] trimChars)
         {
             if (value.Contains("="))
             {
-                string[] items = value.Split("=");
+                string[] items = value.Split('=');
 
                 string assignName = items[0].Trim(trimChars).Trim();
 

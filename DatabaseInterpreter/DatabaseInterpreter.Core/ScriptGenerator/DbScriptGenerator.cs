@@ -1,4 +1,4 @@
-﻿using DatabaseInterpreter.Geometry;
+﻿//using DatabaseInterpreter.Geometry;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using Microsoft.SqlServer.Types;
@@ -592,11 +592,11 @@ namespace DatabaseInterpreter.Core
                             {
                                 oracleSemicolon = true;
                             }
-                            else if (DataTypeHelper.IsGeometryType(dataType))
+/*                            else if (DataTypeHelper.IsGeometryType(dataType))
                             {
                                 needQuotated = false;
                                 strValue = this.GetOracleGeometryInsertValue(column, value);
-                            }
+                            }*/
                         }
                         break;
 
@@ -711,7 +711,7 @@ namespace DatabaseInterpreter.Core
                         if (value is SqlGeography sgg) srid = sgg.STSrid.Value;
                         else if (value is SqlGeometry sgm) srid = sgm.STSrid.Value;
                         else if (value is PgGeom.Geometry g) srid = g.SRID;
-
+/*
                         if (this.databaseType == DatabaseType.MySql)
                         {
                             strValue = $"ST_GeomFromText('{this.GetCorrectGeometryText(value, dataType)}',{srid})";
@@ -720,7 +720,7 @@ namespace DatabaseInterpreter.Core
                         {
                             strValue = this.GetOracleGeometryInsertValue(column, value, srid);
                         }
-                        else
+                        else*/
                         {
                             needQuotated = true;
                             strValue = value.ToString();
@@ -739,12 +739,12 @@ namespace DatabaseInterpreter.Core
 
                         break;
 
-                    case nameof(SdoGeometry):
+/*                    case nameof(SdoGeometry):
                     case nameof(StGeometry):
                         strValue = this.GetOracleGeometryInsertValue(column, value);
 
                         break;
-
+*/
                     default:
                         if (string.IsNullOrEmpty(strValue))
                         {
@@ -775,7 +775,7 @@ namespace DatabaseInterpreter.Core
             }
         }
 
-        private string GetOracleGeometryInsertValue(TableColumn column, object value, int? srid = null)
+      /*  private string GetOracleGeometryInsertValue(TableColumn column, object value, int? srid = null)
         {
             string str = this.GetCorrectGeometryText(value, column.DataType.ToLower());
 
@@ -810,7 +810,7 @@ namespace DatabaseInterpreter.Core
             }
 
             return strValue;
-        }
+        }*/
 
         private string GetOracleDatetimeConvertString(DateTime dateTime)
         {
@@ -821,7 +821,7 @@ namespace DatabaseInterpreter.Core
             return $"TO_TIMESTAMP('{dateTime.ToString(format)}','yyyy-MM-dd hh24:mi:ssxff')";
         }
 
-        private string GetCorrectGeometryText(object value, string dataType)
+       /* private string GetCorrectGeometryText(object value, string dataType)
         {
             if (value is SqlGeography sg)
             {
@@ -847,7 +847,7 @@ namespace DatabaseInterpreter.Core
             }
 
             return value.ToString();
-        }
+        }*/
         #endregion
 
         #region Append Scripts

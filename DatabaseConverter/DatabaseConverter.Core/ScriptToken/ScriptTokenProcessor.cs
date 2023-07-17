@@ -589,7 +589,7 @@ namespace DatabaseConverter.Core
         {
             if (token.Alias != null)
             {
-                if (token.Alias.Symbol.StartsWith(this.SourceDbInterpreter.QuotationLeftChar))
+                if (token.Alias.Symbol.StartsWith(this.SourceDbInterpreter.QuotationLeftChar.ToString()))
                 {
                     string oldAliasSymbol = token.Alias.Symbol;
 
@@ -599,7 +599,7 @@ namespace DatabaseConverter.Core
                 }
                 else if (token is ColumnName)
                 {
-                    if (!token.Alias.Symbol.StartsWith(this.TargetDbInterpreter.QuotationLeftChar))
+                    if (!token.Alias.Symbol.StartsWith(this.TargetDbInterpreter.QuotationLeftChar.ToString()))
                     {
                         token.Alias.Symbol = this.GetNewQuotedString(token.Alias.Symbol);
 
@@ -644,7 +644,7 @@ namespace DatabaseConverter.Core
             }
             else
             {
-                if (oldSymbol.EndsWith(this.SourceDbInterpreter.QuotationRightChar))
+                if (oldSymbol.EndsWith(this.SourceDbInterpreter.QuotationRightChar.ToString()))
                 {
                     pattern = $"({oldSymbolPattern})";
                 }
@@ -790,7 +790,7 @@ namespace DatabaseConverter.Core
 
         private bool IsQuoted(TokenInfo token)
         {
-            if (token != null && token.Symbol?.StartsWith(this.SourceDbInterpreter.QuotationLeftChar) == true)
+            if (token != null && token.Symbol?.StartsWith(this.SourceDbInterpreter.QuotationLeftChar.ToString()) == true)
             {
                 return true;
             }
@@ -830,7 +830,7 @@ namespace DatabaseConverter.Core
 
         private bool HasBeenQuoted(string symbol)
         {
-            if (symbol?.StartsWith(this.TargetDbInterpreter.QuotationLeftChar) == true && symbol?.EndsWith(this.TargetDbInterpreter.QuotationRightChar) == true)
+            if (symbol?.StartsWith(this.TargetDbInterpreter.QuotationLeftChar.ToString()) == true && symbol?.EndsWith(this.TargetDbInterpreter.QuotationRightChar.ToString()) == true)
             {
                 return true;
             }
@@ -914,7 +914,7 @@ namespace DatabaseConverter.Core
 
         private string GetAppropriateAlias(string alias)
         {
-            if (alias.StartsWith(this.SourceDbInterpreter.QuotationLeftChar))
+            if (alias.StartsWith(this.SourceDbInterpreter.QuotationLeftChar.ToString()))
             {
                 return this.GetNewQuotedString(alias);
             }
@@ -935,7 +935,7 @@ namespace DatabaseConverter.Core
 
                 if (!string.IsNullOrEmpty(key))
                 {
-                    token.Symbol = token.Symbol.Replace(key, pv.Value, StringComparison.OrdinalIgnoreCase);
+                    token.Symbol = token.Symbol.Replace(key, pv.Value);
                 }
                 else if (token.Symbol.Contains(pv.Key, StringComparison.OrdinalIgnoreCase))
                 {

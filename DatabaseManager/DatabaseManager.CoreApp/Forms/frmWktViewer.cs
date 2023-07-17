@@ -1,4 +1,4 @@
-﻿using DatabaseInterpreter.Geometry;
+﻿//using DatabaseInterpreter.Geometry;
 using Microsoft.SqlServer.Types;
 using System;
 using System.Collections.Generic;
@@ -76,7 +76,7 @@ namespace DatabaseManager
             this.isSettingZoomBar = false;
         }
 
-        private GeometryInfo GetGeometryInfo(SqlGeometry geometry)
+     /*   private GeometryInfo GetGeometryInfo(SqlGeometry geometry)
         {
             OpenGisGeometryType geometryType = SqlGeometryHelper.GetGeometryType(geometry);
 
@@ -256,7 +256,7 @@ namespace DatabaseManager
             }
 
             return infoItems;
-        }
+        }*/
 
         private void btnClose_Click(object sender, EventArgs e)
         {
@@ -297,9 +297,9 @@ namespace DatabaseManager
                     return;
                 }
 
-                this.geomInfo = this.GetGeometryInfo(geom);
+                //this.geomInfo = this.GetGeometryInfo(geom);
 
-                this.DrawGeometry(this.geomInfo);
+                //this.DrawGeometry(this.geomInfo);
             }
             else if (this.rbGeography.Checked)
             {
@@ -333,9 +333,9 @@ namespace DatabaseManager
                     return;
                 }
 
-                this.geomInfo = this.GetGeometryInfo(geography);
+                //this.geomInfo = this.GetGeometryInfo(geography);
 
-                this.DrawGeometry(this.geomInfo);
+                //this.DrawGeometry(this.geomInfo);
             }
         }
 

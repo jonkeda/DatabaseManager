@@ -1,4 +1,4 @@
-﻿using DatabaseInterpreter.Geometry;
+﻿//using DatabaseInterpreter.Geometry;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using Microsoft.SqlServer.Types;
@@ -773,7 +773,7 @@ namespace DatabaseInterpreter.Core
             {
                 return;
             }
-
+/*
             using (var bulkCopy = new OracleBulkCopy(conn, bulkCopyInfo.Transaction as OracleTransaction))
             {
                 bulkCopy.BatchSize = dataTable.Rows.Count;
@@ -783,7 +783,7 @@ namespace DatabaseInterpreter.Core
                 bulkCopy.DetectDateTimeTypeByValues = bulkCopyInfo.DetectDateTimeTypeByValues;
 
                 await bulkCopy.WriteToServerAsync(this.ConvertDataTable(dataTable, bulkCopyInfo));
-            }
+            }*/
         }
 
         private DataTable ConvertDataTable(DataTable dataTable, BulkCopyInfo bulkCopyInfo)
@@ -847,7 +847,7 @@ namespace DatabaseInterpreter.Core
 
                                 newValue = bytes;
                             }
-                            else if (type == typeof(SqlGeography))
+                           /* else if (type == typeof(SqlGeography))
                             {
                                 if (dataType == "sdo_geometry")
                                 {
@@ -911,9 +911,9 @@ namespace DatabaseInterpreter.Core
 
                                     newValue = PostgresGeometryHelper.ToOracleStGeometry(value as PgGeom.Geometry);
                                 }
-                            }
+                            } */
                         }
-                        else
+                      /*  else
                         {
                             if (dataType == "sdo_geometry")
                             {
@@ -923,7 +923,7 @@ namespace DatabaseInterpreter.Core
                             {
                                 newColumnType = typeof(StGeometry);
                             }
-                        }
+                        }*/
 
                         if (DataTypeHelper.IsGeometryType(dataType) && newColumnType != null && newValue == null)
                         {

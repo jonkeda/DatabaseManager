@@ -1,5 +1,5 @@
 ﻿using Dapper;
-using DatabaseInterpreter.Geometry;
+//using DatabaseInterpreter.Geometry;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using Microsoft.SqlServer.Types;
@@ -639,8 +639,8 @@ namespace DatabaseInterpreter.Core
                 || item.DataType.Name == nameof(String)
                 || item.DataType.Name == nameof(DateTime)
                 || item.DataType == typeof(byte[])
-                || item.DataType == typeof(SdoGeometry)
-                || item.DataType == typeof(StGeometry)
+                //|| item.DataType == typeof(SdoGeometry)
+                //|| item.DataType == typeof(StGeometry)
                 )
                )
             {
@@ -719,7 +719,7 @@ namespace DatabaseInterpreter.Core
                         {
                             if (!geography.IsNull)
                             {
-                                newValue = SqlGeographyHelper.ToMySqlGeometry(geography);
+                                //newValue = SqlGeographyHelper.ToMySqlGeometry(geography);
                             }
                             else
                             {
@@ -730,7 +730,7 @@ namespace DatabaseInterpreter.Core
                         {
                             if (!sqlGeom.IsNull)
                             {
-                                newValue = SqlGeometryHelper.ToMySqlGeometry(sqlGeom);
+                                //newValue = SqlGeometryHelper.ToMySqlGeometry(sqlGeom);
                             }
                             else
                             {
@@ -739,16 +739,16 @@ namespace DatabaseInterpreter.Core
                         }
                         else if (value is PgGeom.Geometry geom)
                         {
-                            newValue = PostgresGeometryHelper.ToMySqlGeometry(geom);
+                            //newValue = PostgresGeometryHelper.ToMySqlGeometry(geom);
                         }
-                        else if (value is SdoGeometry sdo)
+ /*                       else if (value is SdoGeometry sdo)
                         {
                             newValue = OracleSdoGeometryHelper.ToMySqlGeometry(sdo);
                         }
                         else if (value is StGeometry st)
                         {
                             newValue = OracleStGeometryHelper.ToMySqlGeometry(st);
-                        }
+                        }*/
                         else if (value is byte[] bytes)
                         {
                             DatabaseType sourcedDbType = bulkCopyInfo.SourceDatabaseType;
@@ -760,7 +760,7 @@ namespace DatabaseInterpreter.Core
                         }
                         else if (value is string)
                         {
-                            newValue = SqlGeometryHelper.ToMySqlGeometry(value as string);
+                            //newValue = SqlGeometryHelper.ToMySqlGeometry(value as string);
                         }
                     }
 

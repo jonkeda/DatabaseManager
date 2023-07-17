@@ -1,4 +1,4 @@
-﻿using DatabaseInterpreter.Geometry;
+﻿//using DatabaseInterpreter.Geometry;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using Microsoft.SqlServer.Types;
@@ -904,7 +904,7 @@ namespace DatabaseInterpreter.Core
 
                                 if (!geography.IsNull)
                                 {
-                                    if (dataType == "geography")
+/*                                    if (dataType == "geography")
                                     {
                                         newValue = SqlGeographyHelper.ToPostgresGeography(geography);
                                     }
@@ -912,7 +912,7 @@ namespace DatabaseInterpreter.Core
                                     {
                                         newValue = SqlGeographyHelper.ToPostgresGeometry(geography);
                                     }
-                                }
+*/                                }
                                 else
                                 {
                                     newValue = DBNull.Value;
@@ -925,7 +925,7 @@ namespace DatabaseInterpreter.Core
 
                                 if (!geometry.IsNull)
                                 {
-                                    if (dataType == "geography")
+/*                                    if (dataType == "geography")
                                     {
                                         newValue = SqlGeometryHelper.ToPostgresGeography(geometry);
                                     }
@@ -933,7 +933,7 @@ namespace DatabaseInterpreter.Core
                                     {
                                         newValue = SqlGeometryHelper.ToPostgresGeometry(geometry);
                                     }
-                                }
+*/                                }
                                 else
                                 {
                                     newValue = DBNull.Value;
@@ -945,7 +945,7 @@ namespace DatabaseInterpreter.Core
 
                                 if (sourcedDbType == DatabaseType.MySql)
                                 {
-                                    if (dataType == "geography")
+/*                                    if (dataType == "geography")
                                     {
                                         newColumnType = typeof(PgGeom.Geometry);
                                         newValue = MySqlGeometryHelper.ToPostgresGeography(value as byte[]);
@@ -955,8 +955,8 @@ namespace DatabaseInterpreter.Core
                                         newColumnType = typeof(PgGeom.Geometry);
                                         newValue = MySqlGeometryHelper.ToPostgresGeometry(value as byte[]);
                                     }
-                                }
-                            }
+*/                                }
+                            }/*
                             else if (value is SdoGeometry)
                             {
                                 newColumnType = typeof(PgGeom.Geometry);
@@ -995,7 +995,7 @@ namespace DatabaseInterpreter.Core
                                     newColumnType = typeof(PgGeom.Geometry);
                                     newValue = SqlGeometryHelper.ToPostgresGeometry(value as string);
                                 }
-                            }
+                            }*/
                             else if (type == typeof(Guid))
                             {
                                 newColumnType = typeof(string);

@@ -9,7 +9,7 @@ namespace DatabaseConverter.Core
     {
         public static string ExtractRountineScriptDeclaresAndBody(string definition)
         {
-            string[] lines = definition.Split('\n', System.StringSplitOptions.RemoveEmptyEntries);
+            string[] lines = definition.SplitByString("\n", System.StringSplitOptions.RemoveEmptyEntries);
 
             StringBuilder sb = new StringBuilder();
 
@@ -61,13 +61,13 @@ namespace DatabaseConverter.Core
         {
             StringBuilder sb = new StringBuilder();
 
-            var declareAndBodyLines = declaresAndBody.Split(Environment.NewLine);
+            var declareAndBodyLines = declaresAndBody.SplitByString(Environment.NewLine);
 
             var declares = declareAndBodyLines.Where(item => item.StartsWith("DECLARE"));
 
             var bodyLines = declareAndBodyLines.Where(item => !item.StartsWith("DECLARE"));
 
-            var originalLines = originalDefinition.Split(Environment.NewLine);
+            var originalLines = originalDefinition.SplitByString(Environment.NewLine);
 
             int firstBeginIndex = -1;
 

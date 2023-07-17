@@ -1,4 +1,4 @@
-﻿using DatabaseInterpreter.Geometry;
+﻿//using DatabaseInterpreter.Geometry;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using Microsoft.Data.SqlClient;
@@ -768,8 +768,8 @@ namespace DatabaseInterpreter.Core
                    || item.DataType == typeof(NpgsqlCircle)
                    || item.DataType == typeof(NpgsqlPath)
                    || item.DataType == typeof(NpgsqlLSeg)
-                   || item.DataType == typeof(SdoGeometry)
-                   || item.DataType == typeof(StGeometry)
+                   //|| item.DataType == typeof(SdoGeometry)
+                   //|| item.DataType == typeof(StGeometry)
                    )
                 )
             {
@@ -851,7 +851,7 @@ namespace DatabaseInterpreter.Core
 
                                 if (sourcedDbType == DatabaseType.MySql)
                                 {
-                                    if (dataType == "geometry")
+/*                                    if (dataType == "geometry")
                                     {
                                         newColumnType = typeof(SqlGeometry);
                                         newValue = MySqlGeometryHelper.ToSqlGeometry(value as byte[]);
@@ -861,7 +861,7 @@ namespace DatabaseInterpreter.Core
                                         newColumnType = typeof(SqlGeography);
                                         newValue = MySqlGeometryHelper.ToSqlGeography(value as byte[]);
                                     }
-                                }
+*/                                }
                             }
                             else if (type == typeof(BitArray))
                             {
@@ -909,7 +909,7 @@ namespace DatabaseInterpreter.Core
                                     //
                                 }
                             }
-                            else if (value is PgGeom.Geometry)
+/*                            else if (value is PgGeom.Geometry)
                             {
                                 if (dataType == "geography")
                                 {
@@ -922,13 +922,13 @@ namespace DatabaseInterpreter.Core
                                     newValue = PostgresGeometryHelper.ToSqlGeometry(value as PgGeom.Geometry);
                                 }
                             }
-                            else if (value is NpgsqlTsVector || value is NpgsqlLine || value is NpgsqlBox || value is NpgsqlCircle
+*/                            else if (value is NpgsqlTsVector || value is NpgsqlLine || value is NpgsqlBox || value is NpgsqlCircle
                                    || value is NpgsqlPath || value is NpgsqlLSeg)
                             {
                                 newColumnType = typeof(String);
                                 newValue = value.ToString();
                             }
-                            else if (value is SdoGeometry)
+/*                            else if (value is SdoGeometry)
                             {
                                 if (dataType == "geography")
                                 {
@@ -953,7 +953,7 @@ namespace DatabaseInterpreter.Core
                                     newColumnType = typeof(SqlGeometry);
                                     newValue = OracleStGeometryHelper.ToSqlGeometry(value as StGeometry);
                                 }
-                            }
+                            }*/
 
                             if (newColumnType != null && !changedColumns.ContainsKey(i))
                             {

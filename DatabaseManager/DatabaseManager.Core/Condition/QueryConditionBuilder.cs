@@ -1,7 +1,7 @@
-﻿using DatabaseInterpreter.Model;
-using DatabaseManager.Model;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using DatabaseInterpreter.Model;
+using DatabaseManager.Model;
 
 namespace DatabaseManager.Core
 {
@@ -11,35 +11,29 @@ namespace DatabaseManager.Core
         public char QuotationLeftChar { get; set; }
         public char QuotationRightChar { get; set; }
 
-        private List<QueryConditionItem> conditions = new List<QueryConditionItem>();
-
-        public List<QueryConditionItem> Conditions => this.conditions;
+        public List<QueryConditionItem> Conditions { get; } = new List<QueryConditionItem>();
 
         public void Add(QueryConditionItem condition)
         {
-            this.conditions.Add(condition);
+            Conditions.Add(condition);
         }
 
         public override string ToString()
         {
-            return string.Join(" AND ", this.conditions.Select(item=> $"({this.GetConditionItemValue(item)})" ));
+            return string.Join(" AND ", Conditions.Select(item => $"({GetConditionItemValue(item)})"));
         }
 
         private string GetConditionItemValue(QueryConditionItem item)
         {
-            string typeConvert = "";
+            var typeConvert = "";
 
-            if(item.NeedQuoted)
-            {
-                if(this.DatabaseType == DatabaseType.Postgres)
-                {
+            if (item.NeedQuoted)
+                if (DatabaseType == DatabaseType.Postgres)
                     typeConvert = "::CHARACTER VARYING ";
-                }
-            }
 
-            string value = $"{ this.QuotationLeftChar}{item.ColumnName}{ this.QuotationRightChar}{typeConvert}{ item.ToString()}";
+            var value = $"{QuotationLeftChar}{item.ColumnName}{QuotationRightChar}{typeConvert}{item}";
 
-            return value;            
+            return value;
         }
     }
 }

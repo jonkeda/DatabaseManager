@@ -1,44 +1,41 @@
-﻿using DatabaseInterpreter.Model;
+﻿using System;
+using System.IO;
+using DatabaseInterpreter.Model;
 using DatabaseManager.Helper;
 using DatabaseManager.Model;
-using System;
-using System.IO;
 
 namespace DatabaseManager.Core
 {
     public abstract class DbBackup
     {
         public string DefaultBackupFolderName = "Backup";
-        public BackupSetting Setting { get; set; }
-        public ConnectionInfo ConnectionInfo { get; set; }
 
-        public DbBackup() { }
+        public DbBackup()
+        {
+        }
 
         public DbBackup(BackupSetting setting, ConnectionInfo connectionInfo)
         {
-            this.Setting = setting;
-            this.ConnectionInfo = connectionInfo;
+            Setting = setting;
+            ConnectionInfo = connectionInfo;
         }
+
+        public BackupSetting Setting { get; set; }
+        public ConnectionInfo ConnectionInfo { get; set; }
 
         public abstract string Backup();
 
         protected string CheckSaveFolder()
         {
-            string saveFolder = this.Setting.SaveFolder;
+            var saveFolder = Setting.SaveFolder;
 
-            if (string.IsNullOrEmpty(saveFolder))
-            {
-                saveFolder = this.DefaultBackupFolderName;
-            }
+            if (string.IsNullOrEmpty(saveFolder)) saveFolder = DefaultBackupFolderName;
 
-            if (!Directory.Exists(saveFolder))
-            {
-                Directory.CreateDirectory(saveFolder);
-            }
+            if (!Directory.Exists(saveFolder)) Directory.CreateDirectory(saveFolder);
 
             return saveFolder;
         }
-       
+
         protected virtual string ZipFile(string backupFilePath, string zipFilePath)
         {
             if (File.Exists(backupFilePath))
@@ -50,7 +47,7 @@ namespace DatabaseManager.Core
                     File.Delete(backupFilePath);
 
                     backupFilePath = zipFilePath;
-                }              
+                }
             }
 
             return backupFilePath;
@@ -58,25 +55,14 @@ namespace DatabaseManager.Core
 
         public static DbBackup GetInstance(DatabaseType databaseType)
         {
-            if(databaseType == DatabaseType.SqlServer)
-            {
-                return new SqlServerBackup();
-            }
+            if (databaseType == DatabaseType.SqlServer) return new SqlServerBackup();
             if (databaseType == DatabaseType.Oracle)
-            {
                 return new OracleBackup();
-            }
-            else if (databaseType == DatabaseType.MySql)
-            {
+            if (databaseType == DatabaseType.MySql)
                 return new MySqlBackup();
-            }
-            else if(databaseType == DatabaseType.Postgres)
-            {
-                return new PostgresBackup();
-            }
+            if (databaseType == DatabaseType.Postgres) return new PostgresBackup();
 
             throw new NotImplementedException($"Not implemente for backup {databaseType}.");
         }
-
     }
 }

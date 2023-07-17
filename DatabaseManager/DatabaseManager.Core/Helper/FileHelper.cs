@@ -1,5 +1,5 @@
-﻿using ICSharpCode.SharpZipLib.Zip;
-using System.IO;
+﻿using System.IO;
+using ICSharpCode.SharpZipLib.Zip;
 
 namespace DatabaseManager.Helper
 {
@@ -9,12 +9,9 @@ namespace DatabaseManager.Helper
         {
             var folderPath = Path.GetDirectoryName(zipFilePath);
 
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
+            if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
 
-            ZipFile zip = ZipFile.Create(zipFilePath);
+            var zip = ZipFile.Create(zipFilePath);
 
             zip.BeginUpdate();
 

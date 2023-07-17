@@ -10,7 +10,7 @@
 	<mapping>
 		<source type="numeric" />
 		<target type="numeric" />
-		<special name="precisionScale" precision="isNullOrZero" scale="isNullOrZero"  type="float"></special>
+		<special name="precisionScale" precision="isNullOrZero" scale="isNullOrZero" type="float"></special>
 	</mapping>
 	<mapping>
 		<source type="real" />
@@ -18,6 +18,6 @@
 	</mapping>
 	<mapping>
 		<source type="text" />
-		<target type="varchar" length="100" substitute="text"/>		
-	</mapping>	
+		<target type="varchar" length="100" substitute="text" />
+	</mapping>
 </mappings>

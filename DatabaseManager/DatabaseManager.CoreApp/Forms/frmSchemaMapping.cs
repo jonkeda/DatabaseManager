@@ -1,226 +1,199 @@
-﻿using DatabaseConverter.Core;
-using DatabaseInterpreter.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using DatabaseInterpreter.Model;
 
-namespace DatabaseManager
+namespace DatabaseManager;
+
+public partial class frmSchemaMapping : Form
 {
-    public partial class frmSchemaMapping : Form
+    private const string EmptyItem = "<None>";
+
+    public frmSchemaMapping()
     {
-        private const string EmptyItem = "<None>";
+        InitializeComponent();
+    }
 
-        internal List<string> SourceSchemas { get; set; } = new List<string>();
-        internal List<string> TargetSchemas { get; set; } = new List<string>();
-        internal List<SchemaMappingInfo> Mappings { get; set; } = new List<SchemaMappingInfo>();
+    internal List<string> SourceSchemas { get; set; } = new();
+    internal List<string> TargetSchemas { get; set; } = new();
+    internal List<SchemaMappingInfo> Mappings { get; set; } = new();
 
-        public frmSchemaMapping()
-        {
-            InitializeComponent();
-        }
+    private void frmColumnMapping_Load(object sender, EventArgs e)
+    {
+        InitControls();
+    }
 
-        private void frmColumnMapping_Load(object sender, EventArgs e)
-        {
-            this.InitControls();
-        }
+    private void InitControls()
+    {
+        LoadMappings();
+    }
 
-        private void InitControls()
-        {
-            this.LoadMappings();
-        }
-
-        private void LoadMappings()
-        {
-            if (this.Mappings != null)
+    private void LoadMappings()
+    {
+        if (Mappings != null)
+            foreach (var mapping in Mappings)
             {
-                foreach (SchemaMappingInfo mapping in this.Mappings)
-                {
-                    ComboBox sourceCombo = this.CreateCombobox(this.panelSourceSchema, this.SourceSchemas, mapping.SourceSchema);
+                var sourceCombo = CreateCombobox(panelSourceSchema, SourceSchemas, mapping.SourceSchema);
 
-                    this.panelSourceSchema.Controls.Add(sourceCombo);
+                panelSourceSchema.Controls.Add(sourceCombo);
 
-                    ComboBox targetCombo = this.CreateCombobox(this.panelTargetSchema, this.TargetSchemas, mapping.TargetSchema);
+                var targetCombo = CreateCombobox(panelTargetSchema, TargetSchemas, mapping.TargetSchema);
 
-                    this.panelTargetSchema.Controls.Add(targetCombo);
-                }
+                panelTargetSchema.Controls.Add(targetCombo);
             }
 
-            this.CreatePlaceholder();
-        }
+        CreatePlaceholder();
+    }
 
-        private void CreatePlaceholder()
+    private void CreatePlaceholder()
+    {
+        var sourceComboEmpty = CreateCombobox(panelSourceSchema, SourceSchemas, null);
+
+        panelSourceSchema.Controls.Add(sourceComboEmpty);
+
+        var targetComboEmpty = CreateCombobox(panelTargetSchema, TargetSchemas, null);
+
+        panelTargetSchema.Controls.Add(targetComboEmpty);
+    }
+
+    private ComboBox CreateCombobox(Panel panel, List<string> values, string value)
+    {
+        var combo = new ComboBox();
+        combo.MouseClick += Combo_MouseClick;
+        combo.DropDownStyle = ComboBoxStyle.DropDown;
+        combo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+        combo.Width = panel.Width - 5;
+        combo.Tag = panel.Controls.Count + 1;
+        combo.SelectedIndexChanged += Combo_SelectedIndexChanged;
+
+        var displayValues = GetValuesWithEmptyItem(values).AsEnumerable();
+
+        if (panel.Name == panelSourceSchema.Name) displayValues = displayValues.Except(GetExistingValues(panel));
+
+        combo.Items.AddRange(displayValues.ToArray());
+
+        if (panel.Controls.Count > 0) combo.Top = panel.Controls.Count * combo.Height + panel.Controls.Count;
+
+        if (!string.IsNullOrEmpty(value) && values.Contains(value)) combo.Text = value;
+
+        return combo;
+    }
+
+    private void Combo_MouseClick(object sender, MouseEventArgs e)
+    {
+        var combo = sender as ComboBox;
+
+        if (!combo.DroppedDown) combo.DroppedDown = true;
+    }
+
+    private List<string> GetExistingValues(Panel panel)
+    {
+        var values = new List<string>();
+        var comboboxes = panel.Controls.OfType<ComboBox>();
+
+        foreach (var combo in comboboxes)
+            if (!string.IsNullOrEmpty(combo.Text) && combo.Text != EmptyItem)
+                values.Add(combo.Text);
+
+        return values;
+    }
+
+    private List<string> GetValuesWithEmptyItem(List<string> values)
+    {
+        var cloneValues = values.Select(item => item).ToList();
+        cloneValues.Add(EmptyItem);
+
+        return cloneValues;
+    }
+
+    private void Combo_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        var combo = sender as ComboBox;
+
+        if (combo.Parent == null) return;
+
+        var order = Convert.ToInt32(combo.Tag);
+
+        if (order == combo.Parent.Controls.Count)
         {
-            ComboBox sourceComboEmpty = this.CreateCombobox(this.panelSourceSchema, this.SourceSchemas, null);
+            var sourceCombo = CreateCombobox(panelSourceSchema, SourceSchemas, null);
 
-            this.panelSourceSchema.Controls.Add(sourceComboEmpty);
+            panelSourceSchema.Controls.Add(sourceCombo);
 
-            ComboBox targetComboEmpty = this.CreateCombobox(this.panelTargetSchema, this.TargetSchemas, null);
+            var targetCombo = CreateCombobox(panelTargetSchema, TargetSchemas, null);
 
-            this.panelTargetSchema.Controls.Add(targetComboEmpty);
+            panelTargetSchema.Controls.Add(targetCombo);
         }
+    }
 
-        private ComboBox CreateCombobox(Panel panel, List<string> values, string value)
+    private void btnOK_Click(object sender, EventArgs e)
+    {
+        var mappings = new List<SchemaMappingInfo>();
+
+        for (var i = 0; i < panelSourceSchema.Controls.Count; i++)
         {
-            ComboBox combo = new ComboBox();
-            combo.MouseClick += Combo_MouseClick;
-            combo.DropDownStyle = ComboBoxStyle.DropDown;
-            combo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            combo.Width = panel.Width - 5;
-            combo.Tag = panel.Controls.Count + 1;
-            combo.SelectedIndexChanged += Combo_SelectedIndexChanged;
+            var sourceCombo = panelSourceSchema.Controls[i] as ComboBox;
+            var targetCombo = panelTargetSchema.Controls[i] as ComboBox;
 
-            var displayValues = this.GetValuesWithEmptyItem(values).AsEnumerable();
-
-            if (panel.Name == this.panelSourceSchema.Name)
+            if (sourceCombo.Text != EmptyItem && targetCombo.Text != EmptyItem &&
+                !(string.IsNullOrEmpty(sourceCombo.Text) && string.IsNullOrEmpty(targetCombo.Text)))
             {
-                displayValues = displayValues.Except(this.GetExistingValues(panel));
-            }
+                var mapping = new SchemaMappingInfo();
+                mapping.SourceSchema = sourceCombo.Text;
+                mapping.TargetSchema = targetCombo.Text;
 
-            combo.Items.AddRange(displayValues.ToArray());
-
-            if (panel.Controls.Count > 0)
-            {
-                combo.Top = panel.Controls.Count * combo.Height + panel.Controls.Count;
-            }
-
-            if (!string.IsNullOrEmpty(value) && values.Contains(value))
-            {
-                combo.Text = value;
-            }
-
-            return combo;
-        }
-
-        private void Combo_MouseClick(object sender, MouseEventArgs e)
-        {
-            ComboBox combo = sender as ComboBox;
-
-            if (!combo.DroppedDown)
-            {
-                combo.DroppedDown = true;
-            }
-        }
-
-        private List<string> GetExistingValues(Panel panel)
-        {
-            List<string> values = new List<string>();
-            var comboboxes = panel.Controls.OfType<ComboBox>();
-
-            foreach (ComboBox combo in comboboxes)
-            {
-                if (!string.IsNullOrEmpty(combo.Text) && combo.Text != EmptyItem)
-                {
-                    values.Add(combo.Text);
-                }
-            }
-
-            return values;
-        }
-
-        private List<string> GetValuesWithEmptyItem(List<string> values)
-        {
-            var cloneValues = values.Select(item => item).ToList();
-            cloneValues.Add(EmptyItem);
-
-            return cloneValues;
-        }
-
-        private void Combo_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            ComboBox combo = sender as ComboBox;
-
-            if (combo.Parent == null)
-            {
-                return;
-            }
-
-            int order = Convert.ToInt32(combo.Tag);
-
-            if (order == combo.Parent.Controls.Count)
-            {
-                ComboBox sourceCombo = this.CreateCombobox(this.panelSourceSchema, this.SourceSchemas, null);
-
-                this.panelSourceSchema.Controls.Add(sourceCombo);
-
-                ComboBox targetCombo = this.CreateCombobox(this.panelTargetSchema, this.TargetSchemas, null);
-
-                this.panelTargetSchema.Controls.Add(targetCombo);
+                mappings.Add(mapping);
             }
         }
 
-        private void btnOK_Click(object sender, EventArgs e)
+        if (mappings.Any(item =>
+                !string.IsNullOrEmpty(item.SourceSchema) && item.SourceSchema != EmptyItem &&
+                mappings.Count(t => t.SourceSchema == item.SourceSchema) > 1))
         {
-            List<SchemaMappingInfo> mappings = new List<SchemaMappingInfo>();
+            MessageBox.Show("One Source Schema can't be mapped to more than one target schema!");
+            return;
+        }
 
-            for (int i = 0; i < this.panelSourceSchema.Controls.Count; i++)
+        Mappings = mappings;
+
+        DialogResult = DialogResult.OK;
+        Close();
+    }
+
+    private void btnCancel_Click(object sender, EventArgs e)
+    {
+        Close();
+    }
+
+    private void btnAutoMap_Click(object sender, EventArgs e)
+    {
+        ClearControls();
+
+        foreach (var sourceSchema in SourceSchemas)
+            if (TargetSchemas.Any(item => item == sourceSchema))
             {
-                ComboBox sourceCombo = this.panelSourceSchema.Controls[i] as ComboBox;
-                ComboBox targetCombo = this.panelTargetSchema.Controls[i] as ComboBox;
+                var sourceCombo = CreateCombobox(panelSourceSchema, SourceSchemas, sourceSchema);
 
-                if (sourceCombo.Text != EmptyItem && targetCombo.Text != EmptyItem && !(string.IsNullOrEmpty(sourceCombo.Text) && string.IsNullOrEmpty(targetCombo.Text)))
-                {
-                    SchemaMappingInfo mapping = new SchemaMappingInfo();
-                    mapping.SourceSchema = sourceCombo.Text;
-                    mapping.TargetSchema = targetCombo.Text;
+                panelSourceSchema.Controls.Add(sourceCombo);
 
-                    mappings.Add(mapping);
-                }
+                var targetCombo = CreateCombobox(panelTargetSchema, TargetSchemas, sourceSchema);
+
+                panelTargetSchema.Controls.Add(targetCombo);
             }
 
-            if (mappings.Any(item => !string.IsNullOrEmpty(item.SourceSchema) && item.SourceSchema != EmptyItem && mappings.Count(t => t.SourceSchema == item.SourceSchema) > 1))
-            {
-                MessageBox.Show("One Source Schema can't be mapped to more than one target schema!");
-                return;
-            }
+        CreatePlaceholder();
+    }
 
-            this.Mappings = mappings;
+    private void ClearControls()
+    {
+        panelSourceSchema.Controls.Clear();
+        panelTargetSchema.Controls.Clear();
+    }
 
-            this.DialogResult = DialogResult.OK;
-            this.Close();
-        }
-
-        private void btnCancel_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
-
-        private void btnAutoMap_Click(object sender, EventArgs e)
-        {
-            this.ClearControls();
-
-            foreach(var sourceSchema in this.SourceSchemas)
-            {
-                if(this.TargetSchemas.Any(item=> item==sourceSchema))
-                {
-                    ComboBox sourceCombo = this.CreateCombobox(this.panelSourceSchema, this.SourceSchemas, sourceSchema);
-
-                    this.panelSourceSchema.Controls.Add(sourceCombo);
-
-                    ComboBox targetCombo = this.CreateCombobox(this.panelTargetSchema, this.TargetSchemas, sourceSchema);
-
-                    this.panelTargetSchema.Controls.Add(targetCombo);
-                }               
-            }
-
-            this.CreatePlaceholder();
-        }
-
-        private void ClearControls()
-        {
-            this.panelSourceSchema.Controls.Clear();
-            this.panelTargetSchema.Controls.Clear();
-        }
-
-        private void btnReset_Click(object sender, EventArgs e)
-        {
-            this.ClearControls();
-            this.CreatePlaceholder();
-        }
+    private void btnReset_Click(object sender, EventArgs e)
+    {
+        ClearControls();
+        CreatePlaceholder();
     }
 }

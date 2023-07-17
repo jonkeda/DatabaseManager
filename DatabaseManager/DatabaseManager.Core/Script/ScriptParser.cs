@@ -1,75 +1,65 @@
-﻿using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Model;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using DatabaseInterpreter.Core;
+using DatabaseManager.Model;
 
 namespace DatabaseManager.Core
 {
     public class ScriptParser
     {
-        private readonly string selectPattern = "SELECT(.[\n]?)+(FROM)?";
-        private readonly string dmlPattern = @"\b(CREATE|ALTER|INSERT|UPDATE|DELETE|TRUNCATE|INTO)\b";
-        private readonly string createAlterScriptPattern = @"\b(CREATE|ALTER).+(VIEW|FUNCTION|PROCEDURE|TRIGGER)\b";
-        private readonly string routinePattern = @"\b(BEGIN|END|DECLARE|SET|GOTO)\b";
-        private DbInterpreter dbInterpreter;
-        private string originalScript;
-        private string cleanScript;
-
         public const string AsPattern = @"\b(AS|IS)\b";
-
-        public string Script => this.originalScript;
-        public string CleanScript => this.cleanScript;
+        private readonly string createAlterScriptPattern = @"\b(CREATE|ALTER).+(VIEW|FUNCTION|PROCEDURE|TRIGGER)\b";
+        private readonly string dmlPattern = @"\b(CREATE|ALTER|INSERT|UPDATE|DELETE|TRUNCATE|INTO)\b";
+        private readonly string routinePattern = @"\b(BEGIN|END|DECLARE|SET|GOTO)\b";
+        private readonly string selectPattern = "SELECT(.[\n]?)+(FROM)?";
+        private readonly DbInterpreter dbInterpreter;
 
         public ScriptParser(DbInterpreter dbInterpreter, string script)
         {
             this.dbInterpreter = dbInterpreter;
-            this.originalScript = script;
+            Script = script;
 
-            this.Parse();
+            Parse();
         }
+
+        public string Script { get; }
+
+        public string CleanScript { get; private set; }
 
         private string Parse()
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
-            string[] lines = this.originalScript.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var lines = Script.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-            foreach (string line in lines)
+            foreach (var line in lines)
             {
-                if (line.Trim().StartsWith(this.dbInterpreter.CommentString))
-                {
-                    continue;
-                }
+                if (line.Trim().StartsWith(dbInterpreter.CommentString)) continue;
 
                 sb.AppendLine(line);
             }
 
-            this.cleanScript = sb.ToString();
+            CleanScript = sb.ToString();
 
-            return this.cleanScript;
+            return CleanScript;
         }
 
         public bool IsSelect()
         {
-            RegexOptions options = RegexOptions.IgnoreCase | RegexOptions.Multiline;
+            var options = RegexOptions.IgnoreCase | RegexOptions.Multiline;
 
-            var selectMatches = Regex.Matches(this.originalScript, selectPattern, options);
+            var selectMatches = Regex.Matches(Script, selectPattern, options);
 
-            if (selectMatches.Any(item=> !this.IsWordInSingleQuotation(this.cleanScript, item.Index)))
+            if (selectMatches.Any(item => !IsWordInSingleQuotation(CleanScript, item.Index)))
             {
-                var dmlMatches = Regex.Matches(this.originalScript, dmlPattern, options);
-                var routineMathes = Regex.Matches(this.originalScript, routinePattern, RegexOptions.IgnoreCase);
+                var dmlMatches = Regex.Matches(Script, dmlPattern, options);
+                var routineMathes = Regex.Matches(Script, routinePattern, RegexOptions.IgnoreCase);
 
-                if (!(dmlMatches.Any(item => !this.IsWordInSingleQuotation(this.originalScript, item.Index))
-                   || routineMathes.Any(item => !this.IsWordInSingleQuotation(this.originalScript, item.Index))))
-                {
+                if (!(dmlMatches.Any(item => !IsWordInSingleQuotation(Script, item.Index))
+                      || routineMathes.Any(item => !IsWordInSingleQuotation(Script, item.Index))))
                     return true;
-                }                
             }
 
             return false;
@@ -82,48 +72,37 @@ namespace DatabaseManager.Core
 
         public bool IsCreateOrAlterScript()
         {
-            var mathes = Regex.Matches(this.originalScript, this.createAlterScriptPattern, RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            var mathes = Regex.Matches(Script, createAlterScriptPattern,
+                RegexOptions.IgnoreCase | RegexOptions.Multiline);
 
-            return mathes.Any(item=> !this.IsWordInSingleQuotation(this.originalScript, item.Index));
+            return mathes.Any(item => !IsWordInSingleQuotation(Script, item.Index));
         }
 
         public static ScriptType DetectScriptType(string script, DbInterpreter dbInterpreter)
         {
-            string upperScript = script.ToUpper().Trim();
+            var upperScript = script.ToUpper().Trim();
 
-            ScriptParser scriptParser = new ScriptParser(dbInterpreter, upperScript);
+            var scriptParser = new ScriptParser(dbInterpreter, upperScript);
 
             if (scriptParser.IsCreateOrAlterScript())
             {
-                string firstLine = upperScript.Split(Environment.NewLine).FirstOrDefault();
+                var firstLine = upperScript.Split(Environment.NewLine).FirstOrDefault();
 
                 var asMatch = Regex.Match(firstLine, AsPattern);
 
-                int asIndex = asMatch.Index;
+                var asIndex = asMatch.Index;
 
-                if (asIndex <= 0)
-                {
-                    asIndex = firstLine.Length;
-                }
+                if (asIndex <= 0) asIndex = firstLine.Length;
 
-                string prefix = upperScript.Substring(0, asIndex);
+                var prefix = upperScript.Substring(0, asIndex);
 
                 if (prefix.IndexOf(" VIEW ") > 0)
-                {
                     return ScriptType.View;
-                }
-                else if (prefix.IndexOf(" FUNCTION ") > 0)
-                {
+                if (prefix.IndexOf(" FUNCTION ") > 0)
                     return ScriptType.Function;
-                }
-                else if (prefix.IndexOf(" PROCEDURE ") > 0 || prefix.IndexOf(" PROC ") > 0)
-                {
+                if (prefix.IndexOf(" PROCEDURE ") > 0 || prefix.IndexOf(" PROC ") > 0)
                     return ScriptType.Procedure;
-                }
-                else if (prefix.IndexOf(" TRIGGER ") > 0)
-                {
-                    return ScriptType.Trigger;
-                }
+                if (prefix.IndexOf(" TRIGGER ") > 0) return ScriptType.Trigger;
             }
             else if (scriptParser.IsSelect())
             {
@@ -135,31 +114,27 @@ namespace DatabaseManager.Core
 
         public static ScriptContentInfo GetContentInfo(string script, string lineSeperator, string commentString)
         {
-            int lineSeperatorLength = lineSeperator.Length;
+            var lineSeperatorLength = lineSeperator.Length;
 
-            ScriptContentInfo info = new ScriptContentInfo();
+            var info = new ScriptContentInfo();
 
-            string[] lines = script.Split(lineSeperator);
+            var lines = script.Split(lineSeperator);
 
-            int count = 0;
+            var count = 0;
 
-            for (int i = 0; i < lines.Length; i++)
+            for (var i = 0; i < lines.Length; i++)
             {
-                TextLineInfo lineInfo = new TextLineInfo() { Index = i, FirstCharIndex = count };
+                var lineInfo = new TextLineInfo { Index = i, FirstCharIndex = count };
 
                 if (lines[i].Trim().StartsWith(commentString) || lines[i].Trim().StartsWith("**"))
-                {
                     lineInfo.Type = TextLineType.Comment;
-                }
 
                 if (i < lines.Length - 1)
-                {
                     lineInfo.Length = lines[i].Length + lineSeperatorLength;
-                }
                 else
-                {
-                    lineInfo.Length = script.EndsWith(lineSeperator) ? lines[i].Length + lineSeperatorLength : lines[i].Length;
-                }
+                    lineInfo.Length = script.EndsWith(lineSeperator)
+                        ? lines[i].Length + lineSeperatorLength
+                        : lines[i].Length;
 
                 count += lines[i].Length + lineSeperatorLength;
 
@@ -173,10 +148,7 @@ namespace DatabaseManager.Core
         {
             var match = MatchWord(definition, "BEGIN|AS");
 
-            if (match != null)
-            {
-                return definition.Substring(match.Index + match.Value.Length);
-            }
+            if (match != null) return definition.Substring(match.Index + match.Value.Length);
 
             return definition;
         }
@@ -189,10 +161,7 @@ namespace DatabaseManager.Core
             {
                 match = MatchWord(definition, "BEGIN");
 
-                if (match != null)
-                {
-                    return match.Index;
-                }
+                if (match != null) return match.Index;
             }
             else
             {

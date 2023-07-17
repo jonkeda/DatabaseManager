@@ -1,46 +1,48 @@
-﻿using DatabaseConverter.Core.Model.Functions;
+﻿using System;
+using DatabaseConverter.Core.Model.Functions;
 using DatabaseConverter.Model;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
-using System;
 
 namespace DatabaseConverter.Core.Functions
 {
     public class DateDiffTranslator : SpecificFunctionTranslatorBase
     {
-
-        public DateDiffTranslator(FunctionSpecification sourceSpecification, FunctionSpecification targetSpecification) : base(sourceSpecification, targetSpecification) { }
+        public DateDiffTranslator(FunctionSpecification sourceSpecification, FunctionSpecification targetSpecification)
+            : base(sourceSpecification, targetSpecification)
+        {
+        }
 
 
         public override string Translate(FunctionFormula formula)
         {
-            string functionName = formula.Name;
-            string targetFunctionName = this.TargetSpecification?.Name;
-            string expression = formula.Expression;
-            string delimiter = this.SourceSpecification.Delimiter ?? ",";
+            var functionName = formula.Name;
+            var targetFunctionName = TargetSpecification?.Name;
+            var expression = formula.Expression;
+            var delimiter = SourceSpecification.Delimiter ?? ",";
             var args = formula.GetArgs(delimiter);
 
-            bool argsReversed = false;
+            var argsReversed = false;
 
-            DateDiff? dateDiff = default(DateDiff?);
+            var dateDiff = default(DateDiff?);
 
-            string newExpression = expression;
+            var newExpression = expression;
 
-            if (this.SourceDbType == DatabaseType.SqlServer)
+            if (SourceDbType == DatabaseType.SqlServer)
             {
-                dateDiff = new DateDiff() { Unit = args[0], Date1 = args[2], Date2 = args[1] };
+                dateDiff = new DateDiff { Unit = args[0], Date1 = args[2], Date2 = args[1] };
 
                 argsReversed = true;
             }
-            else if (this.SourceDbType == DatabaseType.MySql)
+            else if (SourceDbType == DatabaseType.MySql)
             {
                 if (functionName == "DATEDIFF")
                 {
-                    dateDiff = new DateDiff() { Unit = "DAY", Date1 = args[0], Date2 = args[1] };
+                    dateDiff = new DateDiff { Unit = "DAY", Date1 = args[0], Date2 = args[1] };
                 }
                 else if (functionName == "TIMESTAMPDIFF")
                 {
-                    dateDiff = new DateDiff() { Unit = args[0], Date1 = args[2], Date2 = args[1] };
+                    dateDiff = new DateDiff { Unit = args[0], Date1 = args[2], Date2 = args[1] };
 
                     argsReversed = true;
                 }
@@ -48,12 +50,12 @@ namespace DatabaseConverter.Core.Functions
 
             if (dateDiff.HasValue)
             {
-                string unit = dateDiff.Value.Unit.ToUpper();
+                var unit = dateDiff.Value.Unit.ToUpper();
 
-                bool isStringValue1 = ValueHelper.IsStringValue(dateDiff.Value.Date1);
-                bool isStringValue2 = ValueHelper.IsStringValue(dateDiff.Value.Date2);
-                string date1 = dateDiff.Value.Date1;
-                string date2 = dateDiff.Value.Date2;
+                var isStringValue1 = ValueHelper.IsStringValue(dateDiff.Value.Date1);
+                var isStringValue2 = ValueHelper.IsStringValue(dateDiff.Value.Date2);
+                var date1 = dateDiff.Value.Date1;
+                var date2 = dateDiff.Value.Date2;
 
                 Action reverseDateArguments = () =>
                 {
@@ -63,23 +65,17 @@ namespace DatabaseConverter.Core.Functions
                     date2 = temp;
                 };
 
-                if (this.TargetDbType == DatabaseType.SqlServer)
+                if (TargetDbType == DatabaseType.SqlServer)
                 {
-                    if (argsReversed)
-                    {
-                        reverseDateArguments();
-                    }
+                    if (argsReversed) reverseDateArguments();
 
                     newExpression = $"DATEDIFF({unit}, {date1},{date2})";
                 }
-                else if (this.TargetDbType == DatabaseType.MySql)
+                else if (TargetDbType == DatabaseType.MySql)
                 {
                     if (targetFunctionName == "TIMESTAMPDIFF")
                     {
-                        if (argsReversed)
-                        {
-                            reverseDateArguments();
-                        }
+                        if (argsReversed) reverseDateArguments();
 
                         newExpression = $"TIMESTAMPDIFF({unit}, {date1},{date2})";
                     }
@@ -88,13 +84,13 @@ namespace DatabaseConverter.Core.Functions
                         newExpression = $"DATEDIFF({date1}, {date2})";
                     }
                 }
-                else if (this.TargetDbType == DatabaseType.Postgres)
+                else if (TargetDbType == DatabaseType.Postgres)
                 {
-                    string dataType = "::TIMESTAMP";
+                    var dataType = "::TIMESTAMP";
 
-                    string strDate1 = $"{date1}{dataType}";
-                    string strDate2 = $"{date2}{dataType}";
-                    string strDate1MinusData2 = $"{strDate1}-{strDate2}";
+                    var strDate1 = $"{date1}{dataType}";
+                    var strDate2 = $"{date2}{dataType}";
+                    var strDate1MinusData2 = $"{strDate1}-{strDate2}";
 
                     switch (unit)
                     {
@@ -102,7 +98,8 @@ namespace DatabaseConverter.Core.Functions
                             newExpression = $"DATE_PART('YEAR', {strDate1}) - DATE_PART('YEAR', {strDate2})";
                             break;
                         case "MONTH":
-                            newExpression = $"(DATE_PART('YEAR', {strDate1}) - DATE_PART('YEAR', {strDate2})) * 12 +(DATE_PART('MONTH', {strDate1}) - DATE_PART('MONTH', {strDate2}))";
+                            newExpression =
+                                $"(DATE_PART('YEAR', {strDate1}) - DATE_PART('YEAR', {strDate2})) * 12 +(DATE_PART('MONTH', {strDate1}) - DATE_PART('MONTH', {strDate2}))";
                             break;
                         case "WEEK":
                             newExpression = $"TRUNC(DATE_PART('DAY', {strDate1MinusData2})/7)";
@@ -111,68 +108,59 @@ namespace DatabaseConverter.Core.Functions
                             newExpression = $"DATE_PART('{unit}',{strDate1MinusData2})";
                             break;
                         case "HOUR":
-                            newExpression = $"DATE_PART('DAY', {strDate1MinusData2}) * 24 +(DATE_PART('HOUR', {strDate1MinusData2}))";
+                            newExpression =
+                                $"DATE_PART('DAY', {strDate1MinusData2}) * 24 +(DATE_PART('HOUR', {strDate1MinusData2}))";
                             break;
                         case "MINUTE":
-                            newExpression = $"(DATE_PART('DAY', {strDate1MinusData2}) * 24 + DATE_PART('HOUR', {strDate1MinusData2})) * 60 + DATE_PART('MINUTE', {strDate1MinusData2})";
+                            newExpression =
+                                $"(DATE_PART('DAY', {strDate1MinusData2}) * 24 + DATE_PART('HOUR', {strDate1MinusData2})) * 60 + DATE_PART('MINUTE', {strDate1MinusData2})";
                             break;
                         case "SECOND":
-                            newExpression = $"((DATE_PART('DAY', {strDate1MinusData2}) * 24 +  DATE_PART('HOUR', {strDate1MinusData2})) * 60 + DATE_PART('MINUTE', {strDate1MinusData2})) * 60 +  DATE_PART('SECOND', {strDate1MinusData2})";
+                            newExpression =
+                                $"((DATE_PART('DAY', {strDate1MinusData2}) * 24 +  DATE_PART('HOUR', {strDate1MinusData2})) * 60 + DATE_PART('MINUTE', {strDate1MinusData2})) * 60 +  DATE_PART('SECOND', {strDate1MinusData2})";
                             break;
                     }
                 }
-                else if (this.TargetDbType == DatabaseType.Oracle)
+                else if (TargetDbType == DatabaseType.Oracle)
                 {
-                    bool isTimestampStr1 = isStringValue1 && DatetimeHelper.IsTimestampString(date1);
-                    bool isTimestampStr2 = isStringValue2 && DatetimeHelper.IsTimestampString(date2);
-                    bool isDateStr1 = isStringValue1 && !isTimestampStr1;
-                    bool isDateStr2 = isStringValue2 && !isTimestampStr2;
+                    var isTimestampStr1 = isStringValue1 && DatetimeHelper.IsTimestampString(date1);
+                    var isTimestampStr2 = isStringValue2 && DatetimeHelper.IsTimestampString(date2);
+                    var isDateStr1 = isStringValue1 && !isTimestampStr1;
+                    var isDateStr2 = isStringValue2 && !isTimestampStr2;
 
                     Func<string, bool, bool, string> getStrDate = (date, isStringValue, isTimestampStr) =>
                     {
-                        if (isStringValue)
-                        {
-                            date = DatetimeHelper.GetOracleUniformDatetimeString(date, isTimestampStr);
-                        }
+                        if (isStringValue) date = DatetimeHelper.GetOracleUniformDatetimeString(date, isTimestampStr);
 
-                        string dataType = isStringValue ? (isTimestampStr ? "TIMESTAMP" : "DATE") : "";
+                        var dataType = isStringValue ? isTimestampStr ? "TIMESTAMP" : "DATE" : "";
 
-                        string strDate = $"{dataType}{date}";
+                        var strDate = $"{dataType}{date}";
 
-                        if (!isTimestampStr)
-                        {
-                            strDate = $"CAST({strDate} AS TIMESTAMP)";
-                        }
+                        if (!isTimestampStr) strDate = $"CAST({strDate} AS TIMESTAMP)";
 
                         return strDate;
                     };
 
-                    string strDate1 = getStrDate(date1, isStringValue1, isTimestampStr1);
-                    string strDate2 = getStrDate(date2, isStringValue2, isTimestampStr2);
+                    var strDate1 = getStrDate(date1, isStringValue1, isTimestampStr1);
+                    var strDate2 = getStrDate(date2, isStringValue2, isTimestampStr2);
 
-                    string strDate1MinusData2 = $"{strDate1}-{strDate2}";
-                    string dateFormat = $"'{DatetimeHelper.DateFormat}'";
-                    string datetimeFormat = $"'{DatetimeHelper.OracleDatetimeFormat}'";
+                    var strDate1MinusData2 = $"{strDate1}-{strDate2}";
+                    var dateFormat = $"'{DatetimeHelper.DateFormat}'";
+                    var datetimeFormat = $"'{DatetimeHelper.OracleDatetimeFormat}'";
 
                     Func<string, bool, bool, string> getDateFormatStr = (date, isDateStr, isTimestampStr) =>
                     {
                         if (isDateStr)
-                        {
                             return $"TO_DATE({date}, {dateFormat})";
-                        }
-                        else if (isTimestampStr)
-                        {
+                        if (isTimestampStr)
                             return $"TO_DATE({date}, {datetimeFormat})";
-                        }
-                        else
-                        {
-                            return $"TO_DATE(TO_CHAR({date}, {datetimeFormat}), {datetimeFormat})";
-                        }
+                        return $"TO_DATE(TO_CHAR({date}, {datetimeFormat}), {datetimeFormat})";
                     };
 
-                    Func<string, string> getDiffValue = (multiplier) =>
+                    Func<string, string> getDiffValue = multiplier =>
                     {
-                        string value = $"({getDateFormatStr(date1, isDateStr1, isTimestampStr1)}-{getDateFormatStr(date2, isDateStr2, isTimestampStr2)})";
+                        var value =
+                            $"({getDateFormatStr(date1, isDateStr1, isTimestampStr1)}-{getDateFormatStr(date2, isDateStr2, isTimestampStr2)})";
 
                         return $"ROUND({value}*{multiplier})";
                     };
@@ -192,7 +180,8 @@ namespace DatabaseConverter.Core.Functions
                             newExpression = $"EXTRACT(DAY FROM ({strDate1MinusData2}))";
                             break;
                         case "HOUR":
-                            newExpression = $"EXTRACT(DAY FROM ({strDate1MinusData2}))*24 + EXTRACT(HOUR FROM ({strDate1MinusData2}))";
+                            newExpression =
+                                $"EXTRACT(DAY FROM ({strDate1MinusData2}))*24 + EXTRACT(HOUR FROM ({strDate1MinusData2}))";
                             break;
                         case "MINUTE":
                             //newExpression = $"(EXTRACT(DAY FROM {strDate1MinusData2}) * 24 + EXTRACT(HOUR FROM {strDate1MinusData2})) * 60 + EXTRACT(MINUTE FROM {strDate1MinusData2})";
@@ -204,20 +193,15 @@ namespace DatabaseConverter.Core.Functions
                             break;
                     }
                 }
-                else if (this.TargetDbType == DatabaseType.Sqlite)
+                else if (TargetDbType == DatabaseType.Sqlite)
                 {
-                    Func<string, string> getDiffValue = (multiplier) =>
+                    Func<string, string> getDiffValue = multiplier =>
                     {
-                        string value = $"(JULIANDAY({date1})-JULIANDAY({date2}))"; 
+                        var value = $"(JULIANDAY({date1})-JULIANDAY({date2}))";
 
-                        if(unit== "YEAR")
-                        {
+                        if (unit == "YEAR")
                             return $"FLOOR(ROUND({value}{multiplier},2))";
-                        }
-                        else
-                        {
-                            return $"ROUND({value}{multiplier})";
-                        }                        
+                        return $"ROUND({value}{multiplier})";
                     };
 
                     switch (unit)
@@ -237,10 +221,10 @@ namespace DatabaseConverter.Core.Functions
                         case "HOUR":
                             newExpression = getDiffValue("*24");
                             break;
-                        case "MINUTE":                           
+                        case "MINUTE":
                             newExpression = getDiffValue("24*60");
                             break;
-                        case "SECOND":                            
+                        case "SECOND":
                             newExpression = getDiffValue("24*60*60");
                             break;
                     }

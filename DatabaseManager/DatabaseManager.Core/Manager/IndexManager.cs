@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
-using DatabaseManager.Model;
+﻿using System.Collections.Generic;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
-
+using DatabaseManager.Model;
 
 namespace DatabaseManager.Core
 {
@@ -18,7 +14,7 @@ namespace DatabaseManager.Core
 
         public static string GetIndexDefaultName(string indexType, Table table)
         {
-            return $"{(indexType == nameof(IndexType.Unique)? "UK":"IX")}_{table.Name}";
+            return $"{(indexType == nameof(IndexType.Unique) ? "UK" : "IX")}_{table.Name}";
         }
 
         public static string GetForeignKeyDefaultName(string tableName, string referencedTableName)
@@ -26,41 +22,33 @@ namespace DatabaseManager.Core
             return $"FK_{referencedTableName}_{tableName}";
         }
 
-        public static List<TableIndexDesignerInfo> GetIndexDesignerInfos(DatabaseType databaseType, List<TableIndex> indexes)
+        public static List<TableIndexDesignerInfo> GetIndexDesignerInfos(DatabaseType databaseType,
+            List<TableIndex> indexes)
         {
-            List<TableIndexDesignerInfo> indexDesignerInfos = new List<TableIndexDesignerInfo>();
-            
+            var indexDesignerInfos = new List<TableIndexDesignerInfo>();
+
             foreach (var index in indexes)
             {
-                TableIndexDesignerInfo indexDesignerInfo = new TableIndexDesignerInfo();
+                var indexDesignerInfo = new TableIndexDesignerInfo();
 
                 indexDesignerInfo.OldName = indexDesignerInfo.Name = index.Name;
                 indexDesignerInfo.IsPrimary = index.IsPrimary;
                 indexDesignerInfo.OldType = index.Type;
-                indexDesignerInfo.Comment = index.Comment;               
+                indexDesignerInfo.Comment = index.Comment;
 
-                string type = index.Type;
+                var type = index.Type;
 
-                if (!string.IsNullOrEmpty(type))
-                {
-                    indexDesignerInfo.Type = type;
-                }
+                if (!string.IsNullOrEmpty(type)) indexDesignerInfo.Type = type;
 
                 if (index.IsPrimary)
                 {
-                    if(databaseType == DatabaseType.Oracle)
-                    {
+                    if (databaseType == DatabaseType.Oracle)
                         indexDesignerInfo.Type = IndexType.Unique.ToString();
-                    }
                     else
-                    {
                         indexDesignerInfo.Type = IndexType.Primary.ToString();
-                    }             
 
                     if (indexDesignerInfo.ExtraPropertyInfo == null)
-                    {
                         indexDesignerInfo.ExtraPropertyInfo = new TableIndexExtraPropertyInfo();
-                    }
 
                     indexDesignerInfo.ExtraPropertyInfo.Clustered = index.Clustered;
                 }
@@ -68,15 +56,13 @@ namespace DatabaseManager.Core
                 {
                     indexDesignerInfo.Type = IndexType.Unique.ToString();
                 }
-                else if(string.IsNullOrEmpty(index.Type))
+                else if (string.IsNullOrEmpty(index.Type))
                 {
                     indexDesignerInfo.Type = IndexType.Normal.ToString();
                 }
 
                 if (string.IsNullOrEmpty(indexDesignerInfo.OldType) && !string.IsNullOrEmpty(indexDesignerInfo.Type))
-                {
                     indexDesignerInfo.OldType = indexDesignerInfo.Type;
-                }
 
                 indexDesignerInfo.Columns.AddRange(index.Columns);
 
@@ -88,16 +74,16 @@ namespace DatabaseManager.Core
 
         public static List<TableForeignKeyDesignerInfo> GetForeignKeyDesignerInfos(List<TableForeignKey> foreignKeys)
         {
-            List<TableForeignKeyDesignerInfo> foreignKeyDesignerInfos = new List<TableForeignKeyDesignerInfo>();
+            var foreignKeyDesignerInfos = new List<TableForeignKeyDesignerInfo>();
 
-            foreach(TableForeignKey foreignKey in foreignKeys)
+            foreach (var foreignKey in foreignKeys)
             {
-                TableForeignKeyDesignerInfo keyDesignerInfo = new TableForeignKeyDesignerInfo();
+                var keyDesignerInfo = new TableForeignKeyDesignerInfo();
 
                 ObjectHelper.CopyProperties(foreignKey, keyDesignerInfo);
 
-                keyDesignerInfo.OldName = foreignKey.Name;              
-                keyDesignerInfo.Columns = foreignKey.Columns;               
+                keyDesignerInfo.OldName = foreignKey.Name;
+                keyDesignerInfo.Columns = foreignKey.Columns;
 
                 foreignKeyDesignerInfos.Add(keyDesignerInfo);
             }
@@ -107,15 +93,15 @@ namespace DatabaseManager.Core
 
         public static List<TableConstraintDesignerInfo> GetConstraintDesignerInfos(List<TableConstraint> constraints)
         {
-            List<TableConstraintDesignerInfo> constraintDesignerInfos = new List<TableConstraintDesignerInfo>();
+            var constraintDesignerInfos = new List<TableConstraintDesignerInfo>();
 
-            foreach (TableConstraint constraint in constraints)
+            foreach (var constraint in constraints)
             {
-                TableConstraintDesignerInfo constraintDesignerInfo = new TableConstraintDesignerInfo();
+                var constraintDesignerInfo = new TableConstraintDesignerInfo();
 
                 ObjectHelper.CopyProperties(constraint, constraintDesignerInfo);
 
-                constraintDesignerInfo.OldName = constraint.Name;               
+                constraintDesignerInfo.OldName = constraint.Name;
 
                 constraintDesignerInfos.Add(constraintDesignerInfo);
             }

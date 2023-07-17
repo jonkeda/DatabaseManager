@@ -8,10 +8,10 @@ namespace SqlAnalyser.Model
         public ParameterType ParameterType { get; set; }
         public TokenInfo DataType { get; set; }
         public TokenInfo DefaultValue { get; set; }
-    }  
+    }
 
     [Flags]
-    public enum ParameterType : int
+    public enum ParameterType
     {
         NONE = 0,
         IN = 2,

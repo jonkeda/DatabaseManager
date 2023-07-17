@@ -1,191 +1,176 @@
-﻿using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Utility;
+﻿using System;
+using System.Linq;
+using System.Windows.Forms;
 using DatabaseManager.Helper;
 using DatabaseManager.Model;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
-namespace DatabaseManager
+namespace DatabaseManager;
+
+public partial class frmDataFilterCondition : Form
 {
-    public partial class frmDataFilterCondition : Form
+    public frmDataFilterCondition()
     {
-        public DataGridViewColumn Column { get; set; }
+        InitializeComponent();
+    }
 
-        public QueryConditionItem Condition { get; set; }
+    public DataGridViewColumn Column { get; set; }
 
-        public frmDataFilterCondition()
+    public QueryConditionItem Condition { get; set; }
+
+    private void frmDataFilterCondition_Load(object sender, EventArgs e)
+    {
+        InitControls();
+    }
+
+    private void btnClear_Click(object sender, EventArgs e)
+    {
+        cboOperator.SelectedIndex = -1;
+        txtValue.Text = "";
+        txtFrom.Text = "";
+        txtTo.Text = "";
+        txtValues.Text = "";
+    }
+
+    private void InitControls()
+    {
+        rbSingle.Checked = true;
+
+        SetValue();
+    }
+
+    public void SetValue()
+    {
+        var condition = Condition;
+
+        if (condition == null) return;
+
+        if (condition.Mode == QueryConditionMode.Single)
         {
-            InitializeComponent();
+            rbSingle.Checked = true;
+            cboOperator.Text = condition.Operator;
+            txtValue.Text = condition.Value;
+        }
+        else if (condition.Mode == QueryConditionMode.Range)
+        {
+            rbRange.Checked = true;
+            txtFrom.Text = condition.From;
+            txtTo.Text = condition.To;
+        }
+        else if (condition.Mode == QueryConditionMode.Series)
+        {
+            rbSeries.Checked = true;
+            txtValues.Text = string.Join(",", condition.Values);
         }
 
-        private void frmDataFilterCondition_Load(object sender, EventArgs e)
+        SetControlEnabled();
+    }
+
+    private void btnOK_Click(object sender, EventArgs e)
+    {
+        QueryConditionItem condition;
+
+        if (!BuildCondition(out condition)) return;
+
+        Condition = condition;
+        DialogResult = DialogResult.OK;
+        Close();
+    }
+
+    private bool BuildCondition(out QueryConditionItem condition)
+    {
+        condition = new QueryConditionItem { ColumnName = Column.Name, DataType = Column.ValueType };
+
+        if (rbSingle.Checked)
         {
-            this.InitControls();
-        }
-
-        private void btnClear_Click(object sender, EventArgs e)
-        {
-            this.cboOperator.SelectedIndex = -1;
-            this.txtValue.Text = "";
-            this.txtFrom.Text = "";
-            this.txtTo.Text = "";
-            this.txtValues.Text = "";
-        }
-
-        private void InitControls()
-        {
-            this.rbSingle.Checked = true;
-
-            this.SetValue();
-        }
-
-        public void SetValue()
-        {
-            QueryConditionItem condition = this.Condition;
-
-            if (condition == null)
+            if (cboOperator.SelectedIndex >= 0)
             {
-                return;
-            }
-
-            if (condition.Mode == QueryConditionMode.Single)
-            {
-                this.rbSingle.Checked = true;
-                this.cboOperator.Text = condition.Operator;
-                this.txtValue.Text = condition.Value;
-            }
-            else if (condition.Mode == QueryConditionMode.Range)
-            {
-                this.rbRange.Checked = true;
-                this.txtFrom.Text = condition.From;
-                this.txtTo.Text = condition.To;
-            }
-            else if (condition.Mode == QueryConditionMode.Series)
-            {
-                this.rbSeries.Checked = true;
-                this.txtValues.Text = string.Join(",", condition.Values);
-            }
-
-            this.SetControlEnabled();
-        }
-
-        private void btnOK_Click(object sender, EventArgs e)
-        {
-            QueryConditionItem condition;
-
-            if (!this.BuildCondition(out condition))
-            {
-                return;
-            }
-
-            this.Condition = condition;
-            this.DialogResult = DialogResult.OK;
-            this.Close();
-        }
-
-        private bool BuildCondition(out QueryConditionItem condition)
-        {
-            condition = new QueryConditionItem() { ColumnName = this.Column.Name, DataType = this.Column.ValueType };
-
-            if (this.rbSingle.Checked)
-            {
-                if (this.cboOperator.SelectedIndex >= 0)
-                {
-                    if (string.IsNullOrEmpty(this.cboOperator.Text))
-                    {
-                        MessageBox.Show("Value can't be empty.");
-                        return false;
-                    }
-
-                    condition.Mode = QueryConditionMode.Single;
-                    condition.Operator = this.cboOperator.Text;
-                    condition.Value = this.txtValue.Text;
-                }
-                else
-                {
-                    MessageBox.Show("Please select operator.");
-                    return false;
-                }
-            }
-            else if (this.rbRange.Checked)
-            {
-                string from = this.txtFrom.Text;
-                string to = this.txtTo.Text;
-
-                if (string.IsNullOrWhiteSpace(from) || string.IsNullOrWhiteSpace(to))
-                {
-                    MessageBox.Show("From and To value can't be empty.");
-                    return false;
-                }
-
-                condition.Mode = QueryConditionMode.Range;
-                condition.From = from.Trim();
-                condition.To = to.Trim();
-            }
-            else if (this.rbSeries.Checked)
-            {
-                string values = this.txtValues.Text;
-
-                if (string.IsNullOrWhiteSpace(values))
+                if (string.IsNullOrEmpty(cboOperator.Text))
                 {
                     MessageBox.Show("Value can't be empty.");
                     return false;
                 }
 
-                string[] items = values.Split(new char[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                condition.Mode = QueryConditionMode.Single;
+                condition.Operator = cboOperator.Text;
+                condition.Value = txtValue.Text;
+            }
+            else
+            {
+                MessageBox.Show("Please select operator.");
+                return false;
+            }
+        }
+        else if (rbRange.Checked)
+        {
+            var from = txtFrom.Text;
+            var to = txtTo.Text;
 
-                if (items.Length == 0)
-                {
-                    MessageBox.Show("Has no any valid value.");
-                    return false;
-                }
-
-                condition.Mode = QueryConditionMode.Series;
-                condition.Values = items.ToList();
+            if (string.IsNullOrWhiteSpace(from) || string.IsNullOrWhiteSpace(to))
+            {
+                MessageBox.Show("From and To value can't be empty.");
+                return false;
             }
 
-            return true;
+            condition.Mode = QueryConditionMode.Range;
+            condition.From = from.Trim();
+            condition.To = to.Trim();
         }
-
-        private string GetValue(string value)
+        else if (rbSeries.Checked)
         {
-            bool needQuoted = FrontQueryHelper.NeedQuotedForSql(this.Column.ValueType);
+            var values = txtValues.Text;
 
-            return needQuoted ? $"'{value}'" : value;
+            if (string.IsNullOrWhiteSpace(values))
+            {
+                MessageBox.Show("Value can't be empty.");
+                return false;
+            }
+
+            var items = values.Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (items.Length == 0)
+            {
+                MessageBox.Show("Has no any valid value.");
+                return false;
+            }
+
+            condition.Mode = QueryConditionMode.Series;
+            condition.Values = items.ToList();
         }
 
-        private void btnCancel_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
+        return true;
+    }
 
-        private void rbSingle_CheckedChanged(object sender, EventArgs e)
-        {
-            this.SetControlEnabled();           
-        }
+    private string GetValue(string value)
+    {
+        var needQuoted = FrontQueryHelper.NeedQuotedForSql(Column.ValueType);
 
-        private void rbRange_CheckedChanged(object sender, EventArgs e)
-        {
-            this.SetControlEnabled();            
-        }
+        return needQuoted ? $"'{value}'" : value;
+    }
 
-        private void rbSeries_CheckedChanged(object sender, EventArgs e)
-        {
-            this.SetControlEnabled();            
-        }
+    private void btnCancel_Click(object sender, EventArgs e)
+    {
+        Close();
+    }
 
-        private void SetControlEnabled()
-        {
-            this.panelSingle.Enabled = this.rbSingle.Checked;
-            this.panelRange.Enabled = this.rbRange.Checked;
-            this.panelSeries.Enabled = this.rbSeries.Checked;
-        }
+    private void rbSingle_CheckedChanged(object sender, EventArgs e)
+    {
+        SetControlEnabled();
+    }
+
+    private void rbRange_CheckedChanged(object sender, EventArgs e)
+    {
+        SetControlEnabled();
+    }
+
+    private void rbSeries_CheckedChanged(object sender, EventArgs e)
+    {
+        SetControlEnabled();
+    }
+
+    private void SetControlEnabled()
+    {
+        panelSingle.Enabled = rbSingle.Checked;
+        panelRange.Enabled = rbRange.Checked;
+        panelSeries.Enabled = rbSeries.Checked;
     }
 }

@@ -1,9 +1,9 @@
-﻿using DatabaseConverter.Model;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DatabaseConverter.Model;
+using DatabaseInterpreter.Core;
+using DatabaseInterpreter.Model;
 using TSQL;
 using TSQL.Tokens;
 
@@ -11,61 +11,55 @@ namespace DatabaseConverter.Core
 {
     public class DbObjectTokenTranslator : DbObjectTranslator
     {
-        private List<string> convertedDataTypes = new List<string>();
-        private List<string> convertedFunctions = new List<string>();
+        private readonly List<string> convertedDataTypes = new List<string>();
+        private readonly List<string> convertedFunctions = new List<string>();
 
         private List<FunctionSpecification> sourceFuncSpecs;
         private List<FunctionSpecification> targetFuncSpecs;
 
-        public DbObjectTokenTranslator(DbInterpreter source, DbInterpreter target) : base(source, target) { }
+        public DbObjectTokenTranslator(DbInterpreter source, DbInterpreter target) : base(source, target)
+        {
+        }
 
         public override void Translate()
         {
-            
         }
 
         public virtual string ParseDefinition(string definition)
         {
-            var tokens = this.GetTokens(definition);
-            bool changed = false;
+            var tokens = GetTokens(definition);
+            var changed = false;
 
-            definition = this.HandleDefinition(definition, tokens, out changed);
+            definition = HandleDefinition(definition, tokens, out changed);
 
-            if (changed)
-            {
-                tokens = this.GetTokens(definition);
-            }
+            if (changed) tokens = GetTokens(definition);
 
-            definition = this.BuildDefinition(tokens);
+            definition = BuildDefinition(tokens);
 
             return definition;
         }
 
         protected string HandleDefinition(string definition, List<TSQLToken> tokens, out bool changed)
         {
-            this.sourceFuncSpecs = FunctionManager.GetFunctionSpecifications(this.sourceDbInterpreter.DatabaseType);
-            this.targetFuncSpecs = FunctionManager.GetFunctionSpecifications(this.targetDbInterpreter.DatabaseType);
+            sourceFuncSpecs = FunctionManager.GetFunctionSpecifications(sourceDbInterpreter.DatabaseType);
+            targetFuncSpecs = FunctionManager.GetFunctionSpecifications(targetDbInterpreter.DatabaseType);
 
             changed = false;
 
-            string newDefinition = definition;
+            var newDefinition = definition;
 
-            foreach (TSQLToken token in tokens)
+            foreach (var token in tokens)
             {
-                string text = token.Text;
+                var text = token.Text;
                 string functionExpression = null;
 
                 switch (token.Type)
                 {
-                    case TSQLTokenType.SystemIdentifier:                      
+                    case TSQLTokenType.SystemIdentifier:
                     case TSQLTokenType.Identifier:
 
                         if (sourceFuncSpecs.Any(item => item.Name == text.ToUpper()))
-                        {
-                            functionExpression = this.GetFunctionExpression(token, definition);
-
-                            break;
-                        }
+                            functionExpression = GetFunctionExpression(token, definition);
 
                         break;
                     case TSQLTokenType.Keyword:
@@ -74,19 +68,17 @@ namespace DatabaseConverter.Core
 
                 if (!string.IsNullOrEmpty(functionExpression))
                 {
-                    bool useBrackets = false;
-                    MappingFunctionInfo targetFunctionInfo = GetMappingFunctionInfo(text, null, out useBrackets);
+                    var useBrackets = false;
+                    var targetFunctionInfo = GetMappingFunctionInfo(text, null, out useBrackets);
 
-                    FunctionFormula formula = new FunctionFormula(functionExpression);
+                    var formula = new FunctionFormula(functionExpression);
 
                     Dictionary<string, string> dictDataType = null;
 
-                    if (formula.Name == null)
-                    {
-                        continue;
-                    }
+                    if (formula.Name == null) continue;
 
-                    string newExpression = ParseFormula(this.sourceFuncSpecs, this.targetFuncSpecs, formula, targetFunctionInfo, out dictDataType);
+                    var newExpression = ParseFormula(sourceFuncSpecs, targetFuncSpecs, formula, targetFunctionInfo,
+                        out dictDataType);
 
                     if (newExpression != formula.Expression)
                     {
@@ -95,20 +87,13 @@ namespace DatabaseConverter.Core
                         changed = true;
                     }
 
-                    if (dictDataType != null)
-                    {
-                        this.convertedDataTypes.AddRange(dictDataType.Values);
-                    }
+                    if (dictDataType != null) convertedDataTypes.AddRange(dictDataType.Values);
 
                     if (!string.IsNullOrEmpty(targetFunctionInfo.Args) && changed)
-                    {
-                        if (!this.convertedFunctions.Contains(targetFunctionInfo.Name))
-                        {
-                            this.convertedFunctions.Add(targetFunctionInfo.Name);
-                        }
-                    }
+                        if (!convertedFunctions.Contains(targetFunctionInfo.Name))
+                            convertedFunctions.Add(targetFunctionInfo.Name);
                 }
-            }         
+            }
 
             return newDefinition;
         }
@@ -116,34 +101,27 @@ namespace DatabaseConverter.Core
         private string GetFunctionExpression(TSQLToken token, string definition)
         {
             int startIndex = startIndex = token.BeginPosition;
-            int functionEndIndex = functionEndIndex = this.FindFunctionEndIndex(startIndex + token.Text.Length, definition);
+            int functionEndIndex = functionEndIndex = FindFunctionEndIndex(startIndex + token.Text.Length, definition);
 
             string functionExpression = null;
 
             if (functionEndIndex != -1)
-            {
                 functionExpression = definition.Substring(startIndex, functionEndIndex - startIndex + 1);
-            }
 
             return functionExpression;
         }
 
         private int FindFunctionEndIndex(int startIndex, string definition)
         {
-            int leftBracketCount = 0;
-            int rightBracketCount = 0;
-            int functionEndIndex = -1;
+            var leftBracketCount = 0;
+            var rightBracketCount = 0;
+            var functionEndIndex = -1;
 
-            for (int i = startIndex; i < definition.Length; i++)
+            for (var i = startIndex; i < definition.Length; i++)
             {
                 if (definition[i] == '(')
-                {
                     leftBracketCount++;
-                }
-                else if (definition[i] == ')')
-                {
-                    rightBracketCount++;
-                }
+                else if (definition[i] == ')') rightBracketCount++;
 
                 if (rightBracketCount == leftBracketCount)
                 {
@@ -155,21 +133,21 @@ namespace DatabaseConverter.Core
             return functionEndIndex;
         }
 
-        public string BuildDefinition(List<TSQL.Tokens.TSQLToken> tokens)
+        public string BuildDefinition(List<TSQLToken> tokens)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
-            this.sourceSchemaName = sourceDbInterpreter.DefaultSchema;
+            sourceSchemaName = sourceDbInterpreter.DefaultSchema;
 
-            var sourceDataTypeSpecs = DataTypeManager.GetDataTypeSpecifications(this.sourceDbInterpreter.DatabaseType);
-            var targetDataTypeSpecs = DataTypeManager.GetDataTypeSpecifications(this.targetDbInterpreter.DatabaseType);
+            var sourceDataTypeSpecs = DataTypeManager.GetDataTypeSpecifications(sourceDbInterpreter.DatabaseType);
+            var targetDataTypeSpecs = DataTypeManager.GetDataTypeSpecifications(targetDbInterpreter.DatabaseType);
 
-            int ignoreCount = 0;
+            var ignoreCount = 0;
 
-            TSQLTokenType previousType = TSQLTokenType.Whitespace;
-            string previousText = "";
+            var previousType = TSQLTokenType.Whitespace;
+            var previousText = "";
 
-            for (int i = 0; i < tokens.Count; i++)
+            for (var i = 0; i < tokens.Count; i++)
             {
                 if (ignoreCount > 0)
                 {
@@ -180,7 +158,7 @@ namespace DatabaseConverter.Core
                 var token = tokens[i];
 
                 var tokenType = token.Type;
-                string text = token.Text;
+                var text = token.Text;
 
                 switch (tokenType)
                 {
@@ -197,77 +175,62 @@ namespace DatabaseConverter.Core
                         //Remove schema name
                         if (nextToken != null && nextToken.Text.Trim() != "(" &&
                             text.Trim('"') == sourceSchemaName && i + 1 < tokens.Count && tokens[i + 1].Text == "."
-                            )
+                           )
                         {
                             ignoreCount++;
                             continue;
                         }
-                        else if (nextToken != null && nextToken.Text.Trim() == "(") //function handle
+
+                        if (nextToken != null && nextToken.Text.Trim() == "(") //function handle
                         {
-                            if (this.convertedFunctions.Contains(text))
+                            if (convertedFunctions.Contains(text))
                             {
                                 sb.Append(text);
                                 continue;
                             }
 
-                            string textWithBrackets = text.ToLower() + "()";
+                            var textWithBrackets = text.ToLower() + "()";
 
-                            bool useBrackets = false;
+                            var useBrackets = false;
 
-                            MappingFunctionInfo targetFunctionInfo = GetMappingFunctionInfo(text, null, out useBrackets);
+                            var targetFunctionInfo = GetMappingFunctionInfo(text, null, out useBrackets);
 
                             if (targetFunctionInfo.Name.ToLower() != text.ToLower())
                             {
-                                string targetFunction = targetFunctionInfo.Name;
+                                var targetFunction = targetFunctionInfo.Name;
 
                                 if (!string.IsNullOrEmpty(targetFunction))
-                                {
                                     sb.Append(targetFunction);
-                                }
                                 else
-                                {
                                     sb.Append(text); //reserve original function name
-                                }
 
-                                if (useBrackets)
-                                {
-                                    ignoreCount += 2;
-                                }
+                                if (useBrackets) ignoreCount += 2;
                             }
                             else
                             {
-                                if (text.StartsWith(this.sourceDbInterpreter.QuotationLeftChar.ToString()) && text.EndsWith(this.sourceDbInterpreter.QuotationRightChar.ToString()))
-                                {
-                                    sb.Append(this.GetQuotedString(text.Trim(this.sourceDbInterpreter.QuotationLeftChar, this.sourceDbInterpreter.QuotationRightChar)));
-                                }
+                                if (text.StartsWith(sourceDbInterpreter.QuotationLeftChar.ToString()) &&
+                                    text.EndsWith(sourceDbInterpreter.QuotationRightChar.ToString()))
+                                    sb.Append(GetQuotedString(text.Trim(sourceDbInterpreter.QuotationLeftChar,
+                                        sourceDbInterpreter.QuotationRightChar)));
                                 else
-                                {
                                     sb.Append(text);
-                                }
                             }
                         }
                         else
                         {
                             if ((sourceDataTypeSpecs != null && sourceDataTypeSpecs.Any(item => item.Name == text))
                                 || (targetDataTypeSpecs != null && targetDataTypeSpecs.Any(item => item.Name == text)))
-                            {
                                 sb.Append(text);
-                            }
                             else
-                            {
-                                sb.Append(this.GetQuotedString(text));
-                            }
+                                sb.Append(GetQuotedString(text));
                         }
+
                         break;
                     case TSQLTokenType.StringLiteral:
                         if (previousType != TSQLTokenType.Whitespace && previousText.ToLower() == "as")
-                        {
-                            sb.Append(this.GetQuotedString(text));
-                        }
+                            sb.Append(GetQuotedString(text));
                         else
-                        {
                             sb.Append(text);
-                        }
                         break;
                     case TSQLTokenType.SingleLineComment:
                     case TSQLTokenType.MultilineComment:
@@ -278,14 +241,16 @@ namespace DatabaseConverter.Core
                             case "AS":
                                 if (targetDbInterpreter is OracleInterpreter)
                                 {
-                                    var previousKeyword = (from t in tokens where t.Type == TSQLTokenType.Keyword && t.EndPosition < token.BeginPosition select t).LastOrDefault();
-                                    if (previousKeyword != null && previousKeyword.Text.ToUpper() == "FROM")
-                                    {
-                                        continue;
-                                    }
+                                    var previousKeyword =
+                                        (from t in tokens
+                                            where t.Type == TSQLTokenType.Keyword && t.EndPosition < token.BeginPosition
+                                            select t).LastOrDefault();
+                                    if (previousKeyword != null && previousKeyword.Text.ToUpper() == "FROM") continue;
                                 }
+
                                 break;
                         }
+
                         sb.Append(text);
                         break;
                     default:
@@ -305,15 +270,15 @@ namespace DatabaseConverter.Core
 
         private string GetQuotedString(string text)
         {
-            if (!text.StartsWith(this.targetDbInterpreter.QuotationLeftChar.ToString()) && !text.EndsWith(this.targetDbInterpreter.QuotationRightChar.ToString()))
-            {
-                return this.targetDbInterpreter.GetQuotedString(text.Trim('\'', '"', this.sourceDbInterpreter.QuotationLeftChar, this.sourceDbInterpreter.QuotationRightChar));
-            }
+            if (!text.StartsWith(targetDbInterpreter.QuotationLeftChar.ToString()) &&
+                !text.EndsWith(targetDbInterpreter.QuotationRightChar.ToString()))
+                return targetDbInterpreter.GetQuotedString(text.Trim('\'', '"', sourceDbInterpreter.QuotationLeftChar,
+                    sourceDbInterpreter.QuotationRightChar));
 
             return text;
         }
 
-        public List<TSQL.Tokens.TSQLToken> GetTokens(string sql)
+        public List<TSQLToken> GetTokens(string sql)
         {
             return TSQLTokenizer.ParseTokens(sql, true, true);
         }

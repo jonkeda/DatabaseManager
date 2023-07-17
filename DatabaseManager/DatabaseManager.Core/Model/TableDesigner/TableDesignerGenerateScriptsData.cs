@@ -1,5 +1,5 @@
-﻿using DatabaseInterpreter.Model;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using DatabaseInterpreter.Model;
 
 namespace DatabaseManager.Model
 {

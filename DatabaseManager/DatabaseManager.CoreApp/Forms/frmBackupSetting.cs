@@ -1,185 +1,148 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using DatabaseManager.Model;
-using DatabaseManager.Core;
 using System.IO;
-using DatabaseManager.Helper;
+using System.Linq;
+using System.Windows.Forms;
 using DatabaseInterpreter.Model;
+using DatabaseManager.Core;
+using DatabaseManager.Helper;
+using DatabaseManager.Model;
 
-namespace DatabaseManager
+namespace DatabaseManager;
+
+public partial class frmBackupSetting : Form
 {
-    public partial class frmBackupSetting : Form
+    public frmBackupSetting()
     {
-        public frmBackupSetting()
-        {
-            InitializeComponent();
+        InitializeComponent();
 
-            this.dgvSettings.AutoGenerateColumns = false;
-        }
+        dgvSettings.AutoGenerateColumns = false;
+    }
 
-        private void frmBackupSetting_Load(object sender, EventArgs e)
-        {
-            this.LoadSettings();
-        }
+    private void frmBackupSetting_Load(object sender, EventArgs e)
+    {
+        LoadSettings();
+    }
 
-        private void LoadSettings()
-        {
-            List<BackupSetting> settings = BackupSettingManager.GetSettings();
+    private void LoadSettings()
+    {
+        var settings = BackupSettingManager.GetSettings();
 
-            var dbTypes = Enum.GetNames(typeof(DatabaseType));
+        var dbTypes = Enum.GetNames(typeof(DatabaseType));
 
-            foreach (string dbType in dbTypes)
+        foreach (var dbType in dbTypes)
+            if (dbType != DatabaseType.Unknown.ToString())
             {
-                if (dbType != DatabaseType.Unknown.ToString())
-                {
-                    BackupSetting setting = settings.FirstOrDefault(item => item.DatabaseType == dbType);
+                var setting = settings.FirstOrDefault(item => item.DatabaseType == dbType);
 
-                    if (setting == null)
-                    {
-                        settings.Add(new BackupSetting() { DatabaseType = dbType });
-                    }
-                }
+                if (setting == null) settings.Add(new BackupSetting { DatabaseType = dbType });
             }
 
-            this.dgvSettings.DataSource = settings;
+        dgvSettings.DataSource = settings;
+    }
+
+    private void dgvSettings_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+    {
+        if (e.RowIndex < 0) return;
+
+        var cell = dgvSettings.Rows[e.RowIndex].Cells[e.ColumnIndex];
+
+        if (cell.ReadOnly) return;
+
+        var value = DataGridViewHelper.GetCellStringValue(cell);
+
+        if (e.ColumnIndex == colClientToolFilePath.Index)
+        {
+            if (openFileDialog1 == null) openFileDialog1 = new OpenFileDialog();
+
+            if (!string.IsNullOrEmpty(value) && File.Exists(value))
+                openFileDialog1.FileName = value;
+            else
+                openFileDialog1.FileName = "";
+
+            var result = openFileDialog1.ShowDialog();
+
+            if (result == DialogResult.OK) SetCellValue(cell, openFileDialog1.FileName);
+        }
+        else if (e.ColumnIndex == colSaveFolder.Index)
+        {
+            if (folderBrowserDialog1 == null) folderBrowserDialog1 = new FolderBrowserDialog();
+
+            if (!string.IsNullOrEmpty(value) && File.Exists(value))
+                folderBrowserDialog1.SelectedPath = value;
+            else
+                folderBrowserDialog1.SelectedPath = "";
+
+            var result = folderBrowserDialog1.ShowDialog();
+
+            if (result == DialogResult.OK) SetCellValue(cell, folderBrowserDialog1.SelectedPath);
+        }
+    }
+
+    private void SetCellValue(DataGridViewCell cell, string value)
+    {
+        cell.Value = value;
+
+        dgvSettings.EndEdit();
+        dgvSettings.CurrentCell = null;
+    }
+
+    private void btnSave_Click(object sender, EventArgs e)
+    {
+        Save();
+
+        MessageBox.Show("Saved successfully.");
+
+        DialogResult = DialogResult.OK;
+
+        Close();
+    }
+
+    private List<BackupSetting> GetSettings()
+    {
+        var settings = new List<BackupSetting>();
+
+        foreach (DataGridViewRow row in dgvSettings.Rows)
+        {
+            var setting = new BackupSetting();
+            setting.DatabaseType = DataGridViewHelper.GetCellStringValue(row, colDatabaseType.Name);
+            setting.ClientToolFilePath = DataGridViewHelper.GetCellStringValue(row, colClientToolFilePath.Name);
+            setting.SaveFolder = DataGridViewHelper.GetCellStringValue(row, colSaveFolder.Name);
+            setting.ZipFile = DataGridViewHelper.GetCellBoolValue(row, colZipBackupFile.Name);
+
+            settings.Add(setting);
         }
 
-        private void dgvSettings_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        return settings;
+    }
+
+    private void Save()
+    {
+        BackupSettingManager.SaveConfig(GetSettings());
+    }
+
+    private void btnCancel_Click(object sender, EventArgs e)
+    {
+        Close();
+    }
+
+    private void dgvSettings_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
+    {
+        foreach (DataGridViewRow row in dgvSettings.Rows)
         {
-            if (e.RowIndex < 0)
+            var dbType = DataGridViewHelper.GetCellStringValue(row, colDatabaseType.Name);
+
+            if (dbType == DatabaseType.SqlServer.ToString())
             {
-                return;
+                row.Cells[colClientToolFilePath.Name].ReadOnly = true;
+                row.Cells[colZipBackupFile.Name].ReadOnly = true;
             }
-
-            DataGridViewCell cell = this.dgvSettings.Rows[e.RowIndex].Cells[e.ColumnIndex];
-
-            if(cell.ReadOnly)
+            else if (dbType == DatabaseType.Postgres.ToString())
             {
-                return;
-            }
-
-            string value = DataGridViewHelper.GetCellStringValue(cell);
-
-            if (e.ColumnIndex == this.colClientToolFilePath.Index)
-            {
-                if (this.openFileDialog1 == null)
-                {
-                    this.openFileDialog1 = new OpenFileDialog();
-                }               
-
-                if (!string.IsNullOrEmpty(value) && File.Exists(value))
-                {
-                    this.openFileDialog1.FileName = value;
-                }
-                else
-                {
-                    this.openFileDialog1.FileName = "";
-                }
-
-                DialogResult result = this.openFileDialog1.ShowDialog();
-
-                if (result == DialogResult.OK)
-                {
-                    this.SetCellValue(cell, this.openFileDialog1.FileName);
-                }
-            }
-            else if (e.ColumnIndex == this.colSaveFolder.Index)
-            {
-                if(this.folderBrowserDialog1==null)
-                {
-                    this.folderBrowserDialog1 = new FolderBrowserDialog();
-                }            
-
-                if (!string.IsNullOrEmpty(value) && File.Exists(value))
-                {
-                    this.folderBrowserDialog1.SelectedPath = value;
-                }
-                else
-                {
-                    this.folderBrowserDialog1.SelectedPath = "";
-                }
-
-                DialogResult result = this.folderBrowserDialog1.ShowDialog();
-
-                if (result == DialogResult.OK)
-                {
-                    this.SetCellValue(cell, this.folderBrowserDialog1.SelectedPath);
-                }
+                row.Cells[colZipBackupFile.Name].ReadOnly = true;
             }
         }
 
-        private void SetCellValue(DataGridViewCell cell, string value)
-        {
-            cell.Value = value;
-
-            this.dgvSettings.EndEdit();
-            this.dgvSettings.CurrentCell = null;
-        }
-
-        private void btnSave_Click(object sender, EventArgs e)
-        {
-            this.Save();
-
-            MessageBox.Show("Saved successfully.");
-
-            this.DialogResult = DialogResult.OK;
-
-            this.Close();
-        }
-
-        private List<BackupSetting> GetSettings()
-        {
-            List<BackupSetting> settings = new List<BackupSetting>();
-
-            foreach (DataGridViewRow row in this.dgvSettings.Rows)
-            {
-                BackupSetting setting = new BackupSetting();
-                setting.DatabaseType = DataGridViewHelper.GetCellStringValue(row, this.colDatabaseType.Name);
-                setting.ClientToolFilePath = DataGridViewHelper.GetCellStringValue(row, this.colClientToolFilePath.Name);
-                setting.SaveFolder = DataGridViewHelper.GetCellStringValue(row, this.colSaveFolder.Name);
-                setting.ZipFile = DataGridViewHelper.GetCellBoolValue(row, this.colZipBackupFile.Name);
-
-                settings.Add(setting);
-            }
-
-            return settings;
-        }
-
-        private void Save()
-        {
-            BackupSettingManager.SaveConfig(this.GetSettings());
-        }
-
-        private void btnCancel_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
-
-        private void dgvSettings_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
-        {
-            foreach(DataGridViewRow row in this.dgvSettings.Rows)
-            {
-                string dbType = DataGridViewHelper.GetCellStringValue(row, this.colDatabaseType.Name);
-
-                if(dbType == DatabaseType.SqlServer.ToString())
-                {
-                    row.Cells[this.colClientToolFilePath.Name].ReadOnly = true;
-                    row.Cells[this.colZipBackupFile.Name].ReadOnly = true;
-                }
-                else if(dbType == DatabaseType.Postgres.ToString())
-                {
-                    row.Cells[this.colZipBackupFile.Name].ReadOnly = true;
-                }
-            }
-
-            this.dgvSettings.ClearSelection();
-        }
+        dgvSettings.ClearSelection();
     }
 }

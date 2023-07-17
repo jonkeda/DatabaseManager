@@ -1,5 +1,5 @@
-﻿using DatabaseInterpreter.Model;
-using System.Text;
+﻿using System.Text;
+using DatabaseInterpreter.Model;
 
 namespace DatabaseInterpreter.Core
 {
@@ -7,8 +7,9 @@ namespace DatabaseInterpreter.Core
     {
         public string BuildConntionString(ConnectionInfo connectionInfo)
         {
-            StringBuilder sb = new StringBuilder($"Data Source={connectionInfo.Database};Password={connectionInfo.Password};Mode=ReadWriteCreate;");
-            
+            var sb = new StringBuilder(
+                $"Data Source={connectionInfo.Database};Password={connectionInfo.Password};Mode=ReadWriteCreate;");
+
             return sb.ToString();
         }
     }

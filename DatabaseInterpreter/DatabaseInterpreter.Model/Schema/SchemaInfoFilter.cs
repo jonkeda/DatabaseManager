@@ -4,8 +4,8 @@ namespace DatabaseInterpreter.Model
 {
     public class SchemaInfoFilter
     {
-        public bool Strict { get; set; }
         public DatabaseObjectType DatabaseObjectType = DatabaseObjectType.None;
+        public bool Strict { get; set; }
         public string Schema { get; set; }
         public string[] UserDefinedTypeNames { get; set; }
         public string[] SequenceNames { get; set; }
@@ -19,7 +19,7 @@ namespace DatabaseInterpreter.Model
     }
 
     [Flags]
-    public enum DatabaseObjectType : int
+    public enum DatabaseObjectType
     {
         None = 0,
         Table = 2,
@@ -36,7 +36,7 @@ namespace DatabaseInterpreter.Model
         Sequence = 4096
     }
 
-    public enum ColumnType : int
+    public enum ColumnType
     {
         None = 0,
         TableColumn = 2,

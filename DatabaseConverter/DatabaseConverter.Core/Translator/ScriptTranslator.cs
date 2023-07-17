@@ -1,142 +1,120 @@
-﻿using DatabaseConverter.Model;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using SqlAnalyser.Core;
-using SqlAnalyser.Core.Model;
-using SqlAnalyser.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using DatabaseConverter.Model;
+using DatabaseInterpreter.Core;
+using DatabaseInterpreter.Model;
+using DatabaseInterpreter.Utility;
+using SqlAnalyser.Core;
+using SqlAnalyser.Model;
 
 namespace DatabaseConverter.Core
 {
     public class ScriptTranslator<T> : DbObjectTokenTranslator
         where T : ScriptDbObject
     {
-        private IEnumerable<T> scripts;
         private ScriptBuildFactory scriptBuildFactory;
+        private readonly IEnumerable<T> scripts;
+
+
+        public ScriptTranslator(DbInterpreter sourceDbInterpreter, DbInterpreter targetDbInterpreter,
+            IEnumerable<T> scripts) : base(sourceDbInterpreter, targetDbInterpreter)
+        {
+            this.scripts = scripts;
+        }
+
         public bool AutoMakeupSchemaName { get; set; } = true;
         public bool IsCommonScript { get; set; }
 
-
-        public ScriptTranslator(DbInterpreter sourceDbInterpreter, DbInterpreter targetDbInterpreter, IEnumerable<T> scripts) : base(sourceDbInterpreter, targetDbInterpreter)
-        {
-            this.scripts = scripts;            
-        }
-
         public override void Translate()
         {
-            if (this.sourceDbInterpreter.DatabaseType == this.targetDbInterpreter.DatabaseType)
+            if (sourceDbInterpreter.DatabaseType == targetDbInterpreter.DatabaseType) return;
+
+            if (hasError) return;
+
+            LoadMappings();
+
+            scriptBuildFactory = GetScriptBuildFactory();
+
+            var total = scripts.Count();
+            var count = 0;
+            var successCount = 0;
+
+            foreach (var dbObj in scripts)
             {
-                return;
-            }
+                if (hasError) break;
 
-            if (this.hasError)
-            {
-                return;
-            }
-
-            this.LoadMappings();
-
-            this.scriptBuildFactory = this.GetScriptBuildFactory();
-
-            int total = this.scripts.Count();
-            int count = 0;
-            int successCount = 0;
-
-            foreach (T dbObj in this.scripts)
-            {
-                if (this.hasError)
-                {
-                    break;
-                }
-
-                if(string.IsNullOrEmpty(dbObj.Definition))
-                {
-                    continue;
-                }
+                if (string.IsNullOrEmpty(dbObj.Definition)) continue;
 
                 count++;
 
-                Type type = typeof(T);
+                var type = typeof(T);
 
-                string percent = total == 1 ? "" : $"({count}/{total})";
+                var percent = total == 1 ? "" : $"({count}/{total})";
 
-                this.FeedbackInfo($"Begin to translate {type.Name}: \"{dbObj.Name}\"{percent}.");
+                FeedbackInfo($"Begin to translate {type.Name}: \"{dbObj.Name}\"{percent}.");
 
-                TranslateResult result = this.TranslateScript(dbObj);
+                var result = TranslateScript(dbObj);
 
-                if (this.Option.CollectTranslateResultAfterTranslated)
-                {
-                    this.TranslateResults.Add(result);
-                }
+                if (Option.CollectTranslateResultAfterTranslated) TranslateResults.Add(result);
 
-                if (!result.HasError)
-                {
-                    successCount++;
-                }
+                if (!result.HasError) successCount++;
             }
 
             if (total > 1)
-            {
-                this.FeedbackInfo($"Translated {total} script(s): {successCount} succeeded, {(total - successCount)} failed.");
-            }            
+                FeedbackInfo($"Translated {total} script(s): {successCount} succeeded, {total - successCount} failed.");
         }
 
-        private TranslateResult TranslateScript(ScriptDbObject dbObj,  bool isPartial = false)
+        private TranslateResult TranslateScript(ScriptDbObject dbObj, bool isPartial = false)
         {
-            TranslateResult translateResult = new TranslateResult() { DbObjectType = DbObjectHelper.GetDatabaseObjectType(dbObj), DbObjectSchema = dbObj.Schema, DbObjectName = dbObj.Name };
+            var translateResult = new TranslateResult
+            {
+                DbObjectType = DbObjectHelper.GetDatabaseObjectType(dbObj), DbObjectSchema = dbObj.Schema,
+                DbObjectName = dbObj.Name
+            };
 
             try
             {
-                Type type = typeof(T);
+                var type = typeof(T);
 
-                bool tokenProcessed = false;
+                var tokenProcessed = false;
 
                 dbObj.Definition = dbObj.Definition.Trim();
 
-                if (this.Option.RemoveCarriagRreturnChar)
-                {
-                    dbObj.Definition = dbObj.Definition.Replace("\r\n", "\n");
-                }
+                if (Option.RemoveCarriagRreturnChar) dbObj.Definition = dbObj.Definition.Replace("\r\n", "\n");
 
                 if (sourceDbType == DatabaseType.MySql)
                 {
-                    string dbName = this.sourceDbInterpreter.ConnectionInfo.Database;
+                    var dbName = sourceDbInterpreter.ConnectionInfo.Database;
 
                     if (dbName != null)
-                    {
                         dbObj.Definition = dbObj.Definition.Replace($"`{dbName}`.", "").Replace($"{dbName}.", "");
-                    }
                 }
                 else if (sourceDbType == DatabaseType.Postgres)
                 {
                     if (dbObj.Definition.Contains("::"))
                     {
-                        var dataTypeSpecs = DataTypeManager.GetDataTypeSpecifications(this.sourceDbType);
+                        var dataTypeSpecs = DataTypeManager.GetDataTypeSpecifications(sourceDbType);
 
-                        dbObj.Definition = TranslateHelper.RemovePostgresDataTypeConvertExpression(dbObj.Definition, dataTypeSpecs, this.targetDbInterpreter.QuotationLeftChar, this.targetDbInterpreter.QuotationRightChar);
+                        dbObj.Definition = TranslateHelper.RemovePostgresDataTypeConvertExpression(dbObj.Definition,
+                            dataTypeSpecs, targetDbInterpreter.QuotationLeftChar,
+                            targetDbInterpreter.QuotationRightChar);
                     }
                 }
 
-                string originalDefinition = dbObj.Definition;
+                var originalDefinition = dbObj.Definition;
                 AnalyseResult anlyseResult = null;
 
-                SqlAnalyserBase sqlAnalyser = this.GetSqlAnalyser(this.sourceDbInterpreter.DatabaseType, originalDefinition);               
+                var sqlAnalyser = GetSqlAnalyser(sourceDbInterpreter.DatabaseType, originalDefinition);
 
                 if (!isPartial)
-                {
                     anlyseResult = sqlAnalyser.Analyse<T>();
-                }
                 else
-                {
                     anlyseResult = sqlAnalyser.AnalyseCommon();
-                }
 
-                CommonScript script = anlyseResult.Script;
+                var script = anlyseResult.Script;
 
                 if (script == null)
                 {
@@ -146,30 +124,34 @@ namespace DatabaseConverter.Core
                     return translateResult;
                 }
 
-                bool replaced = false;
+                var replaced = false;
 
                 if (anlyseResult.HasError)
                 {
                     #region Special handle for view
+
                     if (typeof(T) == typeof(View))
                     {
                         //Currently, ANTLR can't parse some complex tsql accurately, so it uses general strategy.
-                        if (this.sourceDbInterpreter.DatabaseType == DatabaseType.SqlServer)
+                        if (sourceDbInterpreter.DatabaseType == DatabaseType.SqlServer)
                         {
-                            ViewTranslator viewTranslator = new ViewTranslator(this.sourceDbInterpreter, this.targetDbInterpreter, new List<View>() { dbObj as View }) { ContinueWhenErrorOccurs = this.ContinueWhenErrorOccurs };
+                            var viewTranslator =
+                                new ViewTranslator(sourceDbInterpreter, targetDbInterpreter,
+                                        new List<View> { dbObj as View })
+                                    { ContinueWhenErrorOccurs = ContinueWhenErrorOccurs };
                             viewTranslator.Translate();
 
                             replaced = true;
                         }
 
                         //Currently, ANTLR can't parse some view correctly, use procedure to parse it temporarily.
-                        if (this.sourceDbInterpreter.DatabaseType == DatabaseType.Oracle)
+                        if (sourceDbInterpreter.DatabaseType == DatabaseType.Oracle)
                         {
-                            string oldDefinition = dbObj.Definition;
+                            var oldDefinition = dbObj.Definition;
 
-                            int asIndex = oldDefinition.IndexOf(" AS ", StringComparison.OrdinalIgnoreCase);
+                            var asIndex = oldDefinition.IndexOf(" AS ", StringComparison.OrdinalIgnoreCase);
 
-                            StringBuilder sbNewDefinition = new StringBuilder();
+                            var sbNewDefinition = new StringBuilder();
 
                             sbNewDefinition.AppendLine($"CREATE OR REPLACE PROCEDURE {dbObj.Name} AS");
                             sbNewDefinition.AppendLine("BEGIN");
@@ -178,23 +160,26 @@ namespace DatabaseConverter.Core
 
                             dbObj.Definition = sbNewDefinition.ToString();
 
-                            sqlAnalyser = this.GetSqlAnalyser(this.sourceDbType, dbObj.Definition);
+                            sqlAnalyser = GetSqlAnalyser(sourceDbType, dbObj.Definition);
 
-                            AnalyseResult procResult = sqlAnalyser.Analyse<Procedure>();
+                            var procResult = sqlAnalyser.Analyse<Procedure>();
 
                             if (!procResult.HasError)
                             {
-                                this.ProcessTokens(dbObj, procResult.Script);
+                                ProcessTokens(dbObj, procResult.Script);
 
                                 tokenProcessed = true;
 
-                                dbObj.Definition = Regex.Replace(dbObj.Definition, " PROCEDURE ", " VIEW ", RegexOptions.IgnoreCase);
-                                dbObj.Definition = Regex.Replace(dbObj.Definition, @"(BEGIN[\r][\n])|(END[\r][\n])", "", RegexOptions.IgnoreCase);
+                                dbObj.Definition = Regex.Replace(dbObj.Definition, " PROCEDURE ", " VIEW ",
+                                    RegexOptions.IgnoreCase);
+                                dbObj.Definition = Regex.Replace(dbObj.Definition, @"(BEGIN[\r][\n])|(END[\r][\n])", "",
+                                    RegexOptions.IgnoreCase);
 
                                 replaced = true;
                             }
                         }
                     }
+
                     #endregion
                 }
 
@@ -202,74 +187,62 @@ namespace DatabaseConverter.Core
                 {
                     if (string.IsNullOrEmpty(dbObj.Name) && !string.IsNullOrEmpty(anlyseResult.Script?.Name?.Symbol))
                     {
-                        if (this.AutoMakeupSchemaName)
-                        {
-                            dbObj.Schema = anlyseResult.Script.Schema;
-                        }
+                        if (AutoMakeupSchemaName) dbObj.Schema = anlyseResult.Script.Schema;
 
                         TranslateHelper.RestoreTokenValue(originalDefinition, anlyseResult.Script.Name);
 
                         dbObj.Name = anlyseResult.Script.Name.Symbol;
                     }
 
-                    this.ProcessTokens(dbObj, script);
+                    ProcessTokens(dbObj, script);
                 }
 
-                dbObj.Definition = this.ReplaceVariables(dbObj.Definition, this.variableMappings);
+                dbObj.Definition = ReplaceVariables(dbObj.Definition, variableMappings);
 
                 if (script is TriggerScript)
                 {
                     var triggerVariableMappings = TriggerVariableMappingManager.GetVariableMappings();
 
-                    dbObj.Definition = this.ReplaceVariables(dbObj.Definition, triggerVariableMappings);
+                    dbObj.Definition = ReplaceVariables(dbObj.Definition, triggerVariableMappings);
                 }
 
                 if (script is RoutineScript)
-                {
-                    if (this.sourceDbType == DatabaseType.Postgres)
-                    {
+                    if (sourceDbType == DatabaseType.Postgres)
                         if (!isPartial)
                         {
-                            string declaresAndBody = PostgresTranslateHelper.ExtractRountineScriptDeclaresAndBody(originalDefinition);
+                            var declaresAndBody =
+                                PostgresTranslateHelper.ExtractRountineScriptDeclaresAndBody(originalDefinition);
 
-                            ScriptDbObject scriptDbObject = new ScriptDbObject() { Definition = declaresAndBody };
+                            var scriptDbObject = new ScriptDbObject { Definition = declaresAndBody };
 
-                            TranslateResult res = this.TranslateScript(scriptDbObject, true);
+                            var res = TranslateScript(scriptDbObject, true);
 
                             if (!res.HasError)
-                            {
-                                dbObj.Definition = PostgresTranslateHelper.MergeDefinition(dbObj.Definition, scriptDbObject.Definition);
-                            }
+                                dbObj.Definition =
+                                    PostgresTranslateHelper.MergeDefinition(dbObj.Definition,
+                                        scriptDbObject.Definition);
                             else
-                            {
-                                anlyseResult = new AnalyseResult() { Error = res.Error as SqlSyntaxError };
-                            }
+                                anlyseResult = new AnalyseResult { Error = res.Error as SqlSyntaxError };
                         }
-                    }
-                }
 
-                dbObj.Definition = TranslateHelper.TranslateComments(this.sourceDbInterpreter, this.targetDbInterpreter, dbObj.Definition);
+                dbObj.Definition =
+                    TranslateHelper.TranslateComments(sourceDbInterpreter, targetDbInterpreter, dbObj.Definition);
 
-                if (isPartial)
-                {
-                    return translateResult;
-                }
+                if (isPartial) return translateResult;
 
                 translateResult.Error = replaced ? null : anlyseResult.Error;
                 translateResult.Data = dbObj.Definition;
 
-                this.FeedbackInfo($"End translate {type.Name}: \"{dbObj.Name}\", translate result: {(anlyseResult.HasError ? "Error" : "OK")}.");
+                FeedbackInfo(
+                    $"End translate {type.Name}: \"{dbObj.Name}\", translate result: {(anlyseResult.HasError ? "Error" : "OK")}.");
 
                 if (!replaced && anlyseResult.HasError)
                 {
-                    string errMsg = this.ParseSqlSyntaxError(anlyseResult.Error, originalDefinition).ToString();
+                    var errMsg = ParseSqlSyntaxError(anlyseResult.Error, originalDefinition).ToString();
 
-                    this.FeedbackError(errMsg, this.ContinueWhenErrorOccurs);
+                    FeedbackError(errMsg, ContinueWhenErrorOccurs);
 
-                    if (!this.ContinueWhenErrorOccurs)
-                    {
-                        this.hasError = true;
-                    }
+                    if (!ContinueWhenErrorOccurs) hasError = true;
                 }
 
                 return translateResult;
@@ -278,23 +251,21 @@ namespace DatabaseConverter.Core
             {
                 var sce = new ScriptConvertException<T>(ex)
                 {
-                    SourceServer = this.sourceDbInterpreter.ConnectionInfo.Server,
-                    SourceDatabase = this.sourceDbInterpreter.ConnectionInfo.Database,
+                    SourceServer = sourceDbInterpreter.ConnectionInfo.Server,
+                    SourceDatabase = sourceDbInterpreter.ConnectionInfo.Database,
                     SourceObject = dbObj.Name,
-                    TargetServer = this.targetDbInterpreter.ConnectionInfo.Server,
-                    TargetDatabase = this.targetDbInterpreter.ConnectionInfo.Database,
+                    TargetServer = targetDbInterpreter.ConnectionInfo.Server,
+                    TargetDatabase = targetDbInterpreter.ConnectionInfo.Database,
                     TargetObject = dbObj.Name
                 };
 
-                if (!this.ContinueWhenErrorOccurs)
+                if (!ContinueWhenErrorOccurs)
                 {
-                    this.hasError = true;
+                    hasError = true;
                     throw sce;
                 }
-                else
-                {
-                    this.FeedbackError(ExceptionHelper.GetExceptionDetails(ex), this.ContinueWhenErrorOccurs);
-                }
+
+                FeedbackError(ExceptionHelper.GetExceptionDetails(ex), ContinueWhenErrorOccurs);
 
                 return translateResult;
             }
@@ -304,87 +275,88 @@ namespace DatabaseConverter.Core
         {
             if (typeof(T) == typeof(Function))
             {
-                SqlAnalyserBase sqlAnalyser = this.GetSqlAnalyser(this.sourceDbType, dbObj.Definition);
+                var sqlAnalyser = GetSqlAnalyser(sourceDbType, dbObj.Definition);
 
-                AnalyseResult result = sqlAnalyser.AnalyseFunction();
+                var result = sqlAnalyser.AnalyseFunction();
 
                 if (!result.HasError)
                 {
-                    RoutineScript routine = result.Script as RoutineScript;
+                    var routine = result.Script as RoutineScript;
 
-                    if (this.targetDbInterpreter.DatabaseType == DatabaseType.MySql && routine.ReturnTable != null)
-                    {
+                    if (targetDbInterpreter.DatabaseType == DatabaseType.MySql && routine.ReturnTable != null)
                         routine.Type = RoutineType.PROCEDURE;
-                    }
                 }
             }
 
-            using (ScriptTokenProcessor tokenProcessor = new ScriptTokenProcessor(script, dbObj, this.sourceDbInterpreter, this.targetDbInterpreter))
+            using (var tokenProcessor =
+                   new ScriptTokenProcessor(script, dbObj, sourceDbInterpreter, targetDbInterpreter))
             {
-                tokenProcessor.UserDefinedTypes = this.UserDefinedTypes;
-                tokenProcessor.Option = this.Option;
+                tokenProcessor.UserDefinedTypes = UserDefinedTypes;
+                tokenProcessor.Option = Option;
 
                 tokenProcessor.Process();
 
                 string anotherDefinition = null;
 
                 if (typeof(T) == typeof(TableTrigger))
-                {
                     //make up a trigger function
-                    if (this.targetDbType == DatabaseType.Postgres)
+                    if (targetDbType == DatabaseType.Postgres)
                     {
-                        string name = this.targetDbInterpreter.GetQuotedString($"func_{dbObj.Name}");
-                        string nameWithSchema = string.IsNullOrEmpty(script.Schema) ? this.targetDbInterpreter.GetQuotedString(name) : $"{script.Schema}.{name}";
+                        var name = targetDbInterpreter.GetQuotedString($"func_{dbObj.Name}");
+                        var nameWithSchema = string.IsNullOrEmpty(script.Schema)
+                            ? targetDbInterpreter.GetQuotedString(name)
+                            : $"{script.Schema}.{name}";
 
-                        NameToken triggerFunctionName = new NameToken(nameWithSchema);
+                        var triggerFunctionName = new NameToken(nameWithSchema);
 
-                        RoutineScript rs = new RoutineScript() { Name = triggerFunctionName, Type = RoutineType.FUNCTION, ReturnDataType = new TokenInfo("trigger") };
+                        var rs = new RoutineScript
+                        {
+                            Name = triggerFunctionName, Type = RoutineType.FUNCTION,
+                            ReturnDataType = new TokenInfo("trigger")
+                        };
                         rs.Statements.AddRange(script.Statements);
 
                         (script as TriggerScript).FunctionName = triggerFunctionName;
 
-                        anotherDefinition = StringHelper.FormatScript(this.scriptBuildFactory.GenerateScripts(rs).Script);
+                        anotherDefinition = StringHelper.FormatScript(scriptBuildFactory.GenerateScripts(rs).Script);
                     }
-                }
 
-                ScriptBuildResult scriptBuildResult = this.scriptBuildFactory.GenerateScripts(script);
+                var scriptBuildResult = scriptBuildFactory.GenerateScripts(script);
 
                 dbObj.Definition = StringHelper.FormatScript(scriptBuildResult.Script);
 
                 if (anotherDefinition != null)
-                {
                     dbObj.Definition = anotherDefinition + Environment.NewLine + dbObj.Definition;
-                }
-            };
+            }
+
+            ;
         }
 
         private SqlSyntaxError ParseSqlSyntaxError(SqlSyntaxError error, string definition)
         {
-            foreach (SqlSyntaxErrorItem item in error.Items)
-            {
+            foreach (var item in error.Items)
                 item.Text = definition.Substring(item.StartIndex, item.StopIndex - item.StartIndex + 1);
-            }
 
             return error;
         }
 
         public SqlAnalyserBase GetSqlAnalyser(DatabaseType dbType, string content)
         {
-            SqlAnalyserBase sqlAnalyser = TranslateHelper.GetSqlAnalyser(dbType, content);
+            var sqlAnalyser = TranslateHelper.GetSqlAnalyser(dbType, content);
 
             sqlAnalyser.RuleAnalyser.Option.ParseTokenChildren = true;
             sqlAnalyser.RuleAnalyser.Option.ExtractFunctions = true;
             sqlAnalyser.RuleAnalyser.Option.ExtractFunctionChildren = false;
-            sqlAnalyser.RuleAnalyser.Option.IsCommonScript = this.IsCommonScript;            
+            sqlAnalyser.RuleAnalyser.Option.IsCommonScript = IsCommonScript;
 
             return sqlAnalyser;
         }
 
         public ScriptBuildFactory GetScriptBuildFactory()
         {
-            ScriptBuildFactory factory = TranslateHelper.GetScriptBuildFactory(this.targetDbType);
+            var factory = TranslateHelper.GetScriptBuildFactory(targetDbType);
 
-            factory.ScriptBuilderOption.OutputRemindInformation = this.Option.OutputRemindInformation;
+            factory.ScriptBuilderOption.OutputRemindInformation = Option.OutputRemindInformation;
 
             return factory;
         }

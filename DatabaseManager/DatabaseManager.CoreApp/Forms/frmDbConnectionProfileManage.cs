@@ -1,128 +1,116 @@
-﻿using DatabaseInterpreter.Model;
-using DatabaseManager.Profile;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using DatabaseInterpreter.Model;
+using DatabaseManager.Profile;
 
-namespace DatabaseManager.Forms
+namespace DatabaseManager.Forms;
+
+public partial class frmDbConnectionProfileManage : Form
 {
-    public partial class frmDbConnectionProfileManage : Form
+    private readonly string accountId;
+
+    public frmDbConnectionProfileManage()
     {
-        private string accountId;
-        public DatabaseType DatabaseType { get; set; }
+        InitializeComponent();
+    }
 
-        public frmDbConnectionProfileManage()
+    public frmDbConnectionProfileManage(string accountId)
+    {
+        InitializeComponent();
+
+        this.accountId = accountId;
+    }
+
+    public DatabaseType DatabaseType { get; set; }
+
+    private void frmDbConnectionProfile_Load(object sender, EventArgs e)
+    {
+        InitControls();
+    }
+
+    private void InitControls()
+    {
+        dgvDbConnectionProfile.AutoGenerateColumns = false;
+
+        LoadProfiles();
+    }
+
+    private async void LoadProfiles()
+    {
+        dgvDbConnectionProfile.Rows.Clear();
+
+        var profiles = await ConnectionProfileManager.GetProfilesByAccountId(accountId);
+
+        foreach (var profile in profiles)
+            dgvDbConnectionProfile.Rows.Add(profile.Id, profile.Name, profile.Server, profile.Port, profile.Database);
+
+        dgvDbConnectionProfile.Tag = profiles;
+    }
+
+    private async void btnDelete_Click(object sender, EventArgs e)
+    {
+        var count = dgvDbConnectionProfile.SelectedRows.Count;
+
+        if (count == 0)
         {
-            InitializeComponent();
+            MessageBox.Show("No any row selected.");
+            return;
         }
 
-        public frmDbConnectionProfileManage(string accountId)
+        if (MessageBox.Show("Are you sure to delete the selected profiles?", "Confirm", MessageBoxButtons.YesNo) ==
+            DialogResult.Yes)
         {
-            InitializeComponent();
+            var ids = new List<string>();
+            var rowIndexes = new List<int>();
 
-            this.accountId = accountId;
-        }
-
-        private void frmDbConnectionProfile_Load(object sender, EventArgs e)
-        {
-            this.InitControls();
-        }
-
-        private void InitControls()
-        {
-            this.dgvDbConnectionProfile.AutoGenerateColumns = false;          
-
-            this.LoadProfiles();
-        }
-
-        private async void LoadProfiles()
-        {
-            this.dgvDbConnectionProfile.Rows.Clear();
-
-            var profiles = await ConnectionProfileManager.GetProfilesByAccountId(this.accountId);
-
-            foreach (ConnectionProfileInfo profile in profiles)
+            for (var i = count - 1; i >= 0; i--)
             {
-                this.dgvDbConnectionProfile.Rows.Add(profile.Id, profile.Name, profile.Server, profile.Port, profile.Database);
+                var rowIndex = dgvDbConnectionProfile.SelectedRows[i].Index;
+
+                ids.Add(dgvDbConnectionProfile.Rows[rowIndex].Cells[colId.Name].Value.ToString());
+
+                rowIndexes.Add(rowIndex);
             }
 
-            this.dgvDbConnectionProfile.Tag = profiles;
-        }        
+            var success = await DeleteConnections(ids);
 
-        private async void btnDelete_Click(object sender, EventArgs e)
+            if (success) rowIndexes.ForEach(item => { dgvDbConnectionProfile.Rows.RemoveAt(item); });
+        }
+    }
+
+    private async Task<bool> DeleteConnections(List<string> ids)
+    {
+        return await ConnectionProfileManager.Delete(ids);
+    }
+
+    private async void btnClear_Click(object sender, EventArgs e)
+    {
+        var count = dgvDbConnectionProfile.Rows.Count;
+
+        if (count == 0)
         {
-            int count = this.dgvDbConnectionProfile.SelectedRows.Count;
-
-            if (count == 0)
-            {
-                MessageBox.Show("No any row selected.");
-                return;
-            }
-
-            if (MessageBox.Show("Are you sure to delete the selected profiles?", "Confirm", MessageBoxButtons.YesNo) == DialogResult.Yes)
-            {
-                List<string> ids = new List<string>();
-                List<int> rowIndexes = new List<int>();
-
-                for (int i = count - 1; i >= 0; i--)
-                {
-                    int rowIndex = this.dgvDbConnectionProfile.SelectedRows[i].Index;
-
-                    ids.Add(this.dgvDbConnectionProfile.Rows[rowIndex].Cells[this.colId.Name].Value.ToString());
-
-                    rowIndexes.Add(rowIndex);
-                }
-
-                bool success = await this.DeleteConnections(ids);
-
-                if(success)
-                {
-                    rowIndexes.ForEach(item => { this.dgvDbConnectionProfile.Rows.RemoveAt(item); });
-                }               
-            }
+            MessageBox.Show("No record.");
+            return;
         }
 
-        private async Task<bool> DeleteConnections(List<string> ids)
+        if (MessageBox.Show("Are you sure to delete all profiles of this account?", "Confirm",
+                MessageBoxButtons.YesNo) == DialogResult.Yes)
         {
-            return await ConnectionProfileManager.Delete(ids);
+            var ids = new List<string>();
+
+            for (var i = 0; i < dgvDbConnectionProfile.Rows.Count; i++)
+                ids.Add(dgvDbConnectionProfile.Rows[i].Cells[colId.Name].Value.ToString());
+
+            var success = await DeleteConnections(ids);
+
+            if (success) dgvDbConnectionProfile.Rows.Clear();
         }
+    }
 
-        private async void btnClear_Click(object sender, EventArgs e)
-        {
-            int count = this.dgvDbConnectionProfile.Rows.Count;
-
-            if (count == 0)
-            {
-                MessageBox.Show("No record.");
-                return;
-            }
-
-            if (MessageBox.Show("Are you sure to delete all profiles of this account?", "Confirm", MessageBoxButtons.YesNo) == DialogResult.Yes)
-            {
-                List<string> ids = new List<string>();
-
-                for (int i = 0; i < this.dgvDbConnectionProfile.Rows.Count; i++)
-                {
-                    ids.Add(this.dgvDbConnectionProfile.Rows[i].Cells[this.colId.Name].Value.ToString());
-                }
-
-                bool success = await this.DeleteConnections(ids);
-
-                if(success)
-                {
-                    this.dgvDbConnectionProfile.Rows.Clear();
-                }                
-            }
-        }
-
-        private void btnClose_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
+    private void btnClose_Click(object sender, EventArgs e)
+    {
+        Close();
     }
 }

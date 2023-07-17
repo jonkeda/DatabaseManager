@@ -1,9 +1,9 @@
-﻿using DatabaseInterpreter.Model;
-using SqlAnalyser.Core.Model;
-using SqlAnalyser.Model;
-using System;
+﻿using System;
 using System.Linq;
 using System.Text;
+using DatabaseInterpreter.Model;
+using SqlAnalyser.Core.Model;
+using SqlAnalyser.Model;
 
 namespace SqlAnalyser.Core
 {
@@ -13,14 +13,14 @@ namespace SqlAnalyser.Core
 
         public override ScriptBuildResult GenearteTriggerScripts(TriggerScript script)
         {
-            ScriptBuildResult result = new ScriptBuildResult();
+            var result = new ScriptBuildResult();
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
-            string time = (script.Time == TriggerTime.INSTEAD_OF) ? "INSTEAD OF" : script.Time.ToString();
-            TriggerEvent @event =  script.Events.FirstOrDefault();
-            string columnNames = @event == TriggerEvent.UPDATE ? $" {string.Join(",", script.ColumnNames)}" : "";
-            string strEvent = @event == TriggerEvent.UPDATE ? "UPDATE OF" : @event.ToString();           
+            var time = script.Time == TriggerTime.INSTEAD_OF ? "INSTEAD OF" : script.Time.ToString();
+            var @event = script.Events.FirstOrDefault();
+            var columnNames = @event == TriggerEvent.UPDATE ? $" {string.Join(",", script.ColumnNames)}" : "";
+            var strEvent = @event == TriggerEvent.UPDATE ? "UPDATE OF" : @event.ToString();
 
             sb.AppendLine($"CREATE TRIGGER {script.Name}");
             sb.AppendLine($"{time} {strEvent}{columnNames} ON {script.TableName} FOR EACH ROW");
@@ -29,10 +29,7 @@ namespace SqlAnalyser.Core
 
             result.BodyStartIndex = sb.Length;
 
-            foreach (Statement statement in script.Statements)
-            {
-                sb.Append(this.BuildStatement(statement));
-            }
+            foreach (var statement in script.Statements) sb.Append(BuildStatement(statement));
 
             result.BodyStopIndex = sb.Length - 1;
 
@@ -45,18 +42,15 @@ namespace SqlAnalyser.Core
 
         public override ScriptBuildResult GenearteViewScripts(ViewScript script)
         {
-            ScriptBuildResult result = new ScriptBuildResult();
+            var result = new ScriptBuildResult();
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             sb.AppendLine($"CREATE VIEW {script.Name} AS");
 
             result.BodyStartIndex = sb.Length;
 
-            foreach (Statement statement in script.Statements)
-            {
-                sb.AppendLine(this.BuildStatement(statement));
-            }
+            foreach (var statement in script.Statements) sb.AppendLine(BuildStatement(statement));
 
             result.BodyStopIndex = sb.Length - 1;
 

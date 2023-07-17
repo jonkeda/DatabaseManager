@@ -7,14 +7,17 @@ namespace DatabaseConverter.Core.Functions
     {
         protected FunctionSpecification SourceSpecification;
         protected FunctionSpecification TargetSpecification;
-        public DatabaseType SourceDbType { get; set; }
-        public DatabaseType TargetDbType { get; set; }
-        public SpecificFunctionTranslatorBase(FunctionSpecification sourceSpecification, FunctionSpecification targetSpecification) 
+
+        public SpecificFunctionTranslatorBase(FunctionSpecification sourceSpecification,
+            FunctionSpecification targetSpecification)
         {
-            this.SourceSpecification = sourceSpecification;
-            this.TargetSpecification = targetSpecification;
+            SourceSpecification = sourceSpecification;
+            TargetSpecification = targetSpecification;
         }
 
-        public abstract string Translate(FunctionFormula formula);        
+        public DatabaseType SourceDbType { get; set; }
+        public DatabaseType TargetDbType { get; set; }
+
+        public abstract string Translate(FunctionFormula formula);
     }
 }

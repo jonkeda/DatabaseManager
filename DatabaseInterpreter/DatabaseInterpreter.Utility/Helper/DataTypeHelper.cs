@@ -1,8 +1,8 @@
-﻿using DatabaseInterpreter.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using DatabaseInterpreter.Model;
 
 namespace DatabaseInterpreter.Utility
 {
@@ -12,9 +12,12 @@ namespace DatabaseInterpreter.Utility
         public static readonly string[] TextTypeFlags = { "text" };
         public static readonly string[] BinaryTypeFlags = { "binary", "bytea", "raw", "blob" };
         public static readonly string[] DateOrTimeTypeFlags = { "date", "time" };
-        public static readonly string[] DatetimeOrTimestampTypeFlags = { "datetime", "timestamp"};
-        public static readonly string[] GeometryTypeFlags = { "geometry", "geography", "point", "line", "circle", "polygon" };
-        public static readonly string[] SpecialDataTypeFlags = { "sqlhierarchyid","geography","geometry","byte[]"};
+        public static readonly string[] DatetimeOrTimestampTypeFlags = { "datetime", "timestamp" };
+
+        public static readonly string[] GeometryTypeFlags =
+            { "geometry", "geography", "point", "line", "circle", "polygon" };
+
+        public static readonly string[] SpecialDataTypeFlags = { "sqlhierarchyid", "geography", "geometry", "byte[]" };
 
         public static bool IsCharType(string dataType)
         {
@@ -43,7 +46,7 @@ namespace DatabaseInterpreter.Utility
 
         public static bool IsDateOrTimeType(string dataType)
         {
-            return IsContainsFlag(dataType, DateOrTimeTypeFlags); 
+            return IsContainsFlag(dataType, DateOrTimeTypeFlags);
         }
 
         public static bool IsDatetimeOrTimestampType(string dataType)
@@ -63,22 +66,19 @@ namespace DatabaseInterpreter.Utility
 
         public static bool IsUserDefinedType(TableColumn column)
         {
-            string dataType = column.DataType;
+            var dataType = column.DataType;
 
             //although for its owned database, these are udt, but as a whole, they are not.
-            if (dataType == "geography" || dataType == "geometry" || dataType == "st_geometry") 
-            {
-                return false;
-            }
+            if (dataType == "geography" || dataType == "geometry" || dataType == "st_geometry") return false;
 
             return column.IsUserDefined;
-        }       
+        }
 
         public static DataTypeInfo GetDataTypeInfo(string dataType)
         {
-            DataTypeInfo dataTypeInfo = new DataTypeInfo();           
+            var dataTypeInfo = new DataTypeInfo();
 
-            int index = dataType.IndexOf("(");
+            var index = dataType.IndexOf("(");
 
             if (index > 0)
             {
@@ -102,36 +102,31 @@ namespace DatabaseInterpreter.Utility
 
         public static DataTypeInfo GetDataTypeInfoByRegex(string dataType)
         {
-            DataTypeInfo dataTypeInfo = new DataTypeInfo();
+            var dataTypeInfo = new DataTypeInfo();
 
-            Regex regex = new Regex("([(][0-9]+[)])");
+            var regex = new Regex("([(][0-9]+[)])");
 
             var matches = regex.Matches(dataType);
 
-            List<string> args = new List<string>();
+            var args = new List<string>();
 
             if (matches.Count > 0)
-            {
                 foreach (Match match in matches)
                 {
                     dataType = dataType.Replace(match.Value, "");
                     args.Add(match.Value.Trim('(', ')'));
                 }
-            }
 
             dataTypeInfo.DataType = dataType;
 
-            if (args.Count > 0)
-            {
-                dataTypeInfo.Args = string.Join(",", args);
-            }
+            if (args.Count > 0) dataTypeInfo.Args = string.Join(",", args);
 
             return dataTypeInfo;
         }
 
         public static DataTypeInfo GetDataTypeInfoByTableColumn(TableColumn column)
         {
-            return  new DataTypeInfo()
+            return new DataTypeInfo
             {
                 DataType = column.DataType,
                 MaxLength = column.MaxLength,
@@ -139,8 +134,8 @@ namespace DatabaseInterpreter.Utility
                 Scale = column.Scale,
                 IsIdentity = column.IsIdentity
             };
-        }  
-        
+        }
+
         public static void SetDataTypeInfoToTableColumn(DataTypeInfo dataTypeInfo, TableColumn column)
         {
             column.DataType = dataTypeInfo.DataType;

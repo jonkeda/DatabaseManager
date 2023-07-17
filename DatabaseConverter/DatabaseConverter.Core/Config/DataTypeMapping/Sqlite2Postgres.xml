@@ -17,6 +17,6 @@
 	</mapping>
 	<mapping>
 		<source type="text" />
-		<target type="character varying"/>		
-	</mapping>	
+		<target type="character varying" />
+	</mapping>
 </mappings>

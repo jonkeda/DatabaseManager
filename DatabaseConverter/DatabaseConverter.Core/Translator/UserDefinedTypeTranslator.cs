@@ -1,51 +1,47 @@
-﻿using DatabaseInterpreter.Core;
+﻿using System.Collections.Generic;
+using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
-using System.Collections.Generic;
 
 namespace DatabaseConverter.Core
 {
     public class UserDefinedTypeTranslator : DbObjectTranslator
     {
-        private IEnumerable<UserDefinedType> userDefinedTypes;
-        private DataTypeTranslator dataTypeTranslator;
+        private readonly DataTypeTranslator dataTypeTranslator;
+        private readonly IEnumerable<UserDefinedType> userDefinedTypes;
 
-        public UserDefinedTypeTranslator(DbInterpreter sourceInterpreter, DbInterpreter targetInterpreter, IEnumerable<UserDefinedType> userDefinedTypes) : base(sourceInterpreter, targetInterpreter)
+        public UserDefinedTypeTranslator(DbInterpreter sourceInterpreter, DbInterpreter targetInterpreter,
+            IEnumerable<UserDefinedType> userDefinedTypes) : base(sourceInterpreter, targetInterpreter)
         {
             this.userDefinedTypes = userDefinedTypes;
-            this.dataTypeTranslator = new DataTypeTranslator(this.sourceDbInterpreter, this.targetDbInterpreter);
+            dataTypeTranslator = new DataTypeTranslator(sourceDbInterpreter, targetDbInterpreter);
         }
 
         public override void Translate()
         {
-            if (this.sourceDbType == this.targetDbType)
-            {
-                return;
-            }
+            if (sourceDbType == targetDbType) return;
 
-            this.FeedbackInfo("Begin to translate user defined types.");
+            FeedbackInfo("Begin to translate user defined types.");
 
-            foreach (UserDefinedType udt in this.userDefinedTypes)
+            foreach (var udt in userDefinedTypes)
+            foreach (var attr in udt.Attributes)
             {
-                foreach(UserDefinedTypeAttribute attr in udt.Attributes)
+                var dataTypeInfo = new DataTypeInfo
                 {
-                    DataTypeInfo dataTypeInfo = new DataTypeInfo()
-                    {
-                        DataType = attr.DataType,
-                        MaxLength = attr.MaxLength,
-                        Precision = attr.Precision,
-                        Scale = attr.Scale
-                    };
+                    DataType = attr.DataType,
+                    MaxLength = attr.MaxLength,
+                    Precision = attr.Precision,
+                    Scale = attr.Scale
+                };
 
-                    this.dataTypeTranslator.Translate(dataTypeInfo);
+                dataTypeTranslator.Translate(dataTypeInfo);
 
-                    attr.DataType = dataTypeInfo.DataType;
-                    attr.MaxLength = dataTypeInfo.MaxLength;
-                    attr.Precision = dataTypeInfo.Precision;
-                    attr.Scale = dataTypeInfo.Scale;
-                }              
+                attr.DataType = dataTypeInfo.DataType;
+                attr.MaxLength = dataTypeInfo.MaxLength;
+                attr.Precision = dataTypeInfo.Precision;
+                attr.Scale = dataTypeInfo.Scale;
             }
 
-            this.FeedbackInfo("End translate user defined types.");
-        }       
+            FeedbackInfo("End translate user defined types.");
+        }
     }
 }

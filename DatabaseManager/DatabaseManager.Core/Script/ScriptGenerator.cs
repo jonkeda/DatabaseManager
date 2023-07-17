@@ -1,19 +1,19 @@
-﻿using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using DatabaseInterpreter.Core;
+using DatabaseInterpreter.Model;
+using DatabaseInterpreter.Utility;
+using DatabaseManager.Model;
 
 namespace DatabaseManager.Core
 {
     public class ScriptGenerator
     {
-        private DbInterpreter dbInterpreter;
+        private readonly DbInterpreter dbInterpreter;
 
         public ScriptGenerator(DbInterpreter dbInterpreter)
         {
@@ -22,24 +22,20 @@ namespace DatabaseManager.Core
 
         public async Task<ScriptGenerateResult> Generate(DatabaseObject dbObject, ScriptAction scriptAction)
         {
-            ScriptGenerateResult result = new ScriptGenerateResult();
+            var result = new ScriptGenerateResult();
 
-            string typeName = dbObject.GetType().Name;
+            var typeName = dbObject.GetType().Name;
 
             var databaseObjectType = DbObjectHelper.GetDatabaseObjectType(dbObject);
 
-            ColumnType columnType = ColumnType.TableColumn;
+            var columnType = ColumnType.TableColumn;
 
             if (dbObject is Table)
             {
                 if (scriptAction == ScriptAction.CREATE)
-                {
                     dbInterpreter.Option.GetTableAllObjects = true;
-                }
                 else
-                {
                     databaseObjectType |= DatabaseObjectType.Column;
-                }
             }
             else if (dbObject is View)
             {
@@ -51,85 +47,70 @@ namespace DatabaseManager.Core
                 }
             }
 
-            SchemaInfoFilter filter = new SchemaInfoFilter() { DatabaseObjectType = databaseObjectType, ColumnType = columnType };
+            var filter = new SchemaInfoFilter { DatabaseObjectType = databaseObjectType, ColumnType = columnType };
 
             filter.Schema = dbObject.Schema;
 
             if (columnType == ColumnType.ViewColumn)
-            {
-                filter.TableNames = new string[] { dbObject.Name };
-            }
+                filter.TableNames = new[] { dbObject.Name };
             else
-            {
-                filter.GetType().GetProperty($"{typeName}Names").SetValue(filter, new string[] { dbObject.Name });
-            }
+                filter.GetType().GetProperty($"{typeName}Names").SetValue(filter, new[] { dbObject.Name });
 
             if (dbObject is Function func)
             {
-                if (scriptAction == ScriptAction.SELECT)
-                {
-                    return await this.GenerateRoutineCallScript(dbObject, filter);
-                }
+                if (scriptAction == ScriptAction.SELECT) return await GenerateRoutineCallScript(dbObject, filter);
             }
             else if (dbObject is Procedure proc)
             {
-                if (scriptAction == ScriptAction.EXECUTE)
-                {
-                    return await this.GenerateRoutineCallScript(dbObject, filter);
-                }
+                if (scriptAction == ScriptAction.EXECUTE) return await GenerateRoutineCallScript(dbObject, filter);
             }
 
-            SchemaInfo schemaInfo = await dbInterpreter.GetSchemaInfoAsync(filter);
+            var schemaInfo = await dbInterpreter.GetSchemaInfoAsync(filter);
 
             if (scriptAction == ScriptAction.CREATE || scriptAction == ScriptAction.ALTER)
             {
-                DbScriptGenerator dbScriptGenerator = DbScriptGeneratorHelper.GetDbScriptGenerator(dbInterpreter);
+                var dbScriptGenerator = DbScriptGeneratorHelper.GetDbScriptGenerator(dbInterpreter);
 
-                List<Script> scripts = dbScriptGenerator.GenerateSchemaScripts(schemaInfo).Scripts;
+                var scripts = dbScriptGenerator.GenerateSchemaScripts(schemaInfo).Scripts;
 
-                DatabaseType databaseType = this.dbInterpreter.DatabaseType;
+                var databaseType = dbInterpreter.DatabaseType;
 
-                StringBuilder sbContent = new StringBuilder();
+                var sbContent = new StringBuilder();
 
-                foreach (Script script in scripts)
+                foreach (var script in scripts)
                 {
-                    if (databaseType == DatabaseType.SqlServer && script is SpliterScript)
-                    {
-                        continue;
-                    }
+                    if (databaseType == DatabaseType.SqlServer && script is SpliterScript) continue;
 
-                    string content = script.Content;
+                    var content = script.Content;
 
                     if (scriptAction == ScriptAction.ALTER && typeName != nameof(Table))
                     {
-                        string objType = typeName;
+                        var objType = typeName;
 
-                        if (typeName == nameof(TableTrigger))
-                        {
-                            objType = "TRIGGER";
-                        }
+                        if (typeName == nameof(TableTrigger)) objType = "TRIGGER";
 
-                        string createFlag = "CREATE ";
-                        int createFlagIndex = this.GetCreateIndex(content, createFlag);
+                        var createFlag = "CREATE ";
+                        var createFlagIndex = GetCreateIndex(content, createFlag);
 
                         if (createFlagIndex >= 0)
-                        {
                             switch (databaseType)
                             {
                                 case DatabaseType.SqlServer:
-                                    content = content.Substring(0, createFlagIndex) + "ALTER " + content.Substring(createFlagIndex + createFlag.Length);
+                                    content = content.Substring(0, createFlagIndex) + "ALTER " +
+                                              content.Substring(createFlagIndex + createFlag.Length);
                                     break;
                                 case DatabaseType.MySql:
-                                    content = $"DROP {objType} IF EXISTS {this.dbInterpreter.GetQuotedString(dbObject.Name)};" + Environment.NewLine + content;
+                                    content =
+                                        $"DROP {objType} IF EXISTS {dbInterpreter.GetQuotedString(dbObject.Name)};" +
+                                        Environment.NewLine + content;
                                     break;
                                 case DatabaseType.Oracle:
-                                    if (!Regex.IsMatch(content, @"^(CREATE[\s]+OR[\s]+REPLACE[\s]+)", RegexOptions.IgnoreCase))
-                                    {
-                                        content = content.Substring(0, createFlagIndex) + "CREATE OR REPLACE " + content.Substring(createFlagIndex + createFlag.Length);
-                                    }
+                                    if (!Regex.IsMatch(content, @"^(CREATE[\s]+OR[\s]+REPLACE[\s]+)",
+                                            RegexOptions.IgnoreCase))
+                                        content = content.Substring(0, createFlagIndex) + "CREATE OR REPLACE " +
+                                                  content.Substring(createFlagIndex + createFlag.Length);
                                     break;
                             }
-                        }
                     }
 
                     sbContent.AppendLine(content);
@@ -139,11 +120,11 @@ namespace DatabaseManager.Core
             }
             else if (dbObject is Table table)
             {
-                result.Script = this.GenerateTableDMLScript(schemaInfo, table, scriptAction);
+                result.Script = GenerateTableDMLScript(schemaInfo, table, scriptAction);
             }
             else if (dbObject is View view)
             {
-                result.Script = this.GenerateViewDMLScript(schemaInfo, view, scriptAction);
+                result.Script = GenerateViewDMLScript(schemaInfo, view, scriptAction);
             }
 
             return result;
@@ -151,16 +132,13 @@ namespace DatabaseManager.Core
 
         private int GetCreateIndex(string script, string createFlag)
         {
-            string[] lines = script.Split('\n');
+            var lines = script.Split('\n');
 
-            int count = 0;
+            var count = 0;
 
-            foreach (string line in lines)
+            foreach (var line in lines)
             {
-                if (line.StartsWith(createFlag, StringComparison.OrdinalIgnoreCase))
-                {
-                    return count;
-                }
+                if (line.StartsWith(createFlag, StringComparison.OrdinalIgnoreCase)) return count;
 
                 count += line.Length + 1;
             }
@@ -170,28 +148,32 @@ namespace DatabaseManager.Core
 
         public string GenerateTableDMLScript(SchemaInfo schemaInfo, Table table, ScriptAction scriptAction)
         {
-            string script = "";
-            string tableName = this.dbInterpreter.GetQuotedDbObjectNameWithSchema(table);
+            var script = "";
+            var tableName = dbInterpreter.GetQuotedDbObjectNameWithSchema(table);
             var columns = schemaInfo.TableColumns;
 
             switch (scriptAction)
             {
                 case ScriptAction.SELECT:
-                    string columnNames = this.dbInterpreter.GetQuotedColumnNames(columns);
+                    var columnNames = dbInterpreter.GetQuotedColumnNames(columns);
                     script = $"SELECT {columnNames}{Environment.NewLine}FROM {tableName};";
                     break;
                 case ScriptAction.INSERT:
                     var insertColumns = columns.Where(item => !item.IsIdentity && !item.IsComputed);
-                    string insertColumnNames = string.Join(",", insertColumns.Select(item => this.dbInterpreter.GetQuotedString(item.Name)));
-                    string insertValues = string.Join(",", insertColumns.Select(item => "?"));
+                    var insertColumnNames = string.Join(",",
+                        insertColumns.Select(item => dbInterpreter.GetQuotedString(item.Name)));
+                    var insertValues = string.Join(",", insertColumns.Select(item => "?"));
 
-                    script = $"INSERT INTO {tableName}({insertColumnNames}){Environment.NewLine}VALUES({insertValues});";
+                    script =
+                        $"INSERT INTO {tableName}({insertColumnNames}){Environment.NewLine}VALUES({insertValues});";
                     break;
                 case ScriptAction.UPDATE:
                     var updateColumns = columns.Where(item => !item.IsIdentity && !item.IsComputed);
-                    string setNameValues = string.Join(",", updateColumns.Select(item => $"{this.dbInterpreter.GetQuotedString(item.Name)}=?"));
+                    var setNameValues = string.Join(",",
+                        updateColumns.Select(item => $"{dbInterpreter.GetQuotedString(item.Name)}=?"));
 
-                    script = $"UPDATE {tableName}{Environment.NewLine}SET {setNameValues}{Environment.NewLine}WHERE <condition>;";
+                    script =
+                        $"UPDATE {tableName}{Environment.NewLine}SET {setNameValues}{Environment.NewLine}WHERE <condition>;";
                     break;
                 case ScriptAction.DELETE:
                     script = $"DELETE FROM {tableName}{Environment.NewLine}WHERE <condition>;";
@@ -203,14 +185,14 @@ namespace DatabaseManager.Core
 
         public string GenerateViewDMLScript(SchemaInfo schemaInfo, View view, ScriptAction scriptAction)
         {
-            string script = "";
-            string viewName = this.dbInterpreter.GetQuotedDbObjectNameWithSchema(view);
+            var script = "";
+            var viewName = dbInterpreter.GetQuotedDbObjectNameWithSchema(view);
             var columns = schemaInfo.TableColumns;
 
             switch (scriptAction)
             {
                 case ScriptAction.SELECT:
-                    string columnNames = this.dbInterpreter.GetQuotedColumnNames(columns);
+                    var columnNames = dbInterpreter.GetQuotedColumnNames(columns);
                     script = $"SELECT {columnNames}{Environment.NewLine}FROM {viewName};";
                     break;
             }
@@ -218,21 +200,22 @@ namespace DatabaseManager.Core
             return script;
         }
 
-        public async Task<ScriptGenerateResult> GenerateRoutineCallScript(DatabaseObject dbObject, SchemaInfoFilter filter)
+        public async Task<ScriptGenerateResult> GenerateRoutineCallScript(DatabaseObject dbObject,
+            SchemaInfoFilter filter)
         {
-            ScriptGenerateResult result = new ScriptGenerateResult();
+            var result = new ScriptGenerateResult();
 
-            string routineName = this.dbInterpreter.GetQuotedDbObjectNameWithSchema(dbObject);
+            var routineName = dbInterpreter.GetQuotedDbObjectNameWithSchema(dbObject);
             List<RoutineParameter> parameters = null;
-            bool isFunction = dbObject is Function;
-            bool isProcedure = dbObject is Procedure;
-            DatabaseType databaseType = this.dbInterpreter.DatabaseType;
+            var isFunction = dbObject is Function;
+            var isProcedure = dbObject is Procedure;
+            var databaseType = dbInterpreter.DatabaseType;
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
-            string action = "";
-            bool isTableFunction = false;
-            bool isSqlServerProcedure = false;
+            var action = "";
+            var isTableFunction = false;
+            var isSqlServerProcedure = false;
 
             if (isFunction)
             {
@@ -254,45 +237,27 @@ namespace DatabaseManager.Core
                 }
             }
 
-            if (isTableFunction)
-            {
-                sb.Append("* FROM ");
-            }
+            if (isTableFunction) sb.Append("* FROM ");
 
             if (isFunction)
-            {
-                parameters = await this.dbInterpreter.GetFunctionParametersAsync(filter);
-            }
-            else if (isProcedure)
-            {
-                parameters = await this.dbInterpreter.GetProcedureParametersAsync(filter);
-            }
+                parameters = await dbInterpreter.GetFunctionParametersAsync(filter);
+            else if (isProcedure) parameters = await dbInterpreter.GetProcedureParametersAsync(filter);
 
             result.Parameters = parameters;
 
             sb.Append($"{action}{(string.IsNullOrEmpty(action) ? "" : " ")}{routineName}");
 
-            if(!isSqlServerProcedure)
-            {
-                sb.Append("(");
-            }           
+            if (!isSqlServerProcedure) sb.Append("(");
 
             sb.AppendLine();
 
             if (parameters != null && parameters.Count > 0)
-            {
-                sb.AppendLine(String.Join(" ," + Environment.NewLine, parameters.Select(item => this.GetRoutineParameterItem(item, isFunction))));
-            }
+                sb.AppendLine(string.Join(" ," + Environment.NewLine,
+                    parameters.Select(item => GetRoutineParameterItem(item, isFunction))));
 
-            if(!isSqlServerProcedure)
-            {
-                sb.AppendLine(")");
-            }           
+            if (!isSqlServerProcedure) sb.AppendLine(")");
 
-            if (isFunction && !isTableFunction && databaseType == DatabaseType.Oracle)
-            {
-                sb.Append("FROM DUAL");
-            }
+            if (isFunction && !isTableFunction && databaseType == DatabaseType.Oracle) sb.Append("FROM DUAL");
 
             result.Script = sb.ToString();
 
@@ -301,7 +266,7 @@ namespace DatabaseManager.Core
 
         public string GetRoutineParameterItem(RoutineParameter parameter, bool isFunction)
         {
-            string strInOut = isFunction ? "" : (parameter.IsOutput ? "OUT " : "IN ");
+            var strInOut = isFunction ? "" : parameter.IsOutput ? "OUT " : "IN ";
 
             return $"<{strInOut}{parameter.Name} {parameter.DataType}>";
         }

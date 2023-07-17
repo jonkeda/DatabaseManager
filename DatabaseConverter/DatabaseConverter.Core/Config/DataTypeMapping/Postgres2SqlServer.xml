@@ -29,7 +29,7 @@
 	</mapping>
 	<mapping>
 		<source type="bit varying" />
-		<target type="binary" length="8000"/>
+		<target type="binary" length="8000" />
 	</mapping>
 	<mapping>
 		<source type="bit varying[]" />
@@ -45,7 +45,7 @@
 	</mapping>
 	<mapping>
 		<source type="box" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="box[]" />
@@ -57,7 +57,7 @@
 	</mapping>
 	<mapping>
 		<source type="&quot;char&quot;" />
-		<target type="char" length="1"/>
+		<target type="char" length="1" />
 	</mapping>
 	<mapping>
 		<source type="&quot;char[]&quot;" />
@@ -78,7 +78,7 @@
 	</mapping>
 	<mapping>
 		<source type="cidr" />
-		<target type="varchar" length="50"/>
+		<target type="varchar" length="50" />
 	</mapping>
 	<mapping>
 		<source type="cidr[]" />
@@ -122,11 +122,11 @@
 	</mapping>
 	<mapping>
 		<source type="geography" />
-		<target type="geography"/>
+		<target type="geography" />
 	</mapping>
 	<mapping>
 		<source type="geography[]" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="geometry" />
@@ -138,139 +138,139 @@
 	</mapping>
 	<mapping>
 		<source type="gtsvector" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="gtsvector[]" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="inet" />
-		<target type="varchar" length="50"/>
+		<target type="varchar" length="50" />
 	</mapping>
 	<mapping>
 		<source type="inet[]" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="int2vector[]" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="int4range" />
-		<target type="varchar" length="50"/>
+		<target type="varchar" length="50" />
 	</mapping>
 	<mapping>
 		<source type="int4range[]" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="int8range" />
-		<target type="varchar" length="50"/>
+		<target type="varchar" length="50" />
 	</mapping>
 	<mapping>
 		<source type="int8range[]" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="integer" />
-		<target type="int"/>
+		<target type="int" />
 	</mapping>
 	<mapping>
 		<source type="integer[]" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="interval" />
-		<target type="varchar" length="50"/>
+		<target type="varchar" length="50" />
 	</mapping>
 	<mapping>
 		<source type="interval[]" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="json" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="json[]" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="jsonb" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="jsonb[]" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="jsonpath" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="line" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="line[]" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="lseg" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="lseg[]" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="macaddr" />
-		<target type="varchar" length="50"/>
+		<target type="varchar" length="50" />
 	</mapping>
 	<mapping>
 		<source type="macaddr[]" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="macaddr8" />
-		<target type="varchar" length="50"/>
+		<target type="varchar" length="50" />
 	</mapping>
 	<mapping>
 		<source type="macaddr8[]" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="money" />
-		<target type="money"/>
+		<target type="money" />
 	</mapping>
 	<mapping>
 		<source type="money[]" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="name" />
-		<target type="varchar" length="128"/>
+		<target type="varchar" length="128" />
 	</mapping>
 	<mapping>
 		<source type="name[]" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="numeric" />
-		<target type="numeric"/>
+		<target type="numeric" />
 	</mapping>
 	<mapping>
 		<source type="numeric[]" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="nummultirange[]" />
-		<target type="varchar"/>
+		<target type="varchar" />
 	</mapping>
 	<mapping>
 		<source type="numrange" />
-		<target type="varchar" length="50"/>
+		<target type="varchar" length="50" />
 	</mapping>
 	<mapping>
 		<source type="numrange[]" />
@@ -478,7 +478,7 @@
 	</mapping>
 	<mapping>
 		<source type="tid" />
-		<target type="varchar" length="50"/>
+		<target type="varchar" length="50" />
 	</mapping>
 	<mapping>
 		<source type="time with time zone" />

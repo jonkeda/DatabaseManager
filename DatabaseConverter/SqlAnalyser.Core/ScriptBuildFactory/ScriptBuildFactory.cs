@@ -1,9 +1,9 @@
-﻿using DatabaseInterpreter.Model;
-using SqlAnalyser.Core.Model;
-using SqlAnalyser.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using DatabaseInterpreter.Model;
+using SqlAnalyser.Core.Model;
+using SqlAnalyser.Model;
 
 namespace SqlAnalyser.Core
 {
@@ -13,66 +13,51 @@ namespace SqlAnalyser.Core
         public abstract DatabaseType DatabaseType { get; }
         public StatementScriptBuilderOption ScriptBuilderOption { get; set; } = new StatementScriptBuilderOption();
 
-        public abstract ScriptBuildResult GenerateRoutineScripts(RoutineScript script);
-        public abstract ScriptBuildResult GenearteViewScripts(ViewScript script);
-        public abstract ScriptBuildResult GenearteTriggerScripts(TriggerScript script);
-
         public StatementScriptBuilder StatementBuilder
         {
             get
             {
-                if (this.statementBuilder == null)
-                {
-                    this.statementBuilder = this.GetStatementBuilder();
-                }
+                if (statementBuilder == null) statementBuilder = GetStatementBuilder();
 
-                return this.statementBuilder;
+                return statementBuilder;
             }
         }
+
+        public abstract ScriptBuildResult GenerateRoutineScripts(RoutineScript script);
+        public abstract ScriptBuildResult GenearteViewScripts(ViewScript script);
+        public abstract ScriptBuildResult GenearteTriggerScripts(TriggerScript script);
 
         private StatementScriptBuilder GetStatementBuilder()
         {
             StatementScriptBuilder builder = null;
 
-            if (this.DatabaseType == DatabaseType.SqlServer)
-            {
+            if (DatabaseType == DatabaseType.SqlServer)
                 builder = new TSqlStatementScriptBuilder();
-            }
-            else if (this.DatabaseType == DatabaseType.MySql)
-            {
+            else if (DatabaseType == DatabaseType.MySql)
                 builder = new MySqlStatementScriptBuilder();
-            }
-            else if (this.DatabaseType == DatabaseType.Oracle)
-            {
+            else if (DatabaseType == DatabaseType.Oracle)
                 builder = new PlSqlStatementScriptBuilder();
-            }
-            else if (this.DatabaseType == DatabaseType.Postgres)
-            {
+            else if (DatabaseType == DatabaseType.Postgres)
                 builder = new PostgreSqlStatementScriptBuilder();
-            }
-            else if (this.DatabaseType == DatabaseType.Sqlite)
-            {
+            else if (DatabaseType == DatabaseType.Sqlite)
                 builder = new SqliteStatementScriptBuilder();
-            }
             else
-            {
-                throw new NotSupportedException($"Not support build statement for: {this.DatabaseType}");
-            }
+                throw new NotSupportedException($"Not support build statement for: {DatabaseType}");
 
-            builder.Option = this.ScriptBuilderOption;
+            builder.Option = ScriptBuilderOption;
 
             return builder;
         }
 
         public string BuildStatement(Statement statement, RoutineType routineType = RoutineType.UNKNOWN)
         {
-            this.StatementBuilder.RoutineType = routineType;
+            StatementBuilder.RoutineType = routineType;
 
-            this.StatementBuilder.Clear();
+            StatementBuilder.Clear();
 
-            this.StatementBuilder.Build(statement);
+            StatementBuilder.Build(statement);
 
-            return this.StatementBuilder.ToString();
+            return StatementBuilder.ToString();
         }
 
         public virtual ScriptBuildResult GenerateScripts(CommonScript script)
@@ -80,66 +65,48 @@ namespace SqlAnalyser.Core
             ScriptBuildResult result;
 
             if (script is RoutineScript routineScript)
-            {
-                result = this.GenerateRoutineScripts(routineScript);
-            }
+                result = GenerateRoutineScripts(routineScript);
             else if (script is ViewScript viewScript)
-            {
-                result = this.GenearteViewScripts(viewScript);
-            }
+                result = GenearteViewScripts(viewScript);
             else if (script is TriggerScript triggerScript)
-            {
-                result = this.GenearteTriggerScripts(triggerScript);
-            }
+                result = GenearteTriggerScripts(triggerScript);
             else if (script is CommonScript commonScript)
-            {
-                result = this.GenerateCommonScripts(commonScript);
-            }
+                result = GenerateCommonScripts(commonScript);
             else
-            {
                 throw new NotSupportedException($"Not support generate scripts for type: {script.GetType()}.");
-            }
 
-            if (this.statementBuilder != null && this.statementBuilder.Replacements.Count > 0)
-            {
-                foreach (var kp in this.statementBuilder.Replacements)
-                {
+            if (statementBuilder != null && statementBuilder.Replacements.Count > 0)
+                foreach (var kp in statementBuilder.Replacements)
                     result.Script = AnalyserHelper.ReplaceSymbol(result.Script, kp.Key, kp.Value);
-                }
-            }
 
-            if (this.statementBuilder != null)
-            {
-                this.statementBuilder.Dispose();
-            }
+            if (statementBuilder != null) statementBuilder.Dispose();
 
             return result;
         }
 
-        protected virtual void PreHandleStatements(List<Statement> statements) { }
-        protected virtual void PostHandleStatements(StringBuilder sb) { }
+        protected virtual void PreHandleStatements(List<Statement> statements)
+        {
+        }
+
+        protected virtual void PostHandleStatements(StringBuilder sb)
+        {
+        }
 
         protected virtual ScriptBuildResult GenerateCommonScripts(CommonScript script)
         {
-            this.PreHandleStatements(script.Statements);
+            PreHandleStatements(script.Statements);
 
-            ScriptBuildResult result = new ScriptBuildResult();
+            var result = new ScriptBuildResult();
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
-            foreach (Statement statement in script.Statements)
-            {
-                sb.AppendLine(this.BuildStatement(statement));
-            }
+            foreach (var statement in script.Statements) sb.AppendLine(BuildStatement(statement));
 
-            this.PostHandleStatements(sb);
+            PostHandleStatements(sb);
 
             result.Script = sb.ToString().Trim();
 
-            if (this.statementBuilder != null)
-            {
-                this.statementBuilder.Dispose();
-            }
+            if (statementBuilder != null) statementBuilder.Dispose();
 
             return result;
         }

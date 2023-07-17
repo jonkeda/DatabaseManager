@@ -17,6 +17,6 @@
 	</mapping>
 	<mapping>
 		<source type="text" />
-		<target type="varchar" length="100" substitute="text"/>		
-	</mapping>	
+		<target type="varchar" length="100" substitute="text" />
+	</mapping>
 </mappings>

@@ -4,43 +4,43 @@ namespace SqlAnalyser.Core
 {
     public class MySqlAnalyser : SqlAnalyserBase
     {
-        private MySqlRuleAnalyser ruleAnalyser = null;
+        private readonly MySqlRuleAnalyser ruleAnalyser;
 
-        public override SqlRuleAnalyser RuleAnalyser => this.ruleAnalyser;
-
-        public MySqlAnalyser(string content):base(content)
+        public MySqlAnalyser(string content) : base(content)
         {
-            this.ruleAnalyser = new MySqlRuleAnalyser(content);
+            ruleAnalyser = new MySqlRuleAnalyser(content);
         }
+
+        public override SqlRuleAnalyser RuleAnalyser => ruleAnalyser;
 
         public override SqlSyntaxError Validate()
         {
-            return this.ruleAnalyser.Validate();
+            return ruleAnalyser.Validate();
         }
 
         public override AnalyseResult AnalyseCommon()
         {
-            return this.ruleAnalyser.AnalyseCommon();
+            return ruleAnalyser.AnalyseCommon();
         }
 
         public override AnalyseResult AnalyseView()
         {
-            return this.ruleAnalyser.AnalyseView();
+            return ruleAnalyser.AnalyseView();
         }
 
         public override AnalyseResult AnalyseProcedure()
         {
-            return this.ruleAnalyser.AnalyseProcedure();
+            return ruleAnalyser.AnalyseProcedure();
         }
 
         public override AnalyseResult AnalyseFunction()
         {
-            return this.ruleAnalyser.AnalyseFunction();
+            return ruleAnalyser.AnalyseFunction();
         }
 
         public override AnalyseResult AnalyseTrigger()
         {
-            return this.ruleAnalyser.AnalyseTrigger();
-        }        
+            return ruleAnalyser.AnalyseTrigger();
+        }
     }
 }

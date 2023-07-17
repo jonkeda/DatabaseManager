@@ -3,6 +3,6 @@
 	<item name="integer" args="" allowIdentity="true"></item>
 	<item name="numeric" args="precision,scale" default="38,4"></item>
 	<!--<item name="null" args="" indexForbidden="true"></item>-->
-	<item name="real" args="" ></item>
-	<item name="text" args=""></item>	
+	<item name="real" args=""></item>
+	<item name="text" args=""></item>
 </items>

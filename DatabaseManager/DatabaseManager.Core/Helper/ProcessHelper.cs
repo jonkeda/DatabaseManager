@@ -1,18 +1,15 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace DatabaseManager.Helper
 {
     public class ProcessHelper
     {
-        public static string RunExe(string exeFilePath, string args, string[] inputs = null, DataReceivedEventHandler errorEventHandler = null)
+        public static string RunExe(string exeFilePath, string args, string[] inputs = null,
+            DataReceivedEventHandler errorEventHandler = null)
         {
-            using (Process proc = new Process())
+            using (var proc = new Process())
             {
-                if (errorEventHandler != null)
-                {
-                    proc.ErrorDataReceived += errorEventHandler;
-                }
+                if (errorEventHandler != null) proc.ErrorDataReceived += errorEventHandler;
 
                 proc.StartInfo.UseShellExecute = false;
                 proc.StartInfo.RedirectStandardOutput = true;
@@ -24,14 +21,10 @@ namespace DatabaseManager.Helper
                 proc.Start();
 
                 if (inputs != null && inputs.Length > 0)
-                {
                     foreach (var cmd in inputs)
-                    {
                         proc.StandardInput.WriteLine(cmd);
-                    }
-                }
 
-                string output = proc.StandardOutput.ReadToEnd();
+                var output = proc.StandardOutput.ReadToEnd();
 
                 proc.WaitForExit();
 

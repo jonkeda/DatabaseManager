@@ -1,12 +1,10 @@
-﻿using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using Newtonsoft.Json;
-using SqlAnalyser.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
+using DatabaseInterpreter.Model;
+using DatabaseInterpreter.Utility;
+using SqlAnalyser.Model;
 
 namespace SqlAnalyser.Core
 {
@@ -18,121 +16,101 @@ namespace SqlAnalyser.Core
 
             if (statement is SelectStatement select)
             {
-                this.BuildSelectStatement(select, appendSeparator);
+                BuildSelectStatement(select, appendSeparator);
             }
             else if (statement is InsertStatement insert)
             {
-                this.Append($"INSERT INTO {insert.TableName}", false);
+                Append($"INSERT INTO {insert.TableName}", false);
 
-                if (insert.Columns.Count > 0)
-                {
-                    this.AppendLine($"({string.Join(",", insert.Columns.Select(item => item))})");
-                }
+                if (insert.Columns.Count > 0) AppendLine($"({string.Join(",", insert.Columns.Select(item => item))})");
 
                 if (insert.SelectStatements != null && insert.SelectStatements.Count > 0)
-                {
-                    this.AppendChildStatements(insert.SelectStatements, true);
-                }
+                    AppendChildStatements(insert.SelectStatements);
                 else
-                {
-                    this.AppendLine($"VALUES({string.Join(",", insert.Values.Select(item => item))});");
-                }
+                    AppendLine($"VALUES({string.Join(",", insert.Values.Select(item => item))});");
             }
             else if (statement is UnionStatement union)
             {
-                this.AppendLine(this.GetUnionTypeName(union.Type));
-                this.Build(union.SelectStatement);
+                AppendLine(GetUnionTypeName(union.Type));
+                Build(union.SelectStatement);
             }
             else if (statement is UpdateStatement update)
             {
-                int fromItemsCount = update.FromItems == null ? 0 : update.FromItems.Count;
-                TableName tableName = StatementScriptBuilderHelper.GetUpdateSetTableName(update);
+                var fromItemsCount = update.FromItems == null ? 0 : update.FromItems.Count;
+                var tableName = StatementScriptBuilderHelper.GetUpdateSetTableName(update);
 
-                if (tableName == null && update.TableNames != null)
-                {
-                    tableName = update.TableNames.FirstOrDefault();
-                }
+                if (tableName == null && update.TableNames != null) tableName = update.TableNames.FirstOrDefault();
 
-                bool useAlias = tableName.Alias != null;
+                var useAlias = tableName.Alias != null;
 
-                this.AppendLine($"UPDATE {(useAlias ? tableName.Alias.Symbol : tableName.Symbol)}");
+                AppendLine($"UPDATE {(useAlias ? tableName.Alias.Symbol : tableName.Symbol)}");
 
-                this.Append("SET ");
+                Append("SET ");
 
                 if (!StatementScriptBuilderHelper.IsCompositeUpdateSetColumnName(update))
                 {
-                    int k = 0;
+                    var k = 0;
 
                     foreach (var item in update.SetItems)
                     {
-                        this.Append($"{item.Name}=");
+                        Append($"{item.Name}=");
 
-                        this.BuildUpdateSetValue(item);
+                        BuildUpdateSetValue(item);
 
-                        if (k < update.SetItems.Count - 1)
-                        {
-                            this.Append(",");
-                        }
+                        if (k < update.SetItems.Count - 1) Append(",");
 
-                        this.AppendLine(this.Indent);
+                        AppendLine(Indent);
 
                         k++;
                     }
                 }
                 else if (update.SetItems.Count > 0)
                 {
-                    this.Append(StatementScriptBuilderHelper.ParseCompositeUpdateSet(this, update));
+                    Append(StatementScriptBuilderHelper.ParseCompositeUpdateSet(this, update));
 
                     return this;
                 }
 
-                StringBuilder sb = new StringBuilder();
+                var sb = new StringBuilder();
 
                 if (fromItemsCount > 0)
                 {
-                    int i = 0;
+                    var i = 0;
 
-                    foreach (FromItem fromItem in update.FromItems)
+                    foreach (var fromItem in update.FromItems)
                     {
-                        bool hasJoin = fromItem.HasJoinItems;
+                        var hasJoin = fromItem.HasJoinItems;
 
                         if (hasJoin)
                         {
-                            if (i == 0)
-                            {
-                                this.AppendLine($"FROM {fromItem.TableName.NameWithAlias}");
-                            }
+                            if (i == 0) AppendLine($"FROM {fromItem.TableName.NameWithAlias}");
 
-                            foreach (JoinItem joinItem in fromItem.JoinItems)
+                            foreach (var joinItem in fromItem.JoinItems)
                             {
-                                string condition = joinItem.Condition == null ? "" : $" ON {joinItem.Condition}";
+                                var condition = joinItem.Condition == null ? "" : $" ON {joinItem.Condition}";
 
-                                this.AppendLine($"{joinItem.Type} JOIN {joinItem.TableName.NameWithAlias}{condition}");
+                                AppendLine($"{joinItem.Type} JOIN {joinItem.TableName.NameWithAlias}{condition}");
                             }
                         }
                         else
                         {
                             if (i == 0)
-                            {
-                                this.Append($"FROM ");
-                            }
+                                Append("FROM ");
                             else
-                            {
-                                this.Append(",");
-                            }
+                                Append(",");
 
                             if (fromItem.SubSelectStatement != null)
                             {
-                                string alias = fromItem.Alias == null ? "" : fromItem.Alias.Symbol;
+                                var alias = fromItem.Alias == null ? "" : fromItem.Alias.Symbol;
 
-                                this.AppendLine("(");
-                                this.BuildSelectStatement(fromItem.SubSelectStatement, false);
-                                this.AppendLine($") {alias}");
+                                AppendLine("(");
+                                BuildSelectStatement(fromItem.SubSelectStatement, false);
+                                AppendLine($") {alias}");
                             }
                             else if (fromItem.TableName != null)
                             {
-                                this.Append($"{fromItem.TableName.NameWithAlias}");
-                            }                           
+                                Append($"{fromItem.TableName.NameWithAlias}");
+                            }
                         }
 
                         i++;
@@ -140,69 +118,57 @@ namespace SqlAnalyser.Core
                 }
                 else
                 {
-                    if (useAlias)
-                    {
-                        this.AppendLine($"FROM {tableName.NameWithAlias}");
-                    }
+                    if (useAlias) AppendLine($"FROM {tableName.NameWithAlias}");
                 }
 
                 if (update.Condition != null && update.Condition.Symbol != null)
-                {
-                    this.AppendLine($"WHERE {update.Condition}");
-                }
+                    AppendLine($"WHERE {update.Condition}");
 
-                if (update.Option != null)
-                {
-                    this.AppendLine(update.Option.ToString());
-                }
+                if (update.Option != null) AppendLine(update.Option.ToString());
 
-                this.AppendLine(";");
+                AppendLine(";");
             }
             else if (statement is DeleteStatement delete)
             {
-                bool hasJoin = AnalyserHelper.IsFromItemsHaveJoin(delete.FromItems);
+                var hasJoin = AnalyserHelper.IsFromItemsHaveJoin(delete.FromItems);
 
                 if (!hasJoin)
                 {
-                    this.AppendLine($"DELETE FROM {delete.TableName}");
+                    AppendLine($"DELETE FROM {delete.TableName}");
                 }
                 else
                 {
-                    this.AppendLine($"DELETE {delete.TableName}");
+                    AppendLine($"DELETE {delete.TableName}");
 
-                    this.BuildFromItems(delete.FromItems);
+                    BuildFromItems(delete.FromItems);
                 }
 
-                if (delete.Condition != null)
-                {
-                    this.AppendLine($"WHERE {delete.Condition}");
-                }
+                if (delete.Condition != null) AppendLine($"WHERE {delete.Condition}");
 
-                this.AppendLine(";");
+                AppendLine(";");
             }
             else if (statement is DeclareVariableStatement declareVar)
             {
-                string defaultValue = (declareVar.DefaultValue == null ? "" : $" = {declareVar.DefaultValue}");
-                this.AppendLine($"DECLARE {declareVar.Name} {declareVar.DataType}{defaultValue};");
+                var defaultValue = declareVar.DefaultValue == null ? "" : $" = {declareVar.DefaultValue}";
+                AppendLine($"DECLARE {declareVar.Name} {declareVar.DataType}{defaultValue};");
             }
             else if (statement is DeclareTableStatement declareTable)
             {
-                TableInfo tableInfo = declareTable.TableInfo;
+                var tableInfo = declareTable.TableInfo;
 
-                this.AppendLine($"DECLARE {tableInfo.Name} TABLE (");
+                AppendLine($"DECLARE {tableInfo.Name} TABLE (");
 
-                int i = 0;
+                var i = 0;
 
                 foreach (var column in tableInfo.Columns)
-                {
-                    this.AppendLine($"{column.Name.FieldName} {column.DataType}{(i == tableInfo.Columns.Count - 1 ? "" : ",")}");
-                }
+                    AppendLine(
+                        $"{column.Name.FieldName} {column.DataType}{(i == tableInfo.Columns.Count - 1 ? "" : ",")}");
 
-                this.AppendLine(")");
+                AppendLine(")");
             }
             else if (statement is CreateTableStatement createTable)
             {
-                this.AppendLine(this.BuildTable(createTable.TableInfo));
+                AppendLine(BuildTable(createTable.TableInfo));
             }
             else if (statement is SetStatement set)
             {
@@ -210,320 +176,304 @@ namespace SqlAnalyser.Core
                 {
                     if (set.IsSetUserVariable)
                     {
-                        string dataType = AnalyserHelper.GetUserVariableDataType(DatabaseType.SqlServer, set.UserVariableDataType);
+                        var dataType =
+                            AnalyserHelper.GetUserVariableDataType(DatabaseType.SqlServer, set.UserVariableDataType);
 
-                        if (!string.IsNullOrEmpty(dataType))
-                        {
-                            this.AppendLine($"DECLARE {set.Key} {dataType};");
-                        }
+                        if (!string.IsNullOrEmpty(dataType)) AppendLine($"DECLARE {set.Key} {dataType};");
                     }
 
-                    TokenInfo valueToken = set.Value;
+                    var valueToken = set.Value;
 
                     if (valueToken != null)
                     {
-                        if (this.IsRoutineName(valueToken))
+                        if (IsRoutineName(valueToken))
                         {
-                            this.MakeupRoutineName(valueToken);
+                            MakeupRoutineName(valueToken);
                         }
                         else
                         {
-                            TokenInfo child = valueToken.Children.FirstOrDefault(item => this.IsRoutineName(item));
+                            var child = valueToken.Children.FirstOrDefault(item => IsRoutineName(item));
 
-                            if (child != null)
-                            {
-                                this.MakeupRoutineName(valueToken);
-                            }
+                            if (child != null) MakeupRoutineName(valueToken);
                         }
                     }
 
-                    this.AppendLine($"SET {set.Key} = {set.Value};");
+                    AppendLine($"SET {set.Key} = {set.Value};");
                 }
             }
+
             if (statement is IfStatement @if)
             {
-                foreach (IfStatementItem item in @if.Items)
+                foreach (var item in @if.Items)
                 {
                     if (item.Type == IfStatementType.IF || item.Type == IfStatementType.ELSEIF)
                     {
-                        this.Append($"{item.Type} ");
+                        Append($"{item.Type} ");
 
-                        this.BuildIfCondition(item);
+                        BuildIfCondition(item);
 
-                        this.AppendLine();
+                        AppendLine();
                     }
                     else
                     {
-                        this.AppendLine($"{item.Type}");
+                        AppendLine($"{item.Type}");
                     }
 
-                    this.AppendLine("BEGIN");
+                    AppendLine("BEGIN");
 
                     if (item.Statements.Count > 0)
-                    {
-                        this.AppendChildStatements(item.Statements, true);
-                    }
+                        AppendChildStatements(item.Statements);
                     else
-                    {
-                        this.AppendLine("PRINT('BLANK!');");
-                    }
+                        AppendLine("PRINT('BLANK!');");
 
-                    this.AppendLine("END");
-                    this.AppendLine();
+                    AppendLine("END");
+                    AppendLine();
                 }
             }
             else if (statement is CaseStatement @case)
             {
-                string variableName = @case.VariableName.ToString();
+                var variableName = @case.VariableName.ToString();
 
-                IfStatement ifStatement = new IfStatement();
+                var ifStatement = new IfStatement();
 
-                int i = 0;
+                var i = 0;
                 foreach (var item in @case.Items)
                 {
-                    IfStatementItem ifItem = new IfStatementItem();
+                    var ifItem = new IfStatementItem();
 
                     ifItem.Type = i == 0 ? IfStatementType.IF : item.Type;
 
                     if (item.Type != IfStatementType.ELSE)
-                    {
-                        ifItem.Condition = new TokenInfo($"{variableName}={item.Condition}") { Type = TokenType.IfCondition };
-                    }
+                        ifItem.Condition = new TokenInfo($"{variableName}={item.Condition}")
+                            { Type = TokenType.IfCondition };
 
                     i++;
                 }
 
-                this.Build(ifStatement);
+                Build(ifStatement);
             }
             else if (statement is LoopStatement loop)
             {
-                bool isReverse = false;
-                bool isForLoop = false;
-                bool isIntegerIterate = false;
+                var isReverse = false;
+                var isForLoop = false;
+                var isIntegerIterate = false;
                 string iteratorName = null;
 
-                if(loop.Type != LoopType.FOR)
+                if (loop.Type != LoopType.FOR)
                 {
-                    this.AppendLine($"WHILE {loop.Condition}");
+                    AppendLine($"WHILE {loop.Condition}");
                 }
-                else if(loop.LoopCursorInfo != null)
+                else if (loop.LoopCursorInfo != null)
                 {
                     isForLoop = true;
                     isReverse = loop.LoopCursorInfo.IsReverse;
 
-                    iteratorName = "@"+ loop.LoopCursorInfo.IteratorName.Symbol;
+                    iteratorName = "@" + loop.LoopCursorInfo.IteratorName.Symbol;
 
-                    if(loop.LoopCursorInfo.IsIntegerIterate)
+                    if (loop.LoopCursorInfo.IsIntegerIterate)
                     {
                         isIntegerIterate = true;
-                        this.AppendLine($"DECLARE {iteratorName} INT;");
+                        AppendLine($"DECLARE {iteratorName} INT;");
 
                         if (!isReverse)
                         {
-                            this.AppendLine($"SET {iteratorName}={loop.LoopCursorInfo.StartValue};");
-                            this.AppendLine($"WHILE {iteratorName}<={loop.LoopCursorInfo.StopValue}");
+                            AppendLine($"SET {iteratorName}={loop.LoopCursorInfo.StartValue};");
+                            AppendLine($"WHILE {iteratorName}<={loop.LoopCursorInfo.StopValue}");
                         }
                         else
                         {
-                            this.AppendLine($"SET {iteratorName}={loop.LoopCursorInfo.StopValue};");
-                            this.AppendLine($"WHILE {iteratorName}>={loop.LoopCursorInfo.StartValue}");
+                            AppendLine($"SET {iteratorName}={loop.LoopCursorInfo.StopValue};");
+                            AppendLine($"WHILE {iteratorName}>={loop.LoopCursorInfo.StartValue}");
                         }
-                    }                   
+                    }
                 }
 
-                this.AppendLine("BEGIN");
+                AppendLine("BEGIN");
 
-                this.AppendChildStatements(loop.Statements, true);
+                AppendChildStatements(loop.Statements);
 
-                if(isForLoop && isIntegerIterate)
-                {
-                    this.AppendLine($"SET {iteratorName}= {iteratorName}{(isReverse? "-":"+")}1;");
-                }
+                if (isForLoop && isIntegerIterate)
+                    AppendLine($"SET {iteratorName}= {iteratorName}{(isReverse ? "-" : "+")}1;");
 
-                this.AppendLine("END");
+                AppendLine("END");
             }
             else if (statement is WhileStatement @while)
             {
-                this.AppendLine($"WHILE {@while.Condition}");
-                this.AppendLine("BEGIN");
+                AppendLine($"WHILE {@while.Condition}");
+                AppendLine("BEGIN");
 
-                this.AppendChildStatements(@while.Statements, true);
+                AppendChildStatements(@while.Statements);
 
-                this.AppendLine("END");
-                this.AppendLine();
+                AppendLine("END");
+                AppendLine();
             }
             else if (statement is LoopExitStatement whileExit)
             {
                 if (!whileExit.IsCursorLoopExit)
                 {
-                    this.AppendLine($"IF {whileExit.Condition}");
-                    this.AppendLine("BEGIN");
-                    this.AppendLine("BREAK");
-                    this.AppendLine("END");
+                    AppendLine($"IF {whileExit.Condition}");
+                    AppendLine("BEGIN");
+                    AppendLine("BREAK");
+                    AppendLine("END");
                 }
             }
             else if (statement is TryCatchStatement tryCatch)
             {
-                this.AppendLine("BEGIN TRY");
-                this.AppendChildStatements(tryCatch.TryStatements, true);
-                this.AppendLine("END TRY");
+                AppendLine("BEGIN TRY");
+                AppendChildStatements(tryCatch.TryStatements);
+                AppendLine("END TRY");
 
-                this.AppendLine("BEGIN CATCH");
-                this.AppendChildStatements(tryCatch.CatchStatements, true);
-                this.AppendLine("END CATCH");
-
+                AppendLine("BEGIN CATCH");
+                AppendChildStatements(tryCatch.CatchStatements);
+                AppendLine("END CATCH");
             }
             else if (statement is ReturnStatement @return)
             {
-                this.AppendLine($"RETURN {@return.Value};");
+                AppendLine($"RETURN {@return.Value};");
             }
             else if (statement is BreakStatement @break)
             {
-                this.AppendLine("BREAK;");
+                AppendLine("BREAK;");
             }
             else if (statement is ContinueStatement @continue)
             {
-                this.AppendLine("CONTINUE;");
+                AppendLine("CONTINUE;");
             }
             else if (statement is PrintStatement print)
             {
-                this.AppendLine($"PRINT {print.Content.Symbol?.Replace("||", "+")};");
+                AppendLine($"PRINT {print.Content.Symbol?.Replace("||", "+")};");
             }
             else if (statement is CallStatement call)
             {
                 if (!call.IsExecuteSql)
                 {
-                    this.AppendLine($"EXECUTE {call.Name} {string.Join(",", call.Parameters.Select(item => item.Value))};");
+                    AppendLine($"EXECUTE {call.Name} {string.Join(",", call.Parameters.Select(item => item.Value))};");
                 }
                 else
                 {
-                    string content = call.Parameters.FirstOrDefault()?.Value?.Symbol;
+                    var content = call.Parameters.FirstOrDefault()?.Value?.Symbol;
 
                     if (!string.IsNullOrEmpty(content))
                     {
                         var parameters = call.Parameters.Skip(1);
 
-                        List<CallParameter> usings = new List<CallParameter>();
+                        var usings = new List<CallParameter>();
 
                         foreach (var parameter in parameters)
                         {
                             var value = parameter.Value?.Symbol;
 
-                            if (!parameter.IsDescription)
-                            {
-                                usings.Add(parameter);
-                            }
+                            if (!parameter.IsDescription) usings.Add(parameter);
                         }
 
-                        string strParameters = usings.Count == 0 ? "" : $",N'', {(string.Join(",", usings.Select(item => $"{item.Value}")))}";
+                        var strParameters = usings.Count == 0
+                            ? ""
+                            : $",N'', {string.Join(",", usings.Select(item => $"{item.Value}"))}";
 
-                        this.AppendLine($"EXECUTE SP_EXECUTESQL {content}{strParameters};");
+                        AppendLine($"EXECUTE SP_EXECUTESQL {content}{strParameters};");
                     }
                 }
             }
             else if (statement is TransactionStatement transaction)
             {
-                TransactionCommandType commandType = transaction.CommandType;
+                var commandType = transaction.CommandType;
 
-                string content = transaction.Content == null ? "" : $" {transaction.Content.Symbol}";
+                var content = transaction.Content == null ? "" : $" {transaction.Content.Symbol}";
 
                 switch (commandType)
                 {
                     case TransactionCommandType.BEGIN:
-                        this.AppendLine($"BEGIN TRANS{content};");
+                        AppendLine($"BEGIN TRANS{content};");
                         break;
                     case TransactionCommandType.COMMIT:
-                        this.AppendLine("COMMIT;");
+                        AppendLine("COMMIT;");
                         break;
                     case TransactionCommandType.ROLLBACK:
-                        this.AppendLine("ROLLBACK;");
+                        AppendLine("ROLLBACK;");
                         break;
                 }
             }
             else if (statement is LeaveStatement leave)
             {
-                this.AppendLine("RETURN;");
+                AppendLine("RETURN;");
             }
             else if (statement is DeclareCursorStatement declareCursor)
             {
-                this.AppendLine($"DECLARE {declareCursor.CursorName} CURSOR{(declareCursor.SelectStatement != null ? " FOR" : "")}");
+                AppendLine(
+                    $"DECLARE {declareCursor.CursorName} CURSOR{(declareCursor.SelectStatement != null ? " FOR" : "")}");
 
-                if (declareCursor.SelectStatement != null)
-                {
-                    this.Build(declareCursor.SelectStatement);
-                }
+                if (declareCursor.SelectStatement != null) Build(declareCursor.SelectStatement);
 
-                this.AppendLine();
+                AppendLine();
             }
             else if (statement is OpenCursorStatement openCursor)
             {
-                this.AppendLine($"OPEN {openCursor.CursorName}");
+                AppendLine($"OPEN {openCursor.CursorName}");
             }
             else if (statement is FetchCursorStatement fetchCursor)
             {
-                this.AppendLine($"FETCH NEXT FROM {fetchCursor.CursorName} INTO {string.Join(",", fetchCursor.Variables)}");
+                AppendLine($"FETCH NEXT FROM {fetchCursor.CursorName} INTO {string.Join(",", fetchCursor.Variables)}");
             }
             else if (statement is CloseCursorStatement closeCursor)
             {
-                this.AppendLine($"CLOSE {closeCursor.CursorName}");
+                AppendLine($"CLOSE {closeCursor.CursorName}");
 
-                if (closeCursor.IsEnd)
-                {
-                    this.AppendLine($"DEALLOCATE {closeCursor.CursorName}");
-                }
+                if (closeCursor.IsEnd) AppendLine($"DEALLOCATE {closeCursor.CursorName}");
             }
             else if (statement is DeallocateCursorStatement deallocateCursor)
             {
-                this.AppendLine($"DEALLOCATE {deallocateCursor.CursorName}");
+                AppendLine($"DEALLOCATE {deallocateCursor.CursorName}");
             }
             else if (statement is TruncateStatement truncate)
             {
-                this.AppendLine($"TRUNCATE TABLE {truncate.TableName};");
+                AppendLine($"TRUNCATE TABLE {truncate.TableName};");
             }
             else if (statement is DropStatement drop)
             {
-                string objectType = drop.ObjectType.ToString().ToUpper();
+                var objectType = drop.ObjectType.ToString().ToUpper();
 
-                this.AppendLine($"DROP {objectType} IF EXISTS {drop.ObjectName.NameWithSchema};");
+                AppendLine($"DROP {objectType} IF EXISTS {drop.ObjectName.NameWithSchema};");
             }
             else if (statement is RaiseErrorStatement error)
             {
-                string severity = string.IsNullOrEmpty(error.Severity) ? "-1" : error.Severity;
-                string state = string.IsNullOrEmpty(error.State) ? "0" : error.State;
+                var severity = string.IsNullOrEmpty(error.Severity) ? "-1" : error.Severity;
+                var state = string.IsNullOrEmpty(error.State) ? "0" : error.State;
 
-                this.AppendLine($"RAISERROR({error.Content},{severity},{state});");
+                AppendLine($"RAISERROR({error.Content},{severity},{state});");
             }
             else if (statement is GotoStatement gts)
             {
                 if (gts.IsLabel)
                 {
-                    this.AppendLine($"GOTO {gts.Label};");
+                    AppendLine($"GOTO {gts.Label};");
                 }
                 else
                 {
-                    this.AppendLine($"{gts.Label}:");
+                    AppendLine($"{gts.Label}:");
 
-                    this.AppendChildStatements(gts.Statements);
+                    AppendChildStatements(gts.Statements);
                 }
             }
             else if (statement is PreparedStatement prepared)
             {
-                PreparedStatementType type = prepared.Type;
+                var type = prepared.Type;
 
                 if (type == PreparedStatementType.Prepare)
                 {
-                    if (this.Option.CollectSpecialStatementTypes.Contains(prepared.GetType()))
-                    {
-                        this.SpecialStatements.Add(prepared);
-                    }
+                    if (Option.CollectSpecialStatementTypes.Contains(prepared.GetType()))
+                        SpecialStatements.Add(prepared);
                 }
                 else if (type == PreparedStatementType.Execute)
                 {
-                    var pre = this.SpecialStatements.FirstOrDefault(item => (item is PreparedStatement) && (item as PreparedStatement).Id.Symbol == prepared.Id.Symbol) as PreparedStatement;
+                    var pre = SpecialStatements.FirstOrDefault(item =>
+                            item is PreparedStatement && (item as PreparedStatement).Id.Symbol == prepared.Id.Symbol) as
+                        PreparedStatement;
 
-                    string variables = prepared.ExecuteVariables.Count > 0 ? $",N'',{(string.Join(",", prepared.ExecuteVariables))}" : "";
+                    var variables = prepared.ExecuteVariables.Count > 0
+                        ? $",N'',{string.Join(",", prepared.ExecuteVariables)}"
+                        : "";
 
-                    this.AppendLine($"EXECUTE SP_EXECUTESQL {pre?.FromSqlOrVariable}{variables};");
+                    AppendLine($"EXECUTE SP_EXECUTESQL {pre?.FromSqlOrVariable}{variables};");
                 }
             }
 
@@ -534,79 +484,68 @@ namespace SqlAnalyser.Core
         {
             var tokenType = token.Type;
 
-            return tokenType == TokenType.RoutineName || tokenType == TokenType.ProcedureName || tokenType == TokenType.FunctionName;
+            return tokenType == TokenType.RoutineName || tokenType == TokenType.ProcedureName ||
+                   tokenType == TokenType.FunctionName;
         }
 
         protected override void BuildSelectStatement(SelectStatement select, bool appendSeparator = true)
         {
-            TokenInfo intoTableName = AnalyserHelper.GetIntoTableName(select);
-            bool isAssignVariable = intoTableName == null && select.Intos != null && select.Intos.Count > 0;
+            var intoTableName = AnalyserHelper.GetIntoTableName(select);
+            var isAssignVariable = intoTableName == null && select.Intos != null && select.Intos.Count > 0;
 
-            bool isWith = select.WithStatements != null && select.WithStatements.Count > 0;
+            var isWith = select.WithStatements != null && select.WithStatements.Count > 0;
 
             if (select.LimitInfo != null && select.TopInfo == null)
-            {
                 if (select.LimitInfo.StartRowIndex == null || select.LimitInfo.StartRowIndex.Symbol == "0")
-                {
-                    select.TopInfo = new SelectTopInfo() { TopCount = select.LimitInfo.RowCount };
-                }
-            }
+                    select.TopInfo = new SelectTopInfo { TopCount = select.LimitInfo.RowCount };
 
-            string top = select.TopInfo == null ? "" : $" TOP {select.TopInfo.TopCount}{(select.TopInfo.IsPercent ? " PERCENT " : " ")}";
+            var top = select.TopInfo == null
+                ? ""
+                : $" TOP {select.TopInfo.TopCount}{(select.TopInfo.IsPercent ? " PERCENT " : " ")}";
 
-            string selectColumns = $"SELECT {top}";
+            var selectColumns = $"SELECT {top}";
 
             if (!isAssignVariable)
-            {
-                selectColumns += $"{string.Join(",", select.Columns.Select(item => this.GetNameWithAlias(item)))}";
-            }
+                selectColumns += $"{string.Join(",", select.Columns.Select(item => GetNameWithAlias(item)))}";
 
-            if (!isWith)
-            {
-                this.Append(selectColumns);
-            }
+            if (!isWith) Append(selectColumns);
 
             if (intoTableName != null)
             {
-                this.AppendLine($"INTO {intoTableName}");
+                AppendLine($"INTO {intoTableName}");
             }
             else if (isAssignVariable && select.Columns.Count == select.Intos.Count)
             {
-                List<string> assigns = new List<string>();
+                var assigns = new List<string>();
 
-                for (int i = 0; i < select.Intos.Count; i++)
-                {
-                    assigns.Add($"{select.Intos[i]}={select.Columns[i]}");
-                }
+                for (var i = 0; i < select.Intos.Count; i++) assigns.Add($"{select.Intos[i]}={select.Columns[i]}");
 
-                this.AppendLine(String.Join(", ", assigns));
+                AppendLine(string.Join(", ", assigns));
             }
 
             Action appendWith = () =>
             {
-                int i = 0;
+                var i = 0;
 
-                foreach (WithStatement withStatement in select.WithStatements)
+                foreach (var withStatement in select.WithStatements)
                 {
                     if (i == 0)
                     {
-                        this.AppendLine($"WITH {withStatement.Name}");
+                        AppendLine($"WITH {withStatement.Name}");
 
                         if (withStatement.Columns != null && withStatement.Columns.Count > 0)
-                        {
-                            this.AppendLine($"({string.Join(",", withStatement.Columns.Select(item => item))})");
-                        }
+                            AppendLine($"({string.Join(",", withStatement.Columns.Select(item => item))})");
                     }
                     else
                     {
-                        this.AppendLine($",{withStatement.Name}");
+                        AppendLine($",{withStatement.Name}");
                     }
 
-                    this.AppendLine("AS(");
+                    AppendLine("AS(");
 
-                    this.AppendChildStatements(withStatement.SelectStatements, false);
+                    AppendChildStatements(withStatement.SelectStatements, false);
 
-                    this.AppendLine(")");
+                    AppendLine(")");
 
                     i++;
                 }
@@ -615,84 +554,57 @@ namespace SqlAnalyser.Core
             Action appendFrom = () =>
             {
                 if (select.HasFromItems)
-                {
-                    this.BuildSelectStatementFromItems(select);
-                }
-                else if (select.TableName != null)
-                {
-                    this.AppendLine($"FROM {this.GetNameWithAlias(select.TableName)}");
-                }
+                    BuildSelectStatementFromItems(select);
+                else if (select.TableName != null) AppendLine($"FROM {GetNameWithAlias(select.TableName)}");
             };
 
             if (isWith)
             {
                 appendWith();
 
-                this.AppendLine(selectColumns);
+                AppendLine(selectColumns);
             }
 
             appendFrom();
 
-            if (select.Where != null)
-            {
-                this.Append($"WHERE {select.Where}");
-            }
+            if (select.Where != null) Append($"WHERE {select.Where}");
 
             if (select.GroupBy != null && select.GroupBy.Count > 0)
-            {
-                this.AppendLine($"GROUP BY {string.Join(",", select.GroupBy.Select(item => item))}");
-            }
+                AppendLine($"GROUP BY {string.Join(",", select.GroupBy.Select(item => item))}");
 
-            if (select.Having != null)
-            {
-                this.AppendLine($"HAVING {select.Having}");
-            }
+            if (select.Having != null) AppendLine($"HAVING {select.Having}");
 
             if (select.OrderBy != null && select.OrderBy.Count > 0)
-            {
-                this.AppendLine($"ORDER BY {string.Join(",", select.OrderBy.Select(item => item))}");
-            }
+                AppendLine($"ORDER BY {string.Join(",", select.OrderBy.Select(item => item))}");
 
             if (select.LimitInfo != null)
-            {
                 if (select.TopInfo == null)
                 {
-                    if (select.OrderBy == null)
-                    {
-                        this.AppendLine("ORDER BY (SELECT 0)");
-                    }
+                    if (select.OrderBy == null) AppendLine("ORDER BY (SELECT 0)");
 
                     //NOTE: "OFFSET X ROWS FETCH NEXT Y ROWS ONLY" only available for SQLServer 2012 and above.
-                    this.AppendLine($"OFFSET {select.LimitInfo.StartRowIndex?.Symbol ?? "0"} ROWS FETCH NEXT {select.LimitInfo.RowCount} ROWS ONLY");
+                    AppendLine(
+                        $"OFFSET {select.LimitInfo.StartRowIndex?.Symbol ?? "0"} ROWS FETCH NEXT {select.LimitInfo.RowCount} ROWS ONLY");
                 }
-            }
 
             if (select.UnionStatements != null)
-            {
-                foreach (UnionStatement union in select.UnionStatements)
+                foreach (var union in select.UnionStatements)
                 {
-                    this.Build(union, false).TrimSeparator();
-                    this.AppendLine();
+                    Build(union, false).TrimSeparator();
+                    AppendLine();
                 }
-            }
 
-            if (appendSeparator)
-            {
-                this.AppendLine(";");
-            }
+            if (appendSeparator) AppendLine(";");
         }
 
         private void MakeupRoutineName(TokenInfo token)
         {
-            string symbol = token.Symbol;
-            int index = symbol.IndexOf("(");
+            var symbol = token.Symbol;
+            var index = symbol.IndexOf("(");
 
-            string name = index == -1 ? symbol : symbol.Substring(0, index);
+            var name = index == -1 ? symbol : symbol.Substring(0, index);
 
-            if (!name.Contains("."))
-            {
-                token.Symbol = $"dbo." + symbol;
-            }
+            if (!name.Contains(".")) token.Symbol = "dbo." + symbol;
         }
 
         private string GetUnionTypeName(UnionType unionType)
@@ -710,68 +622,67 @@ namespace SqlAnalyser.Core
 
         protected override string GetPivotInItem(TokenInfo token)
         {
-            return $"[{this.GetTrimedQuotationValue(token.Symbol)}]";
+            return $"[{GetTrimedQuotationValue(token.Symbol)}]";
         }
 
         public string BuildTable(TableInfo table)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
-            string tableName = table.Name.Symbol;
+            var tableName = table.Name.Symbol;
 
-            string trimedTableName = tableName.Trim('[', ']');
+            var trimedTableName = tableName.Trim('[', ']');
 
             if (table.IsTemporary && !trimedTableName.StartsWith("#"))
             {
-                string newTableName = "#" + trimedTableName;
+                var newTableName = "#" + trimedTableName;
 
-                if (!this.Replacements.ContainsKey(tableName))
-                {
-                    this.Replacements.Add(trimedTableName, newTableName);
-                }
+                if (!Replacements.ContainsKey(tableName)) Replacements.Add(trimedTableName, newTableName);
             }
 
-            bool hasColumns = table.Columns.Count > 0;
-            bool hasSelect = table.SelectStatement != null;
+            var hasColumns = table.Columns.Count > 0;
+            var hasSelect = table.SelectStatement != null;
 
-            if(hasColumns)
+            if (hasColumns)
             {
                 sb.AppendLine($"CREATE TABLE {tableName}(");
 
-                bool hasTableConstraints = table.HasTableConstraints;
+                var hasTableConstraints = table.HasTableConstraints;
 
-                int i = 0;
+                var i = 0;
 
                 foreach (var column in table.Columns)
                 {
-                    string name = column.Name.Symbol;
-                    string dataType = column.DataType?.Symbol ?? "VARCHAR(MAX)";
-                    string require = column.IsNullable ? " NULL" : " NOT NULL";
-                    string seperator = (i == table.Columns.Count - 1 ? (hasTableConstraints ? "," : "") : ",");
+                    var name = column.Name.Symbol;
+                    var dataType = column.DataType?.Symbol ?? "VARCHAR(MAX)";
+                    var require = column.IsNullable ? " NULL" : " NOT NULL";
+                    var seperator = i == table.Columns.Count - 1 ? hasTableConstraints ? "," : "" : ",";
 
-                    bool isComputeExp = column.IsComputed;
+                    var isComputeExp = column.IsComputed;
 
-                    if(isComputeExp)
+                    if (isComputeExp)
                     {
                         sb.Append($"{name} AS ({column.ComputeExp}){seperator}");
                     }
                     else
                     {
-                        string identity = column.IsIdentity ? $" IDENTITY({table.IdentitySeed??1},{table.IdentityIncrement??1})" : "";
-                        string defaultValue = string.IsNullOrEmpty(column.DefaultValue?.Symbol) ? "" : $" DEFAULT {StringHelper.GetParenthesisedString(column.DefaultValue.Symbol)}";
-                        string constraint = this.GetConstriants(column.Constraints, true);
-                        string strConstraint = string.IsNullOrEmpty(constraint) ? "" : $" {constraint}";                       
+                        var identity = column.IsIdentity
+                            ? $" IDENTITY({table.IdentitySeed ?? 1},{table.IdentityIncrement ?? 1})"
+                            : "";
+                        var defaultValue = string.IsNullOrEmpty(column.DefaultValue?.Symbol)
+                            ? ""
+                            : $" DEFAULT {StringHelper.GetParenthesisedString(column.DefaultValue.Symbol)}";
+                        var constraint = GetConstriants(column.Constraints, true);
+                        var strConstraint = string.IsNullOrEmpty(constraint) ? "" : $" {constraint}";
 
-                        sb.AppendLine($"{name} {column.DataType}{identity}{require}{defaultValue}{strConstraint}{seperator}");
+                        sb.AppendLine(
+                            $"{name} {column.DataType}{identity}{require}{defaultValue}{strConstraint}{seperator}");
                     }
 
                     i++;
                 }
 
-                if (hasTableConstraints)
-                {
-                    sb.AppendLine(this.GetConstriants(table.Constraints));
-                }
+                if (hasTableConstraints) sb.AppendLine(GetConstriants(table.Constraints));
 
                 sb.Append(")");
             }
@@ -781,7 +692,7 @@ namespace SqlAnalyser.Core
 
                 table.SelectStatement.Intos.Add(table.Name);
 
-                TSqlStatementScriptBuilder builder = new TSqlStatementScriptBuilder();
+                var builder = new TSqlStatementScriptBuilder();
 
                 builder.BuildSelectStatement(table.SelectStatement, false);
 

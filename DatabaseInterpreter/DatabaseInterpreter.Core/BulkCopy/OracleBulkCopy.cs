@@ -1,7 +1,7 @@
 ﻿/***
  * This file refers to: https://github.com/TylerHaigh/OracleBulkCopy/blob/master/OracleBulkCopy.Standard/OracleBulkCopy.cs
  * 
-***//*
+***/ /*
 //using DatabaseInterpreter.Geometry;
 using Oracle.ManagedDataAccess.Client;
 using Oracle.ManagedDataAccess.Types;
@@ -337,3 +337,4 @@ namespace DatabaseInterpreter.Core
         }
     }
 }*/
+

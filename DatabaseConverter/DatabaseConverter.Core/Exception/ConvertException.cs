@@ -5,13 +5,13 @@ namespace DatabaseConverter.Core
 {
     public abstract class ConvertException : Exception
     {
-        public Exception BaseException { get; set; }
-        public abstract string ObjectType { get; }
-
         public ConvertException(Exception ex)
         {
-            this.BaseException = ex;            
+            BaseException = ex;
         }
+
+        public Exception BaseException { get; set; }
+        public abstract string ObjectType { get; }
 
         public string SourceServer { get; set; }
         public string SourceDatabase { get; set; }
@@ -27,32 +27,23 @@ namespace DatabaseConverter.Core
         {
             get
             {
-                StringBuilder sb = new StringBuilder();
+                var sb = new StringBuilder();
 
-                sb.AppendLine($"ObjectType:{this.ObjectType}");
-                sb.AppendLine($"SourceServer:{this.SourceServer}");
-                sb.AppendLine( $"SourceDatabase:{this.SourceDatabase}");
+                sb.AppendLine($"ObjectType:{ObjectType}");
+                sb.AppendLine($"SourceServer:{SourceServer}");
+                sb.AppendLine($"SourceDatabase:{SourceDatabase}");
 
-                if(!string.IsNullOrEmpty(this.SourceObject))
-                {
-                    sb.AppendLine($"SourceObject:{this.SourceObject}");
-                }
+                if (!string.IsNullOrEmpty(SourceObject)) sb.AppendLine($"SourceObject:{SourceObject}");
 
-                sb.AppendLine($"TargetServer:{this.TargetServer}");
-                sb.AppendLine($"TargetDatabase:{this.TargetDatabase}");
+                sb.AppendLine($"TargetServer:{TargetServer}");
+                sb.AppendLine($"TargetDatabase:{TargetDatabase}");
 
-                if(!string.IsNullOrEmpty(this.TargetObject))
-                {
-                    sb.AppendLine($"TargetObject:{this.TargetObject}");
-                }
+                if (!string.IsNullOrEmpty(TargetObject)) sb.AppendLine($"TargetObject:{TargetObject}");
 
-                if(!string.IsNullOrEmpty(BaseException?.StackTrace))
-                {
-                    sb.AppendLine(BaseException?.StackTrace);
-                }
+                if (!string.IsNullOrEmpty(BaseException?.StackTrace)) sb.AppendLine(BaseException?.StackTrace);
 
                 return sb.ToString();
             }
         }
-    }    
+    }
 }

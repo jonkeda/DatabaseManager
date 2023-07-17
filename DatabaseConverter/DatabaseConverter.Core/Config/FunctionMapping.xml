@@ -173,7 +173,7 @@
 		<Oracle>LN</Oracle>
 		<Postgres>LN</Postgres>
 		<Sqlite>LN</Sqlite>
-	</mapping>	
+	</mapping>
 	<mapping>
 		<SqlServer direction="IN" defaults="PAD:' '" expression="REPLICATE(PAD,LENGTH-LEN(EXP))+EXP"></SqlServer>
 		<MySql defaults="PAD:' '">LPAD</MySql>
@@ -183,11 +183,11 @@
 	</mapping>
 	<mapping>
 		<SqlServer direction="IN" defaults="PAD:' '" expression="EXP+REPLICATE(PAD,LENGTH-LEN(EXP))"></SqlServer>
-		<MySql  defaults="PAD:' '">RPAD</MySql>
+		<MySql defaults="PAD:' '">RPAD</MySql>
 		<Oracle>RPAD</Oracle>
-		<Postgres  defaults="PAD:' '">RPAD</Postgres>
+		<Postgres defaults="PAD:' '">RPAD</Postgres>
 		<Sqlite></Sqlite>
-	</mapping>	
+	</mapping>
 	<mapping>
 		<SqlServer>CEILING</SqlServer>
 		<MySql>CEILING,CEIL</MySql>

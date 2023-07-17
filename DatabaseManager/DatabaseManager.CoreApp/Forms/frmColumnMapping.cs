@@ -1,187 +1,164 @@
-﻿using DatabaseInterpreter.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using DatabaseInterpreter.Model;
 
-namespace DatabaseManager
+namespace DatabaseManager;
+
+public partial class frmColumnMapping : Form
 {
-    public partial class frmColumnMapping : Form
+    private const string EmptyItem = "<None>";
+
+    public frmColumnMapping()
     {
-        private const string EmptyItem = "<None>";
-        public string ReferenceTableName { get; set; }
-        public string TableName { get; set; }
-        public List<string> ReferenceTableColumns { get; set; } = new List<string>();
-        public List<string> TableColumns { get; set; } = new List<string>();
+        InitializeComponent();
+    }
 
-        public List<ForeignKeyColumn> Mappings { get; set; } = new List<ForeignKeyColumn>();
+    public string ReferenceTableName { get; set; }
+    public string TableName { get; set; }
+    public List<string> ReferenceTableColumns { get; set; } = new();
+    public List<string> TableColumns { get; set; } = new();
 
-        public frmColumnMapping()
-        {
-            InitializeComponent();
-        }
+    public List<ForeignKeyColumn> Mappings { get; set; } = new();
 
-        private void frmColumnMapping_Load(object sender, EventArgs e)
-        {
-            this.InitControls();
-        }
+    private void frmColumnMapping_Load(object sender, EventArgs e)
+    {
+        InitControls();
+    }
 
-        private void InitControls()
-        {
-            this.gbReferenceTable.Text = this.ReferenceTableName;
-            this.gbTable.Text = this.TableName;
+    private void InitControls()
+    {
+        gbReferenceTable.Text = ReferenceTableName;
+        gbTable.Text = TableName;
 
-            this.LoadMappings();
-        }
+        LoadMappings();
+    }
 
-        private void LoadMappings()
-        {
-            if (this.Mappings != null)
+    private void LoadMappings()
+    {
+        if (Mappings != null)
+            foreach (var mapping in Mappings)
             {
-                foreach (ForeignKeyColumn mapping in this.Mappings)
-                {
-                    ComboBox refCombo = this.CreateCombobox(this.panelReferenceTable, this.ReferenceTableColumns, mapping.ReferencedColumnName);
+                var refCombo = CreateCombobox(panelReferenceTable, ReferenceTableColumns, mapping.ReferencedColumnName);
 
-                    this.panelReferenceTable.Controls.Add(refCombo);
+                panelReferenceTable.Controls.Add(refCombo);
 
-                    ComboBox combo = this.CreateCombobox(this.panelTable, this.TableColumns, mapping.ColumnName);
+                var combo = CreateCombobox(panelTable, TableColumns, mapping.ColumnName);
 
-                    this.panelTable.Controls.Add(combo);
-                }
+                panelTable.Controls.Add(combo);
             }
 
-            ComboBox refComboEmpty = this.CreateCombobox(this.panelReferenceTable, this.ReferenceTableColumns, null);
+        var refComboEmpty = CreateCombobox(panelReferenceTable, ReferenceTableColumns, null);
 
-            this.panelReferenceTable.Controls.Add(refComboEmpty);
+        panelReferenceTable.Controls.Add(refComboEmpty);
 
-            ComboBox comboEmpty = this.CreateCombobox(this.panelTable, this.TableColumns, null);
+        var comboEmpty = CreateCombobox(panelTable, TableColumns, null);
 
-            this.panelTable.Controls.Add(comboEmpty);
-        }
+        panelTable.Controls.Add(comboEmpty);
+    }
 
-        private ComboBox CreateCombobox(Panel panel, List<string> values, string value)
+    private ComboBox CreateCombobox(Panel panel, List<string> values, string value)
+    {
+        var combo = new ComboBox();
+        combo.MouseClick += Combo_MouseClick;
+        combo.DropDownStyle = ComboBoxStyle.DropDown;
+        combo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+        combo.Width = panelTable.Width - 5;
+        combo.Tag = panel.Controls.Count + 1;
+        combo.SelectedIndexChanged += Combo_SelectedIndexChanged;
+        combo.KeyPress += Combo_KeyPress;
+
+        combo.Items.AddRange(GetValuesWithEmptyItem(values).Except(GetExistingValues(panel)).ToArray());
+
+        if (panel.Controls.Count > 0) combo.Top = panel.Controls.Count * combo.Height + panel.Controls.Count;
+
+        if (!string.IsNullOrEmpty(value) && values.Contains(value)) combo.Text = value;
+
+        return combo;
+    }
+
+    private void Combo_MouseClick(object sender, MouseEventArgs e)
+    {
+        var combo = sender as ComboBox;
+
+        if (!combo.DroppedDown) combo.DroppedDown = true;
+    }
+
+    private void Combo_KeyPress(object sender, KeyPressEventArgs e)
+    {
+        e.Handled = true;
+    }
+
+    private List<string> GetExistingValues(Panel panel)
+    {
+        var values = new List<string>();
+        var comboboxes = panel.Controls.OfType<ComboBox>();
+
+        foreach (var combo in comboboxes)
+            if (!string.IsNullOrEmpty(combo.Text) && combo.Text != EmptyItem)
+                values.Add(combo.Text);
+
+        return values;
+    }
+
+    private List<string> GetValuesWithEmptyItem(List<string> values)
+    {
+        var cloneValues = values.Select(item => item).ToList();
+        cloneValues.Add(EmptyItem);
+
+        return cloneValues;
+    }
+
+    private void Combo_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        var combo = sender as ComboBox;
+
+        if (combo.Parent == null) return;
+
+        var order = Convert.ToInt32(combo.Tag);
+
+        if (order == combo.Parent.Controls.Count)
         {
-            ComboBox combo = new ComboBox();
-            combo.MouseClick += Combo_MouseClick;
-            combo.DropDownStyle = ComboBoxStyle.DropDown;
-            combo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            combo.Width = panelTable.Width - 5;
-            combo.Tag = panel.Controls.Count + 1;
-            combo.SelectedIndexChanged += Combo_SelectedIndexChanged;
-            combo.KeyPress += Combo_KeyPress;
+            var refCombo = CreateCombobox(panelReferenceTable, ReferenceTableColumns, null);
 
-            combo.Items.AddRange(this.GetValuesWithEmptyItem(values).Except(this.GetExistingValues(panel)).ToArray());
+            panelReferenceTable.Controls.Add(refCombo);
 
-            if (panel.Controls.Count > 0)
+            var cbo = CreateCombobox(panelTable, TableColumns, null);
+
+            panelTable.Controls.Add(cbo);
+        }
+    }
+
+    private void btnOK_Click(object sender, EventArgs e)
+    {
+        var mappings = new List<ForeignKeyColumn>();
+
+        for (var i = 0; i < panelReferenceTable.Controls.Count; i++)
+        {
+            var refCombo = panelReferenceTable.Controls[i] as ComboBox;
+            var combo = panelTable.Controls[i] as ComboBox;
+
+            if (!string.IsNullOrEmpty(refCombo.Text) && refCombo.Text != EmptyItem
+                                                     && !string.IsNullOrEmpty(combo.Text) && combo.Text != EmptyItem)
             {
-                combo.Top = panel.Controls.Count * combo.Height + panel.Controls.Count;
-            }
+                var mapping = new ForeignKeyColumn();
+                mapping.ReferencedColumnName = refCombo.Text;
+                mapping.ColumnName = combo.Text;
+                mapping.Order = mappings.Count + 1;
 
-            if (!string.IsNullOrEmpty(value) && values.Contains(value))
-            {
-                combo.Text = value;
-            }
-
-            return combo;
-        }
-
-        private void Combo_MouseClick(object sender, MouseEventArgs e)
-        {
-            ComboBox combo = sender as ComboBox;
-
-            if (!combo.DroppedDown)
-            {
-                combo.DroppedDown = true;
+                mappings.Add(mapping);
             }
         }
 
-        private void Combo_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            e.Handled = true;
-        }
+        Mappings = mappings;
 
-        private List<string> GetExistingValues(Panel panel)
-        {
-            List<string> values = new List<string>();
-            var comboboxes = panel.Controls.OfType<ComboBox>();
+        DialogResult = DialogResult.OK;
+        Close();
+    }
 
-            foreach (ComboBox combo in comboboxes)
-            {
-                if (!string.IsNullOrEmpty(combo.Text) && combo.Text != EmptyItem)
-                {
-                    values.Add(combo.Text);
-                }
-            }
-
-            return values;
-        }
-
-        private List<string> GetValuesWithEmptyItem(List<string> values)
-        {
-            var cloneValues = values.Select(item => item).ToList();
-            cloneValues.Add(EmptyItem);
-
-            return cloneValues;
-        }
-
-        private void Combo_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            ComboBox combo = sender as ComboBox;
-
-            if (combo.Parent == null)
-            {
-                return;
-            }
-
-            int order = Convert.ToInt32(combo.Tag);
-
-            if (order == combo.Parent.Controls.Count)
-            {
-                ComboBox refCombo = this.CreateCombobox(this.panelReferenceTable, this.ReferenceTableColumns, null);
-
-                this.panelReferenceTable.Controls.Add(refCombo);
-
-                ComboBox cbo = this.CreateCombobox(this.panelTable, this.TableColumns, null);
-
-                this.panelTable.Controls.Add(cbo);
-            }
-        }
-
-        private void btnOK_Click(object sender, EventArgs e)
-        {
-            List<ForeignKeyColumn> mappings = new List<ForeignKeyColumn>();
-
-            for (int i = 0; i < this.panelReferenceTable.Controls.Count; i++)
-            {
-                ComboBox refCombo = this.panelReferenceTable.Controls[i] as ComboBox;
-                ComboBox combo = this.panelTable.Controls[i] as ComboBox;
-
-                if (!string.IsNullOrEmpty(refCombo.Text) && refCombo.Text != EmptyItem
-                    && !string.IsNullOrEmpty(combo.Text) && combo.Text != EmptyItem)
-                {
-                    ForeignKeyColumn mapping = new ForeignKeyColumn();
-                    mapping.ReferencedColumnName = refCombo.Text;
-                    mapping.ColumnName = combo.Text;
-                    mapping.Order = mappings.Count + 1;
-
-                    mappings.Add(mapping);
-                }
-            }
-
-            this.Mappings = mappings;
-
-            this.DialogResult = DialogResult.OK;
-            this.Close();
-        }
-
-        private void btnCancel_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
+    private void btnCancel_Click(object sender, EventArgs e)
+    {
+        Close();
     }
 }

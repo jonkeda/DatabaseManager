@@ -1,72 +1,69 @@
 ﻿//using DatabaseInterpreter.Geometry;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using Microsoft.SqlServer.Types;
-using MySqlConnector;
-using NetTopologySuite.Geometries;
-using NpgsqlTypes;
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DatabaseInterpreter.Model;
+using DatabaseInterpreter.Utility;
+using Microsoft.SqlServer.Types;
+using MySqlConnector;
+using NpgsqlTypes;
 using PgGeom = NetTopologySuite.Geometries;
 
 namespace DatabaseInterpreter.Core
 {
     public abstract class DbScriptGenerator
     {
+        protected DatabaseType databaseType;
         protected DbInterpreter dbInterpreter;
         protected DbInterpreterOption option;
-        protected DatabaseType databaseType;
         protected string scriptsDelimiter;
 
         public DbScriptGenerator(DbInterpreter dbInterpreter)
         {
             this.dbInterpreter = dbInterpreter;
-            this.option = dbInterpreter.Option;
-            this.databaseType = dbInterpreter.DatabaseType;
-            this.scriptsDelimiter = dbInterpreter.ScriptsDelimiter;
+            option = dbInterpreter.Option;
+            databaseType = dbInterpreter.DatabaseType;
+            scriptsDelimiter = dbInterpreter.ScriptsDelimiter;
         }
 
         #region Schema Scripts
+
         public abstract ScriptBuilder GenerateSchemaScripts(SchemaInfo schemaInfo);
 
         protected virtual List<Script> GenerateScriptDbObjectScripts<T>(List<T> dbObjects)
             where T : ScriptDbObject
         {
-            List<Script> scripts = new List<Script>();
+            var scripts = new List<Script>();
 
-            foreach (T dbObject in dbObjects)
+            foreach (var dbObject in dbObjects)
             {
-                this.dbInterpreter.FeedbackInfo(OperationState.Begin, dbObject);
+                dbInterpreter.FeedbackInfo(OperationState.Begin, dbObject);
 
-                bool hasNewLine = this.scriptsDelimiter.Contains(Environment.NewLine);
+                var hasNewLine = scriptsDelimiter.Contains(Environment.NewLine);
 
-                string definition = dbObject.Definition.Trim();
+                var definition = dbObject.Definition.Trim();
 
                 scripts.Add(new CreateDbObjectScript<T>(definition));
 
                 if (!hasNewLine)
                 {
-                    if (!definition.EndsWith(this.scriptsDelimiter))
-                    {
-                        scripts.Add(new SpliterScript(this.scriptsDelimiter));
-                    }
+                    if (!definition.EndsWith(scriptsDelimiter)) scripts.Add(new SpliterScript(scriptsDelimiter));
                 }
                 else
                 {
                     scripts.Add(new NewLineSript());
-                    scripts.Add(new SpliterScript(this.scriptsDelimiter));
+                    scripts.Add(new SpliterScript(scriptsDelimiter));
                 }
 
                 scripts.Add(new NewLineSript());
 
-                this.dbInterpreter.FeedbackInfo(OperationState.End, dbObject);
+                dbInterpreter.FeedbackInfo(OperationState.End, dbObject);
             }
 
             return scripts;
@@ -75,51 +72,55 @@ namespace DatabaseInterpreter.Core
         #endregion
 
         #region Data Scripts
+
         public virtual async Task<string> GenerateDataScriptsAsync(SchemaInfo schemaInfo)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
-            if (this.option.ScriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToFile))
+            if (option.ScriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToFile))
+                ClearScriptFile(GenerateScriptMode.Data);
+
+            using (var connection = dbInterpreter.CreateConnection())
             {
-                this.ClearScriptFile(GenerateScriptMode.Data);
-            }
+                var tableCount = schemaInfo.Tables.Count;
+                var count = 0;
 
-            using (DbConnection connection = this.dbInterpreter.CreateConnection())
-            {
-                int tableCount = schemaInfo.Tables.Count;
-                int count = 0;
-
-                foreach (Table table in schemaInfo.Tables)
+                foreach (var table in schemaInfo.Tables)
                 {
-                    if (this.dbInterpreter.CancelRequested)
-                    {
-                        break;
-                    }
+                    if (dbInterpreter.CancelRequested) break;
 
                     count++;
 
-                    string strTableCount = $"({count}/{tableCount})";
-                    string tableName = table.Name;
+                    var strTableCount = $"({count}/{tableCount})";
+                    var tableName = table.Name;
 
-                    List<TableColumn> columns = schemaInfo.TableColumns.Where(item => item.Schema == table.Schema && item.TableName == tableName).OrderBy(item => item.Order).ToList();
+                    var columns = schemaInfo.TableColumns
+                        .Where(item => item.Schema == table.Schema && item.TableName == tableName)
+                        .OrderBy(item => item.Order).ToList();
 
-                    bool isSelfReference = TableReferenceHelper.IsSelfReference(tableName, schemaInfo.TableForeignKeys);
+                    var isSelfReference = TableReferenceHelper.IsSelfReference(tableName, schemaInfo.TableForeignKeys);
 
-                    TablePrimaryKey primaryKey = schemaInfo.TablePrimaryKeys.FirstOrDefault(item => item.Schema == table.Schema && item.TableName == tableName);
+                    var primaryKey = schemaInfo.TablePrimaryKeys.FirstOrDefault(item =>
+                        item.Schema == table.Schema && item.TableName == tableName);
 
-                    string primaryKeyColumns = primaryKey == null ? "" : string.Join(",", primaryKey.Columns.OrderBy(item => item.Order).Select(item => this.GetQuotedString(item.ColumnName)));
+                    var primaryKeyColumns = primaryKey == null
+                        ? ""
+                        : string.Join(",",
+                            primaryKey.Columns.OrderBy(item => item.Order)
+                                .Select(item => GetQuotedString(item.ColumnName)));
 
-                    long total = await this.dbInterpreter.GetTableRecordCountAsync(connection, table);
+                    var total = await dbInterpreter.GetTableRecordCountAsync(connection, table);
 
-                    if (this.option.DataGenerateThreshold.HasValue && total > this.option.DataGenerateThreshold.Value)
+                    if (option.DataGenerateThreshold.HasValue && total > option.DataGenerateThreshold.Value)
                     {
-                        this.FeedbackInfo($"Record count of table \"{this.GetQuotedFullTableName(table)}\" exceeds {this.option.DataGenerateThreshold.Value},ignore it.");
+                        FeedbackInfo(
+                            $"Record count of table \"{GetQuotedFullTableName(table)}\" exceeds {option.DataGenerateThreshold.Value},ignore it.");
                         continue;
                     }
 
-                    int pageSize = this.dbInterpreter.DataBatchSize;
+                    var pageSize = dbInterpreter.DataBatchSize;
 
-                    this.FeedbackInfo($"{strTableCount}Table \"{this.GetQuotedFullTableName(table)}\":record count is {total}.");
+                    FeedbackInfo($"{strTableCount}Table \"{GetQuotedFullTableName(table)}\":record count is {total}.");
 
                     Dictionary<long, List<Dictionary<string, object>>> dictPagedData;
 
@@ -132,46 +133,37 @@ namespace DatabaseInterpreter.Core
 
                         var fkc = fk.Columns.FirstOrDefault();
 
-                        string referencedColumnName = this.GetQuotedString(fkc.ReferencedColumnName);
-                        string columnName = this.GetQuotedString(fkc.ColumnName);
+                        var referencedColumnName = GetQuotedString(fkc.ReferencedColumnName);
+                        var columnName = GetQuotedString(fkc.ColumnName);
 
-                        string strWhere = $" WHERE ({columnName} IS NULL OR {columnName}={referencedColumnName})";
+                        var strWhere = $" WHERE ({columnName} IS NULL OR {columnName}={referencedColumnName})";
 
-                        dictPagedData = await this.GetSortedPageData(connection, table as Table, primaryKeyColumns, fkc.ReferencedColumnName, fkc.ColumnName, columns, total, strWhere);
+                        dictPagedData = await GetSortedPageData(connection, table, primaryKeyColumns,
+                            fkc.ReferencedColumnName, fkc.ColumnName, columns, total, strWhere);
                     }
                     else
                     {
-                        dictPagedData = await this.dbInterpreter.GetPagedDataListAsync(connection, table, columns, primaryKeyColumns, total, total, pageSize);
+                        dictPagedData = await dbInterpreter.GetPagedDataListAsync(connection, table, columns,
+                            primaryKeyColumns, total, total, pageSize);
                     }
 
-                    this.FeedbackInfo($"{strTableCount}Table \"{this.GetQuotedFullTableName(table)}\":data read finished.");
+                    FeedbackInfo($"{strTableCount}Table \"{GetQuotedFullTableName(table)}\":data read finished.");
 
-                    GenerateScriptOutputMode scriptOutputMode = this.option.ScriptOutputMode;
+                    var scriptOutputMode = option.ScriptOutputMode;
 
                     if (count > 1)
                     {
-                        if (scriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToString))
-                        {
-                            sb.AppendLine();
-                        }
+                        if (scriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToString)) sb.AppendLine();
 
                         if (scriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToFile))
-                        {
-                            this.AppendScriptsToFile(Environment.NewLine, GenerateScriptMode.Data);
-                        }
+                            AppendScriptsToFile(Environment.NewLine, GenerateScriptMode.Data);
                     }
 
-                    if (this.option.BulkCopy && this.dbInterpreter.SupportBulkCopy && !scriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToFile))
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        if (scriptOutputMode != GenerateScriptOutputMode.None)
-                        {
-                            this.AppendDataScripts(sb, table, columns as IEnumerable<TableColumn>, dictPagedData);
-                        }
-                    }
+                    if (option.BulkCopy && dbInterpreter.SupportBulkCopy &&
+                        !scriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToFile)) continue;
+
+                    if (scriptOutputMode != GenerateScriptOutputMode.None)
+                        AppendDataScripts(sb, table, columns, dictPagedData);
                 }
             }
 
@@ -183,7 +175,7 @@ namespace DatabaseInterpreter.Core
             }
             catch (OutOfMemoryException ex)
             {
-                this.FeedbackError("Exception occurs:" + ex.Message);
+                FeedbackError("Exception occurs:" + ex.Message);
             }
             finally
             {
@@ -193,44 +185,56 @@ namespace DatabaseInterpreter.Core
             return dataScripts;
         }
 
-        private async Task<Dictionary<long, List<Dictionary<string, object>>>> GetSortedPageData(DbConnection connection, Table table, string primaryKeyColumns, string referencedColumnName, string fkColumnName, List<TableColumn> columns, long total, string whereClause = "")
+        private async Task<Dictionary<long, List<Dictionary<string, object>>>> GetSortedPageData(
+            DbConnection connection, Table table, string primaryKeyColumns, string referencedColumnName,
+            string fkColumnName, List<TableColumn> columns, long total, string whereClause = "")
         {
-            string quotedTableName = this.GetQuotedDbObjectNameWithSchema(table);
+            var quotedTableName = GetQuotedDbObjectNameWithSchema(table);
 
-            int pageSize = this.dbInterpreter.DataBatchSize;
+            var pageSize = dbInterpreter.DataBatchSize;
 
-            long batchCount = Convert.ToInt64(await this.dbInterpreter.GetScalarAsync(connection, $"SELECT COUNT(1) FROM {quotedTableName} {whereClause}"));
+            var batchCount = Convert.ToInt64(await dbInterpreter.GetScalarAsync(connection,
+                $"SELECT COUNT(1) FROM {quotedTableName} {whereClause}"));
 
-            var dictPagedData = await this.dbInterpreter.GetPagedDataListAsync(connection, table, columns, primaryKeyColumns, total, batchCount, pageSize, whereClause);
+            var dictPagedData = await dbInterpreter.GetPagedDataListAsync(connection, table, columns, primaryKeyColumns,
+                total, batchCount, pageSize, whereClause);
 
-            List<object> parentValues = dictPagedData.Values.SelectMany(item => item.Select(t => t[primaryKeyColumns.Trim(this.dbInterpreter.QuotationLeftChar, this.dbInterpreter.QuotationRightChar)])).ToList();
+            var parentValues = dictPagedData.Values.SelectMany(item => item.Select(t =>
+                t[primaryKeyColumns.Trim(dbInterpreter.QuotationLeftChar, dbInterpreter.QuotationRightChar)])).ToList();
 
             if (parentValues.Count > 0)
             {
-                TableColumn parentColumn = columns.FirstOrDefault(item => item.Schema == table.Schema && item.Name == fkColumnName);
+                var parentColumn =
+                    columns.FirstOrDefault(item => item.Schema == table.Schema && item.Name == fkColumnName);
 
-                long parentValuesPageCount = PaginationHelper.GetPageCount(parentValues.Count, this.option.InQueryItemLimitCount);
+                var parentValuesPageCount =
+                    PaginationHelper.GetPageCount(parentValues.Count, option.InQueryItemLimitCount);
 
-                for (long parentValuePageNumber = 1; parentValuePageNumber <= parentValuesPageCount; parentValuePageNumber++)
+                for (long parentValuePageNumber = 1;
+                     parentValuePageNumber <= parentValuesPageCount;
+                     parentValuePageNumber++)
                 {
-                    IEnumerable<object> pagedParentValues = parentValues.Skip((int)(parentValuePageNumber - 1) * pageSize).Take(this.option.InQueryItemLimitCount);
+                    var pagedParentValues = parentValues.Skip((int)(parentValuePageNumber - 1) * pageSize)
+                        .Take(option.InQueryItemLimitCount);
 
-                    var parsedValues = pagedParentValues.Select(item => this.ParseValue(parentColumn, item, true));
+                    var parsedValues = pagedParentValues.Select(item => ParseValue(parentColumn, item, true));
 
-                    string inCondition = this.GetWhereInCondition(parsedValues, fkColumnName);
+                    var inCondition = GetWhereInCondition(parsedValues, fkColumnName);
 
                     whereClause = $@" WHERE ({inCondition})
-                                      AND ({this.GetQuotedString(fkColumnName)}<>{this.GetQuotedString(referencedColumnName)})";
+                                      AND ({GetQuotedString(fkColumnName)}<>{GetQuotedString(referencedColumnName)})";
 
-                    batchCount = Convert.ToInt64(await this.dbInterpreter.GetScalarAsync(connection, $"SELECT COUNT(1) FROM {quotedTableName} {whereClause}"));
+                    batchCount = Convert.ToInt64(await dbInterpreter.GetScalarAsync(connection,
+                        $"SELECT COUNT(1) FROM {quotedTableName} {whereClause}"));
 
                     if (batchCount > 0)
                     {
-                        Dictionary<long, List<Dictionary<string, object>>> dictChildPagedData = await this.GetSortedPageData(connection, table, primaryKeyColumns, referencedColumnName, fkColumnName, columns, total, whereClause);
+                        var dictChildPagedData = await GetSortedPageData(connection, table, primaryKeyColumns,
+                            referencedColumnName, fkColumnName, columns, total, whereClause);
 
                         foreach (var kp in dictChildPagedData)
                         {
-                            long pageNumber = dictPagedData.Keys.Max(item => item);
+                            var pageNumber = dictPagedData.Keys.Max(item => item);
                             dictPagedData.Add(pageNumber + 1, kp.Value);
                         }
                     }
@@ -242,167 +246,144 @@ namespace DatabaseInterpreter.Core
 
         private string GetWhereInCondition(IEnumerable<object> values, string columnName)
         {
-            int valuesCount = values.Count();
-            StringBuilder sb = new StringBuilder();
+            var valuesCount = values.Count();
+            var sb = new StringBuilder();
 
-            int oracleLimitCount = 1000;//oracle where in items count is limit to 1000
+            var oracleLimitCount = 1000; //oracle where in items count is limit to 1000
 
-            if (valuesCount > oracleLimitCount && this.databaseType == DatabaseType.Oracle)
+            if (valuesCount > oracleLimitCount && databaseType == DatabaseType.Oracle)
             {
-                var groups = values.Select((x, i) => new { Index = i, Value = x }).GroupBy(x => x.Index / oracleLimitCount).Select(x => x.Select(v => v.Value));
+                var groups = values.Select((x, i) => new { Index = i, Value = x })
+                    .GroupBy(x => x.Index / oracleLimitCount).Select(x => x.Select(v => v.Value));
 
-                int count = 0;
+                var count = 0;
 
                 foreach (var gp in groups)
                 {
-                    sb.AppendLine($"{(count > 0 ? " OR " : "")}{this.GetQuotedString(columnName)} IN ({string.Join(",", gp)})");
+                    sb.AppendLine(
+                        $"{(count > 0 ? " OR " : "")}{GetQuotedString(columnName)} IN ({string.Join(",", gp)})");
 
                     count++;
                 }
             }
             else
             {
-                sb.Append($"{this.GetQuotedString(columnName)} IN ({string.Join(",", values)})");
+                sb.Append($"{GetQuotedString(columnName)} IN ({string.Join(",", values)})");
             }
 
             return sb.ToString();
         }
 
-        public virtual Dictionary<string, object> AppendDataScripts(StringBuilder sb, Table table, IEnumerable<TableColumn> columns, Dictionary<long, List<Dictionary<string, object>>> dictPagedData)
+        public virtual Dictionary<string, object> AppendDataScripts(StringBuilder sb, Table table,
+            IEnumerable<TableColumn> columns, Dictionary<long, List<Dictionary<string, object>>> dictPagedData)
         {
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            var parameters = new Dictionary<string, object>();
 
-            bool appendString = this.option.ScriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToString);
-            bool appendFile = this.option.ScriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToFile);
+            var appendString = option.ScriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToString);
+            var appendFile = option.ScriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToFile);
 
-            List<string> excludeColumnNames = new List<string>();
+            var excludeColumnNames = new List<string>();
 
-            bool excludeIdentityColumn = false;
+            var excludeIdentityColumn = false;
 
-            if (this.databaseType == DatabaseType.Oracle && this.dbInterpreter.IsLowDbVersion())
+            if (databaseType == DatabaseType.Oracle && dbInterpreter.IsLowDbVersion())
             {
                 excludeIdentityColumn = false;
             }
             else
             {
-                if (this.option.TableScriptsGenerateOption.GenerateIdentity)
-                {
-                    excludeIdentityColumn = true;
-                }
+                if (option.TableScriptsGenerateOption.GenerateIdentity) excludeIdentityColumn = true;
             }
 
-            excludeColumnNames.AddRange(columns.Where(item => item.IsIdentity && excludeIdentityColumn).Select(item => item.Name));
+            excludeColumnNames.AddRange(columns.Where(item => item.IsIdentity && excludeIdentityColumn)
+                .Select(item => item.Name));
 
-            if (this.option.ExcludeGeometryForData)
-            {
-                excludeColumnNames.AddRange(columns.Where(item => DataTypeHelper.IsGeometryType(item.DataType)).Select(item => item.Name));
-            }
+            if (option.ExcludeGeometryForData)
+                excludeColumnNames.AddRange(columns.Where(item => DataTypeHelper.IsGeometryType(item.DataType))
+                    .Select(item => item.Name));
 
             excludeColumnNames.AddRange(columns.Where(item => item.IsComputed).Select(item => item.Name));
 
-            bool identityColumnHasBeenExcluded = excludeColumnNames.Any(item => columns.Any(col => col.Name == item && col.IsIdentity));
-            bool computeColumnHasBeenExcluded = columns.Any(item => item.IsComputed);
+            var identityColumnHasBeenExcluded =
+                excludeColumnNames.Any(item => columns.Any(col => col.Name == item && col.IsIdentity));
+            var computeColumnHasBeenExcluded = columns.Any(item => item.IsComputed);
 
-            bool canBatchInsert = true;
+            var canBatchInsert = true;
 
-            if (this.databaseType == DatabaseType.Oracle)
-            {
+            if (databaseType == DatabaseType.Oracle)
                 if (identityColumnHasBeenExcluded)
-                {
                     canBatchInsert = false;
-                }
-            }
 
             foreach (var kp in dictPagedData)
             {
-                if (kp.Value.Count == 0)
-                {
-                    continue;
-                }
+                if (kp.Value.Count == 0) continue;
 
-                StringBuilder sbFilePage = new StringBuilder();
+                var sbFilePage = new StringBuilder();
 
-                string tableName = this.GetQuotedFullTableName(table);
-                string columnNames = this.GetQuotedColumnNames(columns.Where(item => !excludeColumnNames.Contains(item.Name)));
-                string insert = !canBatchInsert ? "" : $"{this.GetBatchInsertPrefix()} {tableName}({this.GetQuotedColumnNames(columns.Where(item => !excludeColumnNames.Contains(item.Name)))})VALUES";
+                var tableName = GetQuotedFullTableName(table);
+                var columnNames = GetQuotedColumnNames(columns.Where(item => !excludeColumnNames.Contains(item.Name)));
+                var insert = !canBatchInsert
+                    ? ""
+                    : $"{GetBatchInsertPrefix()} {tableName}({GetQuotedColumnNames(columns.Where(item => !excludeColumnNames.Contains(item.Name)))})VALUES";
 
                 if (appendString)
                 {
-                    if (kp.Key > 1)
-                    {
-                        sb.AppendLine();
-                    }
+                    if (kp.Key > 1) sb.AppendLine();
 
-                    if (!string.IsNullOrEmpty(insert))
-                    {
-                        sb.AppendLine(insert);
-                    }
+                    if (!string.IsNullOrEmpty(insert)) sb.AppendLine(insert);
                 }
 
                 if (appendFile)
                 {
-                    if (kp.Key > 1)
-                    {
-                        sbFilePage.AppendLine();
-                    }
+                    if (kp.Key > 1) sbFilePage.AppendLine();
 
-                    if (!string.IsNullOrEmpty(insert))
-                    {
-                        sbFilePage.AppendLine(insert);
-                    }
+                    if (!string.IsNullOrEmpty(insert)) sbFilePage.AppendLine(insert);
                 }
 
-                int rowCount = 0;
+                var rowCount = 0;
 
                 foreach (var row in kp.Value)
                 {
                     rowCount++;
 
-                    var rowValues = this.GetRowValues(row, rowCount - 1, columns, excludeColumnNames, kp.Key, false, out var insertParameters);
+                    var rowValues = GetRowValues(row, rowCount - 1, columns, excludeColumnNames, kp.Key, false,
+                        out var insertParameters);
 
-                    string values = $"({string.Join(",", rowValues.Select(item => item == null ? "NULL" : item))})";
+                    var values = $"({string.Join(",", rowValues.Select(item => item == null ? "NULL" : item))})";
 
                     if (insertParameters != null)
-                    {
                         foreach (var para in insertParameters)
-                        {
                             parameters.Add(para.Key, para.Value);
-                        }
-                    }
 
-                    bool isAllEnd = rowCount == kp.Value.Count;
+                    var isAllEnd = rowCount == kp.Value.Count;
 
-                    string beginChar = canBatchInsert ? this.GetBatchInsertItemBefore(tableName,
-                                        (identityColumnHasBeenExcluded || computeColumnHasBeenExcluded) ? columnNames : "",
-                                        rowCount == 1) :
-                                     $"INSERT INTO {tableName}({columnNames}) VALUES";
-                    string endChar = canBatchInsert ? this.GetBatchInsertItemEnd(isAllEnd) : (isAllEnd ? ";" : (canBatchInsert ? "," : ";"));
+                    var beginChar = canBatchInsert
+                        ? GetBatchInsertItemBefore(tableName,
+                            identityColumnHasBeenExcluded || computeColumnHasBeenExcluded ? columnNames : "",
+                            rowCount == 1)
+                        : $"INSERT INTO {tableName}({columnNames}) VALUES";
+                    var endChar = canBatchInsert ? GetBatchInsertItemEnd(isAllEnd) :
+                        isAllEnd ? ";" :
+                        canBatchInsert ? "," : ";";
 
                     values = $"{beginChar}{values}{endChar}";
 
-                    if (this.option.RemoveEmoji)
-                    {
-                        values = StringHelper.RemoveEmoji(values);
-                    }
+                    if (option.RemoveEmoji) values = StringHelper.RemoveEmoji(values);
 
-                    if (appendString)
-                    {
-                        sb.AppendLine(values);
-                    }
+                    if (appendString) sb.AppendLine(values);
 
                     if (appendFile)
                     {
-                        var fileRowValues = this.GetRowValues(row, rowCount - 1, columns, excludeColumnNames, kp.Key, true, out var _);
-                        string fileValues = $"({string.Join(",", fileRowValues.Select(item => item == null ? "NULL" : item))})";
+                        var fileRowValues = GetRowValues(row, rowCount - 1, columns, excludeColumnNames, kp.Key, true,
+                            out var _);
+                        var fileValues =
+                            $"({string.Join(",", fileRowValues.Select(item => item == null ? "NULL" : item))})";
 
                         sbFilePage.AppendLine($"{beginChar}{fileValues}{endChar}");
                     }
                 }
 
-                if (appendFile)
-                {
-                    this.AppendScriptsToFile(sbFilePage.ToString(), GenerateScriptMode.Data);
-                }
+                if (appendFile) AppendScriptsToFile(sbFilePage.ToString(), GenerateScriptMode.Data);
             }
 
             return parameters;
@@ -420,48 +401,47 @@ namespace DatabaseInterpreter.Core
 
         protected virtual string GetBatchInsertItemEnd(bool isAllEnd)
         {
-            return (isAllEnd ? ";" : ",");
+            return isAllEnd ? ";" : ",";
         }
 
-        private List<object> GetRowValues(Dictionary<string, object> row, int rowIndex, IEnumerable<TableColumn> columns, List<string> excludeColumnNames, long pageNumber, bool isAppendToFile, out Dictionary<string, object> parameters)
+        private List<object> GetRowValues(Dictionary<string, object> row, int rowIndex,
+            IEnumerable<TableColumn> columns, List<string> excludeColumnNames, long pageNumber, bool isAppendToFile,
+            out Dictionary<string, object> parameters)
         {
             parameters = new Dictionary<string, object>();
 
-            List<object> values = new List<object>();
+            var values = new List<object>();
 
-            foreach (TableColumn column in columns)
+            foreach (var column in columns)
             {
-                string columnName = column.Name;
+                var columnName = column.Name;
 
-                if (!row.ContainsKey(columnName))
-                {
-                    continue;
-                }
+                if (!row.ContainsKey(columnName)) continue;
 
                 if (!excludeColumnNames.Contains(column.Name))
                 {
-                    object value = row[columnName];
-                    object parsedValue = this.ParseValue(column, value);
-                    bool isBitArray = row[column.Name]?.GetType() == typeof(BitArray);
-                    bool isBytes = ValueHelper.IsBytes(parsedValue) || isBitArray;
-                    bool isNullValue = value == DBNull.Value || parsedValue?.ToString() == "NULL";
+                    var value = row[columnName];
+                    var parsedValue = ParseValue(column, value);
+                    var isBitArray = row[column.Name]?.GetType() == typeof(BitArray);
+                    var isBytes = ValueHelper.IsBytes(parsedValue) || isBitArray;
+                    var isNullValue = value == DBNull.Value || parsedValue?.ToString() == "NULL";
 
                     if (!isNullValue)
                     {
                         if (!isAppendToFile)
                         {
-                            bool needInsertParameter = this.NeedInsertParameter(column, parsedValue);
+                            var needInsertParameter = NeedInsertParameter(column, parsedValue);
 
-                            if ((isBytes && !this.option.TreatBytesAsNullForExecuting) || needInsertParameter)
+                            if ((isBytes && !option.TreatBytesAsNullForExecuting) || needInsertParameter)
                             {
-                                string parameterName = $"P{pageNumber}_{rowIndex}_{column.Name}";
+                                var parameterName = $"P{pageNumber}_{rowIndex}_{column.Name}";
 
-                                string parameterPlaceholder = this.dbInterpreter.CommandParameterChar + parameterName;
+                                var parameterPlaceholder = dbInterpreter.CommandParameterChar + parameterName;
 
-                                if (this.databaseType != DatabaseType.Postgres && isBitArray)
+                                if (databaseType != DatabaseType.Postgres && isBitArray)
                                 {
                                     var bitArray = parsedValue as BitArray;
-                                    byte[] bytes = new byte[bitArray.Length];
+                                    var bytes = new byte[bitArray.Length];
                                     bitArray.CopyTo(bytes, 0);
 
                                     parsedValue = bytes;
@@ -471,7 +451,7 @@ namespace DatabaseInterpreter.Core
 
                                 parsedValue = parameterPlaceholder;
                             }
-                            else if (isBytes && this.option.TreatBytesAsNullForExecuting)
+                            else if (isBytes && option.TreatBytesAsNullForExecuting)
                             {
                                 parsedValue = null;
                             }
@@ -480,28 +460,20 @@ namespace DatabaseInterpreter.Core
                         {
                             if (isBytes)
                             {
-                                if (this.option.TreatBytesAsHexStringForFile)
-                                {
-                                    parsedValue = this.GetBytesConvertHexString(parsedValue, column.DataType);
-                                }
+                                if (option.TreatBytesAsHexStringForFile)
+                                    parsedValue = GetBytesConvertHexString(parsedValue, column.DataType);
                                 else
-                                {
                                     parsedValue = null;
-                                }
                             }
                         }
                     }
 
                     if (DataTypeHelper.IsUserDefinedType(column))
                     {
-                        if (this.databaseType == DatabaseType.Postgres)
-                        {
+                        if (databaseType == DatabaseType.Postgres)
                             parsedValue = $"row({parsedValue})";
-                        }
-                        else if (this.databaseType == DatabaseType.Oracle)
-                        {
-                            parsedValue = $"{this.GetQuotedString(column.DataType)}({parsedValue})";
-                        }
+                        else if (databaseType == DatabaseType.Oracle)
+                            parsedValue = $"{GetQuotedString(column.DataType)}({parsedValue})";
                     }
 
                     values.Add(parsedValue);
@@ -525,27 +497,22 @@ namespace DatabaseInterpreter.Core
         {
             if (value != null)
             {
-                Type type = value.GetType();
-                bool needQuotated = false;
-                string strValue = "";
+                var type = value.GetType();
+                var needQuotated = false;
+                var strValue = "";
 
-                if (type == typeof(DBNull))
+                if (type == typeof(DBNull)) return "NULL";
+
+                if (value is SqlGeography sgg && sgg.IsNull) return "NULL";
+
+                if (value is SqlGeometry sgm && sgm.IsNull) return "NULL";
+
+                if (type == typeof(byte[]))
                 {
-                    return "NULL";
-                }
-                else if (value is SqlGeography sgg && sgg.IsNull)
-                {
-                    return "NULL";
-                }
-                else if (value is SqlGeometry sgm && sgm.IsNull)
-                {
-                    return "NULL";
-                }
-                else if (type == typeof(Byte[]))
-                {
-                    if (((Byte[])value).Length == 16) //GUID
+                    if (((byte[])value).Length == 16) //GUID
                     {
-                        string str = ValueHelper.ConvertGuidBytesToString((Byte[])value, this.databaseType, column.DataType, column.MaxLength, bytesAsString);
+                        var str = ValueHelper.ConvertGuidBytesToString((byte[])value, databaseType, column.DataType,
+                            column.MaxLength, bytesAsString);
 
                         if (!string.IsNullOrEmpty(str))
                         {
@@ -563,22 +530,18 @@ namespace DatabaseInterpreter.Core
                     }
                 }
 
-                bool oracleSemicolon = false;
-                string dataType = column.DataType.ToLower();
+                var oracleSemicolon = false;
+                var dataType = column.DataType.ToLower();
 
                 switch (type.Name)
                 {
                     case nameof(Guid):
 
                         needQuotated = true;
-                        if (this.databaseType == DatabaseType.Oracle && dataType == "raw" && column.MaxLength == 16)
-                        {
+                        if (databaseType == DatabaseType.Oracle && dataType == "raw" && column.MaxLength == 16)
                             strValue = StringHelper.GuidToRaw(value.ToString());
-                        }
                         else
-                        {
                             strValue = value.ToString();
-                        }
                         break;
 
                     case nameof(String):
@@ -586,72 +549,67 @@ namespace DatabaseInterpreter.Core
                         needQuotated = true;
                         strValue = value.ToString();
 
-                        if (this.databaseType == DatabaseType.Oracle)
-                        {
+                        if (databaseType == DatabaseType.Oracle)
                             if (strValue.Contains(";"))
-                            {
                                 oracleSemicolon = true;
-                            }
-/*                            else if (DataTypeHelper.IsGeometryType(dataType))
+                        /*                            else if (DataTypeHelper.IsGeometryType(dataType))
                             {
                                 needQuotated = false;
                                 strValue = this.GetOracleGeometryInsertValue(column, value);
                             }*/
-                        }
                         break;
 
                     case nameof(DateTime):
                     case nameof(DateTimeOffset):
                     case nameof(MySqlDateTime):
 
-                        if (this.databaseType == DatabaseType.Oracle)
+                        if (databaseType == DatabaseType.Oracle)
                         {
                             if (type.Name == nameof(MySqlDateTime))
                             {
-                                DateTime dateTime = ((MySqlDateTime)value).GetDateTime();
+                                var dateTime = ((MySqlDateTime)value).GetDateTime();
 
-                                strValue = this.GetOracleDatetimeConvertString(dateTime);
+                                strValue = GetOracleDatetimeConvertString(dateTime);
                             }
                             else if (type.Name == nameof(DateTime))
                             {
-                                DateTime dateTime = Convert.ToDateTime(value);
+                                var dateTime = Convert.ToDateTime(value);
 
-                                strValue = this.GetOracleDatetimeConvertString(dateTime);
+                                strValue = GetOracleDatetimeConvertString(dateTime);
                             }
                             else if (type.Name == nameof(DateTimeOffset))
                             {
-                                DateTimeOffset dtOffset = DateTimeOffset.Parse(value.ToString());
-                                int millisecondLength = dtOffset.Millisecond.ToString().Length;
-                                string strMillisecond = millisecondLength == 0 ? "" : $".{"f".PadLeft(millisecondLength, 'f')}";
-                                string format = $"yyyy-MM-dd HH:mm:ss{strMillisecond}";
+                                var dtOffset = DateTimeOffset.Parse(value.ToString());
+                                var millisecondLength = dtOffset.Millisecond.ToString().Length;
+                                var strMillisecond = millisecondLength == 0
+                                    ? ""
+                                    : $".{"f".PadLeft(millisecondLength, 'f')}";
+                                var format = $"yyyy-MM-dd HH:mm:ss{strMillisecond}";
 
-                                string strDtOffset = dtOffset.ToString(format) + $"{dtOffset.Offset.Hours}:{dtOffset.Offset.Minutes}";
+                                var strDtOffset = dtOffset.ToString(format) +
+                                                  $"{dtOffset.Offset.Hours}:{dtOffset.Offset.Minutes}";
 
                                 strValue = $@"TO_TIMESTAMP_TZ('{strDtOffset}','yyyy-MM-dd HH24:MI:ssxff TZH:TZM')";
                             }
                         }
-                        else if (this.databaseType == DatabaseType.MySql)
+                        else if (databaseType == DatabaseType.MySql)
                         {
                             if (type.Name == nameof(DateTime))
                             {
-                                DateTime dt = (DateTime)value;
+                                var dt = (DateTime)value;
 
                                 if (dt > MySqlInterpreter.Timestamp_Max_Value.ToLocalTime())
-                                {
                                     value = MySqlInterpreter.Timestamp_Max_Value.ToLocalTime();
-                                }
-
                             }
                             else if (type.Name == nameof(DateTimeOffset))
                             {
-                                DateTimeOffset dtOffset = DateTimeOffset.Parse(value.ToString());
+                                var dtOffset = DateTimeOffset.Parse(value.ToString());
 
                                 if (dtOffset > MySqlInterpreter.Timestamp_Max_Value.ToLocalTime())
-                                {
                                     dtOffset = MySqlInterpreter.Timestamp_Max_Value.ToLocalTime();
-                                }
 
-                                strValue = $"'{dtOffset.DateTime.Add(dtOffset.Offset).ToString("yyyy-MM-dd HH:mm:ss.ffffff")}'";
+                                strValue =
+                                    $"'{dtOffset.DateTime.Add(dtOffset.Offset).ToString("yyyy-MM-dd HH:mm:ss.ffffff")}'";
                             }
                         }
 
@@ -660,56 +618,50 @@ namespace DatabaseInterpreter.Core
                             needQuotated = true;
                             strValue = value.ToString();
                         }
+
                         break;
 
                     case nameof(Boolean):
 
-                        if (this.databaseType == DatabaseType.Postgres)
-                        {
+                        if (databaseType == DatabaseType.Postgres)
                             strValue = value.ToString().ToLower();
-                        }
                         else
-                        {
                             strValue = value.ToString() == "True" ? "1" : "0";
-                        }
                         break;
                     case nameof(TimeSpan):
 
-                        if (this.databaseType == DatabaseType.Oracle)
+                        if (databaseType == DatabaseType.Oracle) return value;
+
+                        needQuotated = true;
+
+                        if (dataType.Contains("datetime")
+                            || dataType.Contains("timestamp")
+                           )
                         {
-                            return value;
+                            var dateTime =
+                                dbInterpreter.MinDateTime.AddSeconds(TimeSpan.Parse(value.ToString()).TotalSeconds);
+
+                            strValue = dateTime.ToString("yyyy-MM-dd HH:mm:ss");
                         }
                         else
                         {
-                            needQuotated = true;
-
-                            if (dataType.Contains("datetime")
-                                || dataType.Contains("timestamp")
-                                )
-                            {
-                                DateTime dateTime = this.dbInterpreter.MinDateTime.AddSeconds(TimeSpan.Parse(value.ToString()).TotalSeconds);
-
-                                strValue = dateTime.ToString("yyyy-MM-dd HH:mm:ss");
-                            }
-                            else
-                            {
-                                strValue = value.ToString();
-                            }
+                            strValue = value.ToString();
                         }
+
                         break;
                     case nameof(SqlGeography):
                     case nameof(SqlGeometry):
-                    case nameof(Point):
-                    case nameof(LineString):
-                    case nameof(Polygon):
-                    case nameof(MultiPoint):
-                    case nameof(MultiLineString):
-                    case nameof(MultiPolygon):
-                    case nameof(GeometryCollection):
-                        int srid = 0;
+                    case nameof(PgGeom.Point):
+                    case nameof(PgGeom.LineString):
+                    case nameof(PgGeom.Polygon):
+                    case nameof(PgGeom.MultiPoint):
+                    case nameof(PgGeom.MultiLineString):
+                    case nameof(PgGeom.MultiPolygon):
+                    case nameof(PgGeom.GeometryCollection):
+                        var srid = 0;
 
-                        if (value is SqlGeography sgg) srid = sgg.STSrid.Value;
-                        else if (value is SqlGeometry sgm) srid = sgm.STSrid.Value;
+                        if (value is SqlGeography sgg1) srid = sgg1.STSrid.Value;
+                        else if (value is SqlGeometry sgm1) srid = sgm1.STSrid.Value;
                         else if (value is PgGeom.Geometry g) srid = g.SRID;
 /*
                         if (this.databaseType == DatabaseType.MySql)
@@ -720,11 +672,12 @@ namespace DatabaseInterpreter.Core
                         {
                             strValue = this.GetOracleGeometryInsertValue(column, value, srid);
                         }
-                        else*/
-                        {
-                            needQuotated = true;
-                            strValue = value.ToString();
-                        }
+*/
+                        else
+                    {
+                        needQuotated = true;
+                        strValue = value.ToString();
+                    }
 
                         break;
                     case nameof(SqlHierarchyId):
@@ -746,159 +699,146 @@ namespace DatabaseInterpreter.Core
                         break;
 */
                     default:
-                        if (string.IsNullOrEmpty(strValue))
-                        {
-                            strValue = value.ToString();
-                        }
+                        if (string.IsNullOrEmpty(strValue)) strValue = value.ToString();
                         break;
                 }
 
                 if (needQuotated)
                 {
-                    strValue = $"{this.dbInterpreter.UnicodeLeadingFlag}'{ValueHelper.TransferSingleQuotation(strValue)}'";
+                    strValue = $"{dbInterpreter.UnicodeLeadingFlag}'{ValueHelper.TransferSingleQuotation(strValue)}'";
 
                     if (oracleSemicolon)
-                    {
-                        strValue = strValue.Replace(";", $"'{this.dbInterpreter.STR_CONCAT_CHARS}{OracleInterpreter.SEMICOLON_FUNC}{this.dbInterpreter.STR_CONCAT_CHARS}'");
-                    }
+                        strValue = strValue.Replace(";",
+                            $"'{dbInterpreter.STR_CONCAT_CHARS}{OracleInterpreter.SEMICOLON_FUNC}{dbInterpreter.STR_CONCAT_CHARS}'");
 
                     return strValue;
                 }
-                else
-                {
-                    return strValue;
-                }
+
+                return strValue;
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
 
-      /*  private string GetOracleGeometryInsertValue(TableColumn column, object value, int? srid = null)
-        {
-            string str = this.GetCorrectGeometryText(value, column.DataType.ToLower());
-
-            string strValue = "";
-
-            if (str.Length > 4000) //oracle allow max char length
-            {
-                strValue = "NULL";
-            }
-            else
-            {
-                string dataType = column.DataType.ToUpper();
-                string dataTypeSchema = column.DataTypeSchema?.ToUpper();
-
-                string strSrid = srid.HasValue ? $",{srid.Value}" : "";
-
-                if (dataType == "SDO_GEOMETRY")
-                {
-                    strValue = $"SDO_GEOMETRY('{str}'{strSrid})";
-                }
-                else if (dataType == "ST_GEOMETRY")
-                {
-                    if (string.IsNullOrEmpty(dataTypeSchema) || dataTypeSchema == "MDSYS" || dataTypeSchema == "PUBLIC") //PUBLIC is synonyms of MDSYS
-                    {
-                        strValue = $"MDSYS.ST_GEOMETRY(SDO_GEOMETRY('{str}'{strSrid}))";
-                    }
-                    else if (dataTypeSchema == "SDE")
-                    {
-                        strValue = $"SDE.ST_GEOMETRY('{str}'{strSrid})";
-                    }
-                }
-            }
-
-            return strValue;
-        }*/
+        /*  private string GetOracleGeometryInsertValue(TableColumn column, object value, int? srid = null)
+          {
+              string str = this.GetCorrectGeometryText(value, column.DataType.ToLower());
+  
+              string strValue = "";
+  
+              if (str.Length > 4000) //oracle allow max char length
+              {
+                  strValue = "NULL";
+              }
+              else
+              {
+                  string dataType = column.DataType.ToUpper();
+                  string dataTypeSchema = column.DataTypeSchema?.ToUpper();
+  
+                  string strSrid = srid.HasValue ? $",{srid.Value}" : "";
+  
+                  if (dataType == "SDO_GEOMETRY")
+                  {
+                      strValue = $"SDO_GEOMETRY('{str}'{strSrid})";
+                  }
+                  else if (dataType == "ST_GEOMETRY")
+                  {
+                      if (string.IsNullOrEmpty(dataTypeSchema) || dataTypeSchema == "MDSYS" || dataTypeSchema == "PUBLIC") //PUBLIC is synonyms of MDSYS
+                      {
+                          strValue = $"MDSYS.ST_GEOMETRY(SDO_GEOMETRY('{str}'{strSrid}))";
+                      }
+                      else if (dataTypeSchema == "SDE")
+                      {
+                          strValue = $"SDE.ST_GEOMETRY('{str}'{strSrid})";
+                      }
+                  }
+              }
+  
+              return strValue;
+          }*/
 
         private string GetOracleDatetimeConvertString(DateTime dateTime)
         {
-            int millisecondLength = dateTime.Millisecond.ToString().Length;
-            string strMillisecond = millisecondLength == 0 ? "" : $".{"f".PadLeft(millisecondLength, 'f')}";
-            string format = $"yyyy-MM-dd HH:mm:ss{strMillisecond}";
+            var millisecondLength = dateTime.Millisecond.ToString().Length;
+            var strMillisecond = millisecondLength == 0 ? "" : $".{"f".PadLeft(millisecondLength, 'f')}";
+            var format = $"yyyy-MM-dd HH:mm:ss{strMillisecond}";
 
             return $"TO_TIMESTAMP('{dateTime.ToString(format)}','yyyy-MM-dd hh24:mi:ssxff')";
         }
 
-       /* private string GetCorrectGeometryText(object value, string dataType)
-        {
-            if (value is SqlGeography sg)
-            {
-                if (this.databaseType != DatabaseType.SqlServer && dataType != "geography")
-                {
-                    return SqlGeographyHelper.ToPostgresGeometry(sg).AsText();
-                }
-            }
-            else if (value is PgGeom.Geometry pg)
-            {
-                if (pg.UserData != null && pg.UserData is PostgresGeometryCustomInfo pgi)
-                {
-                    if (pgi.IsGeography)
-                    {
-                        if (this.databaseType != DatabaseType.Postgres && dataType != "geography")
-                        {
-                            PostgresGeometryHelper.ReverseCoordinates(pg);
+        /* private string GetCorrectGeometryText(object value, string dataType)
+         {
+             if (value is SqlGeography sg)
+             {
+                 if (this.databaseType != DatabaseType.SqlServer && dataType != "geography")
+                 {
+                     return SqlGeographyHelper.ToPostgresGeometry(sg).AsText();
+                 }
+             }
+             else if (value is PgGeom.Geometry pg)
+             {
+                 if (pg.UserData != null && pg.UserData is PostgresGeometryCustomInfo pgi)
+                 {
+                     if (pgi.IsGeography)
+                     {
+                         if (this.databaseType != DatabaseType.Postgres && dataType != "geography")
+                         {
+                             PostgresGeometryHelper.ReverseCoordinates(pg);
+ 
+                             return pg.ToString();
+                         }
+                     }
+                 }
+             }
+ 
+             return value.ToString();
+         }*/
 
-                            return pg.ToString();
-                        }
-                    }
-                }
-            }
-
-            return value.ToString();
-        }*/
         #endregion
 
         #region Append Scripts
+
         public string GetScriptOutputFilePath(GenerateScriptMode generateScriptMode)
         {
-            string database = this.dbInterpreter.ConnectionInfo.Database;
-            string databaseName = !string.IsNullOrEmpty(database) && File.Exists(database) ? Path.GetFileNameWithoutExtension(database) : database;
+            var database = dbInterpreter.ConnectionInfo.Database;
+            var databaseName = !string.IsNullOrEmpty(database) && File.Exists(database)
+                ? Path.GetFileNameWithoutExtension(database)
+                : database;
 
-            string fileName = $"{databaseName}_{this.databaseType}_{DateTime.Today.ToString("yyyyMMdd")}_{generateScriptMode.ToString()}.sql";
-            string filePath = Path.Combine(this.option.ScriptOutputFolder, fileName);
+            var fileName =
+                $"{databaseName}_{databaseType}_{DateTime.Today.ToString("yyyyMMdd")}_{generateScriptMode.ToString()}.sql";
+            var filePath = Path.Combine(option.ScriptOutputFolder, fileName);
             return filePath;
         }
 
-        public virtual void AppendScriptsToFile(string content, GenerateScriptMode generateScriptMode, bool overwrite = false)
+        public virtual void AppendScriptsToFile(string content, GenerateScriptMode generateScriptMode,
+            bool overwrite = false)
         {
-            if (generateScriptMode == GenerateScriptMode.Schema)
-            {
-                content = StringHelper.ToSingleEmptyLine(content);
-            }
+            if (generateScriptMode == GenerateScriptMode.Schema) content = StringHelper.ToSingleEmptyLine(content);
 
-            string filePath = this.GetScriptOutputFilePath(generateScriptMode);
+            var filePath = GetScriptOutputFilePath(generateScriptMode);
 
-            string directoryName = Path.GetDirectoryName(filePath);
+            var directoryName = Path.GetDirectoryName(filePath);
 
-            if (!Directory.Exists(directoryName))
-            {
-                Directory.CreateDirectory(directoryName);
-            }
+            if (!Directory.Exists(directoryName)) Directory.CreateDirectory(directoryName);
 
             if (!overwrite)
-            {
                 File.AppendAllText(filePath, content, Encoding.UTF8);
-            }
             else
-            {
                 File.WriteAllText(filePath, content, Encoding.UTF8);
-            }
         }
 
         public void ClearScriptFile(GenerateScriptMode generateScriptMode)
         {
-            string filePath = this.GetScriptOutputFilePath(generateScriptMode);
+            var filePath = GetScriptOutputFilePath(generateScriptMode);
 
-            if (File.Exists(filePath))
-            {
-                File.WriteAllText(filePath, "", Encoding.UTF8);
-            }
+            if (File.Exists(filePath)) File.WriteAllText(filePath, "", Encoding.UTF8);
         }
+
         #endregion
 
         #region Alter Table
+
         public abstract Script RenameTable(Table table, string newName);
 
         public abstract Script SetTableComment(Table table, bool isNew = true);
@@ -930,17 +870,21 @@ namespace DatabaseInterpreter.Core
         public abstract Script DropCheckConstraint(TableConstraint constraint);
 
         public abstract Script SetIdentityEnabled(TableColumn column, bool enabled);
+
         #endregion
 
-        #region Database Operation  
+        #region Database Operation
+
         public abstract Script CreateSchema(DatabaseSchema schema);
         public abstract Script CreateUserDefinedType(UserDefinedType userDefinedType);
         public abstract Script CreateSequence(Sequence sequence);
+
         public abstract ScriptBuilder CreateTable(Table table, IEnumerable<TableColumn> columns,
-           TablePrimaryKey primaryKey,
-           IEnumerable<TableForeignKey> foreignKeys,
-           IEnumerable<TableIndex> indexes,
-           IEnumerable<TableConstraint> constraints);
+            TablePrimaryKey primaryKey,
+            IEnumerable<TableForeignKey> foreignKeys,
+            IEnumerable<TableIndex> indexes,
+            IEnumerable<TableConstraint> constraints);
+
         public abstract Script DropUserDefinedType(UserDefinedType userDefinedType);
         public abstract Script DropSequence(Sequence sequence);
         public abstract Script DropTable(Table table);
@@ -953,33 +897,19 @@ namespace DatabaseInterpreter.Core
         public virtual Script Create(DatabaseObject dbObject)
         {
             if (dbObject is TableColumn column)
-            {
-                return this.AddTableColumn(new Table() { Schema = column.Schema, Name = column.TableName }, column);
-            }
-            else if (dbObject is TablePrimaryKey primaryKey)
-            {
-                return this.AddPrimaryKey(primaryKey);
-            }
-            else if (dbObject is TableForeignKey foreignKey)
-            {
-                return this.AddForeignKey(foreignKey);
-            }
-            else if (dbObject is TableIndex index)
-            {
-                return this.AddIndex(index);
-            }
-            else if (dbObject is TableConstraint constraint)
-            {
-                return this.AddCheckConstraint(constraint);
-            }
-            else if (dbObject is UserDefinedType userDefinedType)
-            {
-                return this.CreateUserDefinedType(userDefinedType);
-            }
-            else if (dbObject is ScriptDbObject scriptDbObject)
-            {
+                return AddTableColumn(new Table { Schema = column.Schema, Name = column.TableName }, column);
+            if (dbObject is TablePrimaryKey primaryKey)
+                return AddPrimaryKey(primaryKey);
+            if (dbObject is TableForeignKey foreignKey)
+                return AddForeignKey(foreignKey);
+            if (dbObject is TableIndex index)
+                return AddIndex(index);
+            if (dbObject is TableConstraint constraint)
+                return AddCheckConstraint(constraint);
+            if (dbObject is UserDefinedType userDefinedType)
+                return CreateUserDefinedType(userDefinedType);
+            if (dbObject is ScriptDbObject scriptDbObject)
                 return new CreateDbObjectScript<ScriptDbObject>(scriptDbObject.Definition);
-            }
 
             throw new NotSupportedException($"Not support to add {dbObject.GetType().Name} using this method.");
         }
@@ -987,168 +917,129 @@ namespace DatabaseInterpreter.Core
         public virtual Script Drop(DatabaseObject dbObject)
         {
             if (dbObject is TableColumn column)
-            {
-                return this.DropTableColumn(column);
-            }
-            else if (dbObject is TablePrimaryKey primaryKey)
-            {
-                return this.DropPrimaryKey(primaryKey);
-            }
-            else if (dbObject is TableForeignKey foreignKey)
-            {
-                return this.DropForeignKey(foreignKey);
-            }
-            else if (dbObject is TableIndex index)
-            {
-                return this.DropIndex(index);
-            }
-            else if (dbObject is TableConstraint constraint)
-            {
-                return this.DropCheckConstraint(constraint);
-            }
-            else if (dbObject is TableTrigger trigger)
-            {
-                return this.DropTrigger(trigger);
-            }
-            else if (dbObject is View view)
-            {
-                return this.DropView(view);
-            }
-            else if (dbObject is Function function)
-            {
-                return this.DropFunction(function);
-            }
-            else if (dbObject is Procedure procedure)
-            {
-                return this.DropProcedure(procedure);
-            }
-            else if (dbObject is Table table)
-            {
-                return this.DropTable(table);
-            }
-            else if (dbObject is UserDefinedType userDefinedType)
-            {
-                return this.DropUserDefinedType(userDefinedType);
-            }
-            else if (dbObject is Sequence sequence)
-            {
-                return this.DropSequence(sequence);
-            }
+                return DropTableColumn(column);
+            if (dbObject is TablePrimaryKey primaryKey)
+                return DropPrimaryKey(primaryKey);
+            if (dbObject is TableForeignKey foreignKey)
+                return DropForeignKey(foreignKey);
+            if (dbObject is TableIndex index)
+                return DropIndex(index);
+            if (dbObject is TableConstraint constraint)
+                return DropCheckConstraint(constraint);
+            if (dbObject is TableTrigger trigger)
+                return DropTrigger(trigger);
+            if (dbObject is View view)
+                return DropView(view);
+            if (dbObject is Function function)
+                return DropFunction(function);
+            if (dbObject is Procedure procedure)
+                return DropProcedure(procedure);
+            if (dbObject is Table table)
+                return DropTable(table);
+            if (dbObject is UserDefinedType userDefinedType)
+                return DropUserDefinedType(userDefinedType);
+            if (dbObject is Sequence sequence) return DropSequence(sequence);
 
             throw new NotSupportedException($"Not support to drop {dbObject.GetType().Name}.");
         }
+
         #endregion
 
         #region Common Method
+
         public string GetQuotedString(string str)
         {
-            return this.dbInterpreter.GetQuotedString(str);
+            return dbInterpreter.GetQuotedString(str);
         }
 
         public string GetQuotedColumnNames(IEnumerable<TableColumn> columns)
         {
-            return this.dbInterpreter.GetQuotedColumnNames(columns);
+            return dbInterpreter.GetQuotedColumnNames(columns);
         }
 
         public string GetQuotedDbObjectNameWithSchema(DatabaseObject dbObject)
         {
-            return this.dbInterpreter.GetQuotedDbObjectNameWithSchema(dbObject);
+            return dbInterpreter.GetQuotedDbObjectNameWithSchema(dbObject);
         }
 
         public string GetQuotedDbObjectNameWithSchema(string schema, string dbObjName)
         {
-            return this.dbInterpreter.GetQuotedDbObjectNameWithSchema(schema, dbObjName);
+            return dbInterpreter.GetQuotedDbObjectNameWithSchema(schema, dbObjName);
         }
 
         public string GetQuotedFullTableName(Table table)
         {
-            return this.GetQuotedDbObjectNameWithSchema(table);
+            return GetQuotedDbObjectNameWithSchema(table);
         }
 
         public string GetQuotedFullTableName(TableChild tableChild)
         {
             if (string.IsNullOrEmpty(tableChild.Schema))
-            {
-                return this.GetQuotedString(tableChild.TableName);
-            }
-            else
-            {
-                return $"{this.GetQuotedString(tableChild.Schema)}.{this.GetQuotedString(tableChild.TableName)}";
-            }
+                return GetQuotedString(tableChild.TableName);
+            return $"{GetQuotedString(tableChild.Schema)}.{GetQuotedString(tableChild.TableName)}";
         }
 
         public string GetQuotedFullTableChildName(TableChild tableChild)
         {
-            string fullTableName = this.GetQuotedFullTableName(tableChild);
-            return $"{fullTableName}.{this.GetQuotedString(tableChild.Name)}";
+            var fullTableName = GetQuotedFullTableName(tableChild);
+            return $"{fullTableName}.{GetQuotedString(tableChild.Name)}";
         }
 
         public string TransferSingleQuotationString(string comment)
         {
-            if (string.IsNullOrEmpty(comment))
-            {
-                return comment;
-            }
+            if (string.IsNullOrEmpty(comment)) return comment;
 
             return ValueHelper.TransferSingleQuotation(comment);
         }
 
         protected string GetCreateTableOption()
         {
-            CreateTableOption option = CreateTableOptionManager.GetCreateTableOption(this.databaseType);
+            var option = CreateTableOptionManager.GetCreateTableOption(databaseType);
 
-            if (option == null)
-            {
-                return string.Empty;
-            }
+            if (option == null) return string.Empty;
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
-            Action<string> appendValue = (value) =>
+            Action<string> appendValue = value =>
             {
                 if (!string.IsNullOrEmpty(value))
                 {
-                    if (sb.Length > 0)
-                    {
-                        sb.AppendLine();
-                    }
+                    if (sb.Length > 0) sb.AppendLine();
 
                     sb.Append(value);
                 }
             };
 
-            foreach(var item in option.Items)
-            {
+            foreach (var item in option.Items)
                 if (!string.IsNullOrEmpty(item))
                 {
-                    string[] items = item.Split(CreateTableOptionManager.OptionValueItemsSeperator);
+                    var items = item.Split(CreateTableOptionManager.OptionValueItemsSeperator);
 
-                    foreach (var subItem in items)
-                    {
-                        appendValue(subItem);
-                    }
+                    foreach (var subItem in items) appendValue(subItem);
                 }
-            }       
 
             return sb.ToString();
         }
+
         #endregion
 
         #region Feedback
+
         public void FeedbackInfo(OperationState state, DatabaseObject dbObject)
         {
-            this.dbInterpreter.FeedbackInfo(state, dbObject);
+            dbInterpreter.FeedbackInfo(state, dbObject);
         }
 
         public void FeedbackInfo(string message)
         {
-            this.dbInterpreter.FeedbackInfo(message);
+            dbInterpreter.FeedbackInfo(message);
         }
 
         public void FeedbackError(string message, bool skipError = false)
         {
-            this.dbInterpreter.FeedbackError(message, skipError);
+            dbInterpreter.FeedbackError(message, skipError);
         }
+
         #endregion
     }
 }

@@ -1,15 +1,14 @@
-﻿using DatabaseInterpreter.Core;
+﻿using System.Collections.Generic;
+using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
-using System.Collections.Generic;
 
 namespace DatabaseConverter.Model
 {
     public class DbConveterInfo
     {
-        public DbInterpreter DbInterpreter { get; set; }      
+        public DatabaseObjectType DatabaseObjectType = DatabaseObjectType.None;
 
         public Dictionary<string, string> TableNameMappings = new Dictionary<string, string>();
-
-        public DatabaseObjectType DatabaseObjectType = DatabaseObjectType.None;
+        public DbInterpreter DbInterpreter { get; set; }
     }
 }

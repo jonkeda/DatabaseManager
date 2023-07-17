@@ -1,11 +1,11 @@
-﻿using DatabaseInterpreter.Model;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using DatabaseInterpreter.Model;
 
 namespace DatabaseManager.Model
 {
     public class ScriptGenerateResult
     {
-        public string Script { get; set; }
         public List<RoutineParameter> Parameters;
+        public string Script { get; set; }
     }
 }

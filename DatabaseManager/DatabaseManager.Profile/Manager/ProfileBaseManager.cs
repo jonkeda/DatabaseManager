@@ -1,46 +1,42 @@
-﻿using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using Microsoft.Data.Sqlite;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using DatabaseInterpreter.Core;
+using DatabaseInterpreter.Model;
+using Microsoft.Data.Sqlite;
 
 namespace DatabaseManager.Profile
 {
     public class ProfileBaseManager
     {
-        private readonly static string dataFileName = "profiles.db3";
-        internal static string ProfileFolder => "Profiles";
-        internal static string ProfileDataFile { get; private set; }
+        private static readonly string dataFileName = "profiles.db3";
 
         static ProfileBaseManager()
         {
             Init();
         }
 
+        internal static string ProfileFolder => "Profiles";
+        internal static string ProfileDataFile { get; private set; }
+
         private static void Init()
         {
             var assemblyFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-            string folder = Path.Combine(assemblyFolder, ProfileFolder);
+            var folder = Path.Combine(assemblyFolder, ProfileFolder);
 
-            if (!Directory.Exists(folder))
-            {
-                Directory.CreateDirectory(folder);
-            }
+            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
 
-            string dataFilePath = Path.Combine(folder, dataFileName);
+            var dataFilePath = Path.Combine(folder, dataFileName);
 
-            string templateFilePath = Path.Combine(assemblyFolder, "Template", dataFileName);
+            var templateFilePath = Path.Combine(assemblyFolder, "Template", dataFileName);
 
             if (!File.Exists(dataFilePath))
             {
                 if (!File.Exists(templateFilePath))
-                {
                     throw new FileNotFoundException($@"File ""{templateFilePath}"" is not found.");
-                }
 
                 File.Copy(templateFilePath, dataFilePath);
 
@@ -48,13 +44,11 @@ namespace DatabaseManager.Profile
             }
             else
             {
-                string templateVersion = GetVersion(templateFilePath);
-                string dataVersion = GetVersion(dataFilePath);
+                var templateVersion = GetVersion(templateFilePath);
+                var dataVersion = GetVersion(dataFilePath);
 
-                if (!string.IsNullOrEmpty(templateVersion) && !string.IsNullOrEmpty(dataVersion) && templateVersion != dataVersion)
-                {
-                    File.Copy(templateFilePath, dataFilePath, true);
-                }
+                if (!string.IsNullOrEmpty(templateVersion) && !string.IsNullOrEmpty(dataVersion) &&
+                    templateVersion != dataVersion) File.Copy(templateFilePath, dataFilePath, true);
 
                 ProfileDataFile = dataFilePath;
             }
@@ -66,7 +60,7 @@ namespace DatabaseManager.Profile
             {
                 connection.Open();
 
-                string sql = "SELECT Version FROM VersionInfo";
+                var sql = "SELECT Version FROM VersionInfo";
 
                 var cmd = connection.CreateCommand();
 
@@ -78,7 +72,7 @@ namespace DatabaseManager.Profile
 
         private static ConnectionInfo GetConnectionInfo(string dataFilePath)
         {
-            return new ConnectionInfo() { Database = dataFilePath };
+            return new ConnectionInfo { Database = dataFilePath };
         }
 
         protected static ConnectionInfo GetConnectionInfo()
@@ -88,32 +82,24 @@ namespace DatabaseManager.Profile
 
         protected static DbInterpreter GetDbInterpreter(string dataFilePath = null)
         {
-            if (dataFilePath == null)
-            {
-                dataFilePath = ProfileDataFile;
-            }
+            if (dataFilePath == null) dataFilePath = ProfileDataFile;
 
-            DbInterpreter dbInterpreter = DbInterpreterHelper.GetDbInterpreter(DatabaseType.Sqlite, GetConnectionInfo(dataFilePath), new DbInterpreterOption());
+            var dbInterpreter = DbInterpreterHelper.GetDbInterpreter(DatabaseType.Sqlite,
+                GetConnectionInfo(dataFilePath), new DbInterpreterOption());
 
             return dbInterpreter;
         }
 
         protected static SqliteConnection CreateDbConnection(string dataFilePath = null)
         {
-            if (dataFilePath == null)
-            {
-                dataFilePath = ProfileDataFile;
-            }
+            if (dataFilePath == null) dataFilePath = ProfileDataFile;
 
             return GetDbInterpreter(dataFilePath).CreateConnection() as SqliteConnection;
         }
 
         protected static object GetParameterValue(string value)
         {
-            if (string.IsNullOrEmpty(value))
-            {
-                return DBNull.Value;
-            }
+            if (string.IsNullOrEmpty(value)) return DBNull.Value;
 
             return value;
         }
@@ -125,15 +111,9 @@ namespace DatabaseManager.Profile
 
         protected static bool ValidateIds(IEnumerable<string> ids)
         {
-            if (ids == null)
-            {
-                return true;
-            }
+            if (ids == null) return true;
 
-            if (ids.Any(item => !Guid.TryParse(item, out _)))
-            {
-                throw new ArgumentException("Invalid id exists.");
-            }
+            if (ids.Any(item => !Guid.TryParse(item, out _))) throw new ArgumentException("Invalid id exists.");
 
             return true;
         }

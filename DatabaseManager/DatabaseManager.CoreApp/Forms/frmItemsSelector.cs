@@ -1,113 +1,93 @@
-﻿using DatabaseInterpreter.Model;
-using DatabaseManager.Helper;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using DatabaseManager.Helper;
 
-namespace DatabaseManager
+namespace DatabaseManager;
+
+public partial class frmItemsSelector : Form
 {
-    public partial class frmItemsSelector : Form
+    private bool isChecking;
+    private readonly List<CheckItemInfo> items;
+
+    public frmItemsSelector(List<CheckItemInfo> items)
     {
-        private bool isChecking = false;
-        private List<CheckItemInfo> items;
-        public bool Required { get; set; } = true;
-   
-        public List<CheckItemInfo> CheckedItem { get; set; } = new List<CheckItemInfo>();
+        InitializeComponent();
+        this.items = items;
+    }
 
-        public frmItemsSelector(List<CheckItemInfo> items)
+    public frmItemsSelector(string title, List<CheckItemInfo> items)
+    {
+        InitializeComponent();
+
+        Text = title;
+        this.items = items;
+    }
+
+    public bool Required { get; set; } = true;
+
+    public List<CheckItemInfo> CheckedItem { get; set; } = new();
+
+    private void frmItemsSelector_Load(object sender, EventArgs e)
+    {
+        InitControls();
+    }
+
+    private void InitControls()
+    {
+        foreach (var item in items) chkItems.Items.Add(item.Name, item.Checked);
+
+        if (items.All(item => item.Checked)) chkSelectAll.Checked = true;
+    }
+
+    private void btnOK_Click(object sender, EventArgs e)
+    {
+        if (Required && chkItems.CheckedItems.Count == 0)
         {
-            InitializeComponent();
-            this.items = items;
+            MessageBox.Show("Please select a item.");
+            return;
         }
 
-        public frmItemsSelector(string title, List<CheckItemInfo> items)
-        {
-            InitializeComponent();
+        foreach (var item in chkItems.CheckedItems)
+            CheckedItem.Add(new CheckItemInfo { Name = item.ToString(), Checked = true });
 
-            this.Text = title;
-            this.items = items;
-        }
+        DialogResult = DialogResult.OK;
 
-        private void frmItemsSelector_Load(object sender, EventArgs e)
-        {
-            this.InitControls();           
-        }
+        Close();
+    }
 
-        private void InitControls()
-        {
-            foreach(CheckItemInfo item in this.items)
-            {
-                this.chkItems.Items.Add(item.Name, item.Checked);
-            }
+    private void btnCancel_Click(object sender, EventArgs e)
+    {
+        Close();
+    }
 
-            if(this.items.All(item=> item.Checked))
-            {
-                this.chkSelectAll.Checked = true;
-            }
-        }
+    private void chkSelectAll_CheckedChanged(object sender, EventArgs e)
+    {
+        CheckItems(chkSelectAll.Checked);
+    }
 
-        private void btnOK_Click(object sender, EventArgs e)
-        {
-            if (this.Required && this.chkItems.CheckedItems.Count == 0)
-            {
-                MessageBox.Show("Please select a item.");
-                return;
-            }       
+    private void CheckItems(bool @checked)
+    {
+        if (!isChecking)
+            for (var i = 0; i < chkItems.Items.Count; i++)
+                chkItems.SetItemChecked(i, @checked);
+    }
 
-            foreach (var item in this.chkItems.CheckedItems)
-            {
-                this.CheckedItem.Add(new CheckItemInfo() { Name = item.ToString(), Checked = true });
-            }                     
+    private void chkItems_MouseUp(object sender, MouseEventArgs e)
+    {
+        HandleItemChecked();
+    }
 
-            this.DialogResult = DialogResult.OK;
+    private void chkItems_KeyUp(object sender, KeyEventArgs e)
+    {
+        HandleItemChecked();
+    }
 
-            this.Close();
-        }
-
-        private void btnCancel_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
-
-        private void chkSelectAll_CheckedChanged(object sender, EventArgs e)
-        {
-            this.CheckItems(this.chkSelectAll.Checked);
-        }
-
-        private void CheckItems(bool @checked)
-        {
-            if(!this.isChecking)
-            {
-                for (int i = 0; i < this.chkItems.Items.Count; i++)
-                {
-                    this.chkItems.SetItemChecked(i, @checked);
-                }
-            }           
-        }       
-
-        private void chkItems_MouseUp(object sender, MouseEventArgs e)
-        {
-            this.HandleItemChecked();
-        }
-
-        private void chkItems_KeyUp(object sender, KeyEventArgs e)
-        {
-            this.HandleItemChecked();
-        }
-
-        private void HandleItemChecked()
-        {
-            this.isChecking = true;
-            this.chkSelectAll.Checked = this.chkItems.CheckedItems.Count == this.chkItems.Items.Count;
-            this.isChecking = false;
-        }
-    }  
-
-  
+    private void HandleItemChecked()
+    {
+        isChecking = true;
+        chkSelectAll.Checked = chkItems.CheckedItems.Count == chkItems.Items.Count;
+        isChecking = false;
+    }
 }

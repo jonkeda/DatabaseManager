@@ -1,108 +1,87 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using DatabaseInterpreter.Model;
 using DatabaseManager.Core;
 using DatabaseManager.Model;
 
-namespace DatabaseManager
+namespace DatabaseManager;
+
+public partial class frmBackupSettingRedefine : Form
 {
-    public partial class frmBackupSettingRedefine : Form
+    public frmBackupSettingRedefine()
     {
-        public DatabaseType DatabaseType { get; set; }
-        public BackupSetting Setting { get; private set; }
+        InitializeComponent();
+    }
 
-        public frmBackupSettingRedefine()
+    public DatabaseType DatabaseType { get; set; }
+    public BackupSetting Setting { get; private set; }
+
+    private void frmBackupSettingRedefine_Load(object sender, EventArgs e)
+    {
+        InitControls();
+    }
+
+    private void InitControls()
+    {
+        Setting = BackupSettingManager.GetSettings()
+            .FirstOrDefault(item => item.DatabaseType == DatabaseType.ToString());
+
+        if (Setting != null)
         {
-            InitializeComponent();
+            txtSaveFolder.Text = Setting.SaveFolder;
+            chkZipFile.Checked = Setting.ZipFile;
         }
 
-        private void frmBackupSettingRedefine_Load(object sender, EventArgs e)
+        if (DatabaseType == DatabaseType.SqlServer || DatabaseType == DatabaseType.Postgres) chkZipFile.Enabled = false;
+    }
+
+    private void btnSaveFolder_Click(object sender, EventArgs e)
+    {
+        if (folderBrowserDialog1 == null) folderBrowserDialog1 = new FolderBrowserDialog();
+
+        if (!string.IsNullOrEmpty(txtSaveFolder.Text)) folderBrowserDialog1.SelectedPath = txtSaveFolder.Text;
+
+        var result = folderBrowserDialog1.ShowDialog();
+
+        if (result == DialogResult.OK) txtSaveFolder.Text = folderBrowserDialog1.SelectedPath;
+    }
+
+    private void btnConfirm_Click(object sender, EventArgs e)
+    {
+        var saveFolder = txtSaveFolder.Text.Trim();
+        var zipFile = chkZipFile.Checked;
+
+        if (Setting == null) Setting = new BackupSetting { DatabaseType = DatabaseType.ToString() };
+
+        Setting.SaveFolder = saveFolder;
+        Setting.ZipFile = zipFile;
+
+        if (chkSetAsDefault.Checked)
         {
-            this.InitControls();
+            var settings = BackupSettingManager.GetSettings();
+
+            var setting = settings.FirstOrDefault(item => item.DatabaseType == DatabaseType.ToString());
+
+            if (setting == null)
+            {
+                settings.Add(Setting);
+            }
+            else
+            {
+                setting.SaveFolder = saveFolder;
+                setting.ZipFile = zipFile;
+            }
+
+            BackupSettingManager.SaveConfig(settings);
         }
 
-        private void InitControls()
-        {
-            this.Setting = BackupSettingManager.GetSettings().FirstOrDefault(item => item.DatabaseType == this.DatabaseType.ToString());
+        DialogResult = DialogResult.OK;
+        Close();
+    }
 
-            if (this.Setting != null)
-            {
-                this.txtSaveFolder.Text = this.Setting.SaveFolder;
-                this.chkZipFile.Checked = this.Setting.ZipFile;
-            }
-
-            if (this.DatabaseType == DatabaseType.SqlServer || this.DatabaseType == DatabaseType.Postgres)
-            {
-                this.chkZipFile.Enabled = false;
-            }
-        }
-
-        private void btnSaveFolder_Click(object sender, EventArgs e)
-        {
-            if (this.folderBrowserDialog1 == null)
-            {
-                this.folderBrowserDialog1 = new FolderBrowserDialog();
-            }
-
-            if (!string.IsNullOrEmpty(this.txtSaveFolder.Text))
-            {
-                this.folderBrowserDialog1.SelectedPath = this.txtSaveFolder.Text;
-            }
-
-            DialogResult result = this.folderBrowserDialog1.ShowDialog();
-
-            if (result == DialogResult.OK)
-            {
-                this.txtSaveFolder.Text = this.folderBrowserDialog1.SelectedPath;
-            }
-        }
-
-        private void btnConfirm_Click(object sender, EventArgs e)
-        {
-            string saveFolder = this.txtSaveFolder.Text.Trim();
-            bool zipFile = this.chkZipFile.Checked;
-
-            if (this.Setting == null)
-            {
-                this.Setting = new BackupSetting() { DatabaseType = this.DatabaseType.ToString() };
-            }
-
-            this.Setting.SaveFolder = saveFolder;
-            this.Setting.ZipFile = zipFile;
-
-            if (this.chkSetAsDefault.Checked)
-            {
-                var settings = BackupSettingManager.GetSettings();
-
-                var setting = settings.FirstOrDefault(item => item.DatabaseType == this.DatabaseType.ToString());
-
-                if (setting == null)
-                {
-                    settings.Add(this.Setting);
-                }
-                else
-                {
-                    setting.SaveFolder = saveFolder;
-                    setting.ZipFile = zipFile;
-                }
-
-                BackupSettingManager.SaveConfig(settings);
-            }
-
-            this.DialogResult = DialogResult.OK;
-            this.Close();
-        }
-
-        private void btnCancel_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
+    private void btnCancel_Click(object sender, EventArgs e)
+    {
+        Close();
     }
 }

@@ -12,5 +12,5 @@
 		<Oracle>:OLD</Oracle>
 		<Postgres>OLD</Postgres>
 		<Sqlite>OLD</Sqlite>
-	</mapping>	
+	</mapping>
 </mappings>

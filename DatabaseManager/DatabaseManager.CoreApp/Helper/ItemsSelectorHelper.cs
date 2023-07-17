@@ -1,81 +1,71 @@
-﻿using DatabaseInterpreter.Model;
-using DatabaseManager.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using static Dapper.SqlMapper;
+using DatabaseInterpreter.Model;
 
-namespace DatabaseManager.Helper
+namespace DatabaseManager.Helper;
+
+public class CheckItemInfo
 {
-    public class CheckItemInfo
+    public string Name { get; set; }
+    public bool Checked { get; set; }
+}
+
+public class ItemsSelectorHelper
+{
+    public static List<CheckItemInfo> GetDatabaseObjectTypeItems(DatabaseType databaseType,
+        DatabaseObjectType supportDatabaseObjectType = DatabaseObjectType.None)
     {
-        public string Name { get; set; }
-        public bool Checked { get; set; }
+        var dbObjTypes = new List<DatabaseObjectType>
+        {
+            DatabaseObjectType.Trigger,
+            DatabaseObjectType.Table,
+            DatabaseObjectType.View,
+            DatabaseObjectType.Function,
+            DatabaseObjectType.Procedure,
+            DatabaseObjectType.Type,
+            DatabaseObjectType.Sequence
+        };
+
+        var checkItems = new List<CheckItemInfo>();
+
+        if (supportDatabaseObjectType != DatabaseObjectType.None)
+            foreach (var dbObjType in dbObjTypes)
+                if (dbObjType == DatabaseObjectType.Trigger || supportDatabaseObjectType.HasFlag(dbObjType))
+                    checkItems.Add(new CheckItemInfo
+                        { Name = ManagerUtil.GetPluralString(dbObjType.ToString()), Checked = true });
+
+        return checkItems;
     }
 
-    public class ItemsSelectorHelper
+    public static DatabaseObjectType GetDatabaseObjectTypeByCheckItems(List<CheckItemInfo> items)
     {
-        public static List<CheckItemInfo> GetDatabaseObjectTypeItems(DatabaseType databaseType, DatabaseObjectType supportDatabaseObjectType = DatabaseObjectType.None)
+        var databaseObjectType = DatabaseObjectType.None;
+
+        foreach (var item in items)
         {
-            List<DatabaseObjectType> dbObjTypes = new List<DatabaseObjectType>()
-            {
-                DatabaseObjectType.Trigger,
-                DatabaseObjectType.Table,
-                DatabaseObjectType.View,
-                DatabaseObjectType.Function,
-                DatabaseObjectType.Procedure,
-                DatabaseObjectType.Type,
-                DatabaseObjectType.Sequence
-            };
+            var type = (DatabaseObjectType)Enum.Parse(typeof(DatabaseObjectType),
+                ManagerUtil.GetSingularString(item.Name));
 
-            List<CheckItemInfo> checkItems = new List<CheckItemInfo>();
-
-            if (supportDatabaseObjectType != DatabaseObjectType.None)
-            {
-                foreach (var dbObjType in dbObjTypes)
-                {
-                    if (dbObjType == DatabaseObjectType.Trigger || supportDatabaseObjectType.HasFlag(dbObjType))
-                    {
-                        checkItems.Add(new CheckItemInfo() { Name = ManagerUtil.GetPluralString(dbObjType.ToString()), Checked = true });
-                    }
-                }
-            }
-
-            return checkItems;
+            databaseObjectType = databaseObjectType | type;
         }
 
-        public static DatabaseObjectType GetDatabaseObjectTypeByCheckItems(List<CheckItemInfo> items)
-        {
-            DatabaseObjectType databaseObjectType = DatabaseObjectType.None;
+        return databaseObjectType;
+    }
 
-            foreach (var item in items)
+    public static List<CheckItemInfo> GetDatabaseTypeItems(List<string> databaseTypes, bool checkedIfNotConfig = true)
+    {
+        var items = new List<CheckItemInfo>();
+
+        var dbTypes = Enum.GetNames(typeof(DatabaseType));
+
+        foreach (var dbType in dbTypes)
+            if (dbType != nameof(DatabaseType.Unknown))
             {
-                DatabaseObjectType type = (DatabaseObjectType)Enum.Parse(typeof(DatabaseObjectType), ManagerUtil.GetSingularString(item.Name));
+                var @checked = (checkedIfNotConfig && databaseTypes.Count == 0) || databaseTypes.Contains(dbType);
 
-                databaseObjectType = databaseObjectType | type;
+                items.Add(new CheckItemInfo { Name = dbType, Checked = @checked });
             }
 
-            return databaseObjectType;
-        }
-
-        public static List<CheckItemInfo> GetDatabaseTypeItems(List<string> databaseTypes, bool checkedIfNotConfig = true)
-        {
-            List<CheckItemInfo> items = new List<CheckItemInfo>();
-
-            var dbTypes = Enum.GetNames(typeof(DatabaseType));
-
-            foreach (string dbType in dbTypes)
-            {
-                if (dbType != nameof(DatabaseType.Unknown))
-                {
-                    bool @checked = (checkedIfNotConfig && databaseTypes.Count == 0) || databaseTypes.Contains(dbType);
-
-                    items.Add(new CheckItemInfo() { Name = dbType, Checked = @checked });
-                }
-            }
-
-            return items;
-        }
+        return items;
     }
 }

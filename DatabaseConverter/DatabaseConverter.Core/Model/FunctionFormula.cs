@@ -1,151 +1,123 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace DatabaseConverter.Model
 {
     public class FunctionFormula
     {
-        private string _name;
         private string _body;
-        private string _expression; 
+        private string _expression;
+        private string _name;
 
-        public bool HasParentheses => this._expression?.Contains("(") == true;
+        public FunctionFormula(string expression)
+        {
+            Expression = expression;
+        }
+
+        public FunctionFormula(string name, string expression)
+        {
+            Name = name;
+            Expression = expression;
+        }
+
+        public bool HasParentheses => _expression?.Contains("(") == true;
 
         public string Name
         {
             get
             {
-                if (string.IsNullOrEmpty(this._name) && !string.IsNullOrEmpty(this._expression))
+                if (string.IsNullOrEmpty(_name) && !string.IsNullOrEmpty(_expression))
                 {
-                    int firstParenthesesIndex = this.Expression.IndexOf('(');
+                    var firstParenthesesIndex = Expression.IndexOf('(');
 
-                    if (firstParenthesesIndex > 0)
-                    {
-                        this._name = this._expression.Substring(0, firstParenthesesIndex);
-                    }
+                    if (firstParenthesesIndex > 0) _name = _expression.Substring(0, firstParenthesesIndex);
                 }
 
-                return this._name;
+                return _name;
             }
-            set
-            {
-                this._name = value;
-            }
+            set => _name = value;
         }
 
         public string Expression
         {
-            get
-            {
-                return this._expression;
-            }
+            get => _expression;
             set
             {
-                this._body = null;
-                this._expression = value;
+                _body = null;
+                _expression = value;
             }
-        }
-
-        public FunctionFormula(string expression)
-        {
-            this.Expression = expression;
-        }
-
-        public FunctionFormula(string name, string expression)
-        {
-            this.Name = name;
-            this.Expression = expression;
         }
 
         public string Body
         {
             get
             {
-                if (string.IsNullOrEmpty(this._body))
-                {
-                    if (!string.IsNullOrEmpty(this.Expression))
+                if (string.IsNullOrEmpty(_body))
+                    if (!string.IsNullOrEmpty(Expression))
                     {
-                        int firstParenthesesIndexIndex = this.Expression.IndexOf('(');
-                        int lastParenthesesIndex = this.Expression.LastIndexOf(')');
+                        var firstParenthesesIndexIndex = Expression.IndexOf('(');
+                        var lastParenthesesIndex = Expression.LastIndexOf(')');
 
-                        if (firstParenthesesIndexIndex > 0 && lastParenthesesIndex > 0 && lastParenthesesIndex > firstParenthesesIndexIndex)
-                        {
-                            this._body = this.Expression.Substring(firstParenthesesIndexIndex + 1, lastParenthesesIndex - firstParenthesesIndexIndex - 1);
-                        }
+                        if (firstParenthesesIndexIndex > 0 && lastParenthesesIndex > 0 &&
+                            lastParenthesesIndex > firstParenthesesIndexIndex)
+                            _body = Expression.Substring(firstParenthesesIndexIndex + 1,
+                                lastParenthesesIndex - firstParenthesesIndexIndex - 1);
                     }
-                }
 
-                return this._body ?? string.Empty;
+                return _body ?? string.Empty;
             }
         }
 
         public List<string> GetArgs(string delimiter = ",")
         {
-            List<string> args = new List<string>();
+            var args = new List<string>();
 
-            string body = this.Body;
+            var body = Body;
 
-            if (string.IsNullOrEmpty(body))
-            {
-                return args;
-            }
+            if (string.IsNullOrEmpty(body)) return args;
 
-            List<int> delimiterIndexes = new List<int>();
+            var delimiterIndexes = new List<int>();
 
             if (delimiter.Length == 1)
             {
-                char delimiterChar = delimiter[0];
+                var delimiterChar = delimiter[0];
 
-                int i = 0;
+                var i = 0;
 
-                int leftParenthesesCount = 0;
-                int rightParenthesesCount = 0;
-                int singleQuotationCharCount = 0;
+                var leftParenthesesCount = 0;
+                var rightParenthesesCount = 0;
+                var singleQuotationCharCount = 0;
 
                 foreach (var c in body)
                 {
-                    if (c == '\'')
-                    {
-                        singleQuotationCharCount++;
-                    }
+                    if (c == '\'') singleQuotationCharCount++;
 
                     if (c == '(')
                     {
-                        if (singleQuotationCharCount % 2 == 0)
-                        {
-                            leftParenthesesCount++;
-                        }
+                        if (singleQuotationCharCount % 2 == 0) leftParenthesesCount++;
                     }
                     else if (c == ')')
                     {
-                        if (singleQuotationCharCount % 2 == 0)
-                        {
-                            rightParenthesesCount++;
-                        }
+                        if (singleQuotationCharCount % 2 == 0) rightParenthesesCount++;
                     }
 
                     if (c == delimiterChar)
-                    {
-                        if ((leftParenthesesCount == rightParenthesesCount) && (singleQuotationCharCount % 2 == 0))
-                        {
+                        if (leftParenthesesCount == rightParenthesesCount && singleQuotationCharCount % 2 == 0)
                             delimiterIndexes.Add(i);
-                        }
-                    }
 
                     i++;
                 }
 
-                int lastDelimiterIndex = -1;
+                var lastDelimiterIndex = -1;
 
-                foreach (int delimiterIndex in delimiterIndexes)
+                foreach (var delimiterIndex in delimiterIndexes)
                 {
-                    int startIndex = lastDelimiterIndex == -1 ? 0 : lastDelimiterIndex + 1;
-                    int length = delimiterIndex - startIndex;
+                    var startIndex = lastDelimiterIndex == -1 ? 0 : lastDelimiterIndex + 1;
+                    var length = delimiterIndex - startIndex;
 
                     if (length > 0)
                     {
-                        string value = body.Substring(startIndex, length);
+                        var value = body.Substring(startIndex, length);
 
                         args.Add(value.Trim());
                     }
@@ -153,19 +125,16 @@ namespace DatabaseConverter.Model
                     lastDelimiterIndex = delimiterIndex;
                 }
 
-                if (lastDelimiterIndex < body.Length - 1)
-                {
-                    args.Add(body.Substring(lastDelimiterIndex + 1).Trim());
-                }
+                if (lastDelimiterIndex < body.Length - 1) args.Add(body.Substring(lastDelimiterIndex + 1).Trim());
             }
             else
             {
-                int lastIndex = body.LastIndexOf(delimiter, StringComparison.OrdinalIgnoreCase);
+                var lastIndex = body.LastIndexOf(delimiter, StringComparison.OrdinalIgnoreCase);
 
                 if (lastIndex >= 0)
                 {
-                    string firstPart = body.Substring(0, lastIndex).Trim();
-                    string lastPart = body.Substring(lastIndex + delimiter.Length).Trim();
+                    var firstPart = body.Substring(0, lastIndex).Trim();
+                    var lastPart = body.Substring(lastIndex + delimiter.Length).Trim();
 
                     args.Add(firstPart);
                     args.Add(lastPart);

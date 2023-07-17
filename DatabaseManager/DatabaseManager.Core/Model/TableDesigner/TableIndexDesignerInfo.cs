@@ -1,6 +1,6 @@
-﻿using DatabaseInterpreter.Model;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
+using DatabaseInterpreter.Model;
 
 namespace DatabaseManager.Model
 {
@@ -18,11 +18,13 @@ namespace DatabaseManager.Model
         public string Comment { get; set; }
 
         public TableIndexExtraPropertyInfo ExtraPropertyInfo { get; set; }
-    }  
+    }
 
     public class TableIndexExtraPropertyInfo
     {
-        [Category("Clustered"), Description("Clustered"), ReadOnly(false)]
+        [Category("Clustered")]
+        [Description("Clustered")]
+        [ReadOnly(false)]
         public bool Clustered { get; set; } = true;
     }
 }

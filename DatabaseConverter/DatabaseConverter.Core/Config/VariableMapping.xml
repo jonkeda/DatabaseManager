@@ -19,7 +19,7 @@
 		<Oracle>(SELECT VERSION FROM V$INSTANCE)</Oracle>
 		<Postgres>(SELECT VERSION())</Postgres>
 		<Sqlite>(SELECT SQLITE_VERSION())</Sqlite>
-	</mapping>	
+	</mapping>
 	<mapping>
 		<SqlServer>@@SPID</SqlServer>
 		<MySql>(SELECT CONNECTION_ID())</MySql>

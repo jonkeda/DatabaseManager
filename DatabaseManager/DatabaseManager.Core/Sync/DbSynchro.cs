@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Core;
-using DatabaseManager.Model;
 using System.Linq;
 using System.Threading.Tasks;
+using DatabaseInterpreter.Core;
+using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
-
+using DatabaseManager.Model;
 
 namespace DatabaseManager.Core
 {
@@ -15,17 +13,17 @@ namespace DatabaseManager.Core
     {
         private IObserver<FeedbackInfo> observer;
         private DbInterpreter sourceInterpreter;
-        private DbInterpreter targetInterpreter;
-        private DbScriptGenerator targetScriptGenerator;
-        private TableManager tableManager;
+        private readonly TableManager tableManager;
+        private readonly DbInterpreter targetInterpreter;
+        private readonly DbScriptGenerator targetScriptGenerator;
 
         public DbSynchro(DbInterpreter sourceInterpreter, DbInterpreter targetInterpreter)
         {
             this.sourceInterpreter = sourceInterpreter;
             this.targetInterpreter = targetInterpreter;
 
-            this.tableManager = new TableManager(this.targetInterpreter);
-            this.targetScriptGenerator = DbScriptGeneratorHelper.GetDbScriptGenerator(targetInterpreter);
+            tableManager = new TableManager(this.targetInterpreter);
+            targetScriptGenerator = DbScriptGeneratorHelper.GetDbScriptGenerator(targetInterpreter);
         }
 
         public void Subscribe(IObserver<FeedbackInfo> observer)
@@ -33,61 +31,58 @@ namespace DatabaseManager.Core
             this.observer = observer;
         }
 
-        public async Task<ContentSaveResult> Sync(SchemaInfo schemaInfo, string targetDbSchema, IEnumerable<DbDifference> differences)
+        public async Task<ContentSaveResult> Sync(SchemaInfo schemaInfo, string targetDbSchema,
+            IEnumerable<DbDifference> differences)
         {
-            List<Script> scripts = await this.GenerateChangedScripts(schemaInfo, targetDbSchema, differences);
+            var scripts = await GenerateChangedScripts(schemaInfo, targetDbSchema, differences);
 
-            if (scripts == null || scripts.Count == 0)
-            {
-                return this.GetFaultSaveResult("No changes need to save.");
-            }
+            if (scripts == null || scripts.Count == 0) return GetFaultSaveResult("No changes need to save.");
 
             try
             {
-                ScriptRunner scriptRunner = new ScriptRunner();
+                var scriptRunner = new ScriptRunner();
 
-                await scriptRunner.Run(this.targetInterpreter, scripts);
+                await scriptRunner.Run(targetInterpreter, scripts);
 
-                return new ContentSaveResult() { IsOK = true };
+                return new ContentSaveResult { IsOK = true };
             }
             catch (Exception ex)
             {
-                string errMsg = ExceptionHelper.GetExceptionDetails(ex);
+                var errMsg = ExceptionHelper.GetExceptionDetails(ex);
 
-                this.FeedbackError(errMsg);
+                FeedbackError(errMsg);
 
-                return this.GetFaultSaveResult(errMsg);
+                return GetFaultSaveResult(errMsg);
             }
         }
 
         private ContentSaveResult GetFaultSaveResult(string message)
         {
-            return new ContentSaveResult() { ResultData = message };
+            return new ContentSaveResult { ResultData = message };
         }
 
-        public async Task<List<Script>> GenerateChangedScripts(SchemaInfo schemaInfo, string targetDbSchema, IEnumerable<DbDifference> differences)
+        public async Task<List<Script>> GenerateChangedScripts(SchemaInfo schemaInfo, string targetDbSchema,
+            IEnumerable<DbDifference> differences)
         {
-            List<Script> scripts = new List<Script>();
-            List<Script> tableScripts = new List<Script>();
+            var scripts = new List<Script>();
+            var tableScripts = new List<Script>();
 
-            foreach (DbDifference difference in differences)
+            foreach (var difference in differences)
             {
-                DbDifferenceType diffType = difference.DifferenceType;
+                var diffType = difference.DifferenceType;
 
-                if (diffType == DbDifferenceType.None)
-                {
-                    continue;
-                }
+                if (diffType == DbDifferenceType.None) continue;
 
                 switch (difference.DatabaseObjectType)
                 {
                     case DatabaseObjectType.Table:
-                        tableScripts.AddRange(await this.GenerateTableChangedScripts(schemaInfo, difference, targetDbSchema));
+                        tableScripts.AddRange(
+                            await GenerateTableChangedScripts(schemaInfo, difference, targetDbSchema));
                         break;
                     case DatabaseObjectType.View:
                     case DatabaseObjectType.Function:
                     case DatabaseObjectType.Procedure:
-                        tableScripts.AddRange(this.GenereateScriptDbObjectChangedScripts(difference, targetDbSchema));
+                        tableScripts.AddRange(GenereateScriptDbObjectChangedScripts(difference, targetDbSchema));
                         break;
                 }
             }
@@ -99,27 +94,27 @@ namespace DatabaseManager.Core
 
         public List<Script> GenereateScriptDbObjectChangedScripts(DbDifference difference, string targetDbSchema)
         {
-            List<Script> scripts = new List<Script>();
+            var scripts = new List<Script>();
 
-            DbDifferenceType diffType = difference.DifferenceType;
+            var diffType = difference.DifferenceType;
 
-            ScriptDbObject sourceScriptDbObject = difference.Source as ScriptDbObject;
-            ScriptDbObject targetScriptDbObject = difference.Target as ScriptDbObject;
+            var sourceScriptDbObject = difference.Source as ScriptDbObject;
+            var targetScriptDbObject = difference.Target as ScriptDbObject;
 
             if (diffType == DbDifferenceType.Added)
             {
-                var cloneObj = this.CloneDbObject(sourceScriptDbObject, targetDbSchema);
+                var cloneObj = CloneDbObject(sourceScriptDbObject, targetDbSchema);
                 scripts.Add(new CreateDbObjectScript<ScriptDbObject>(cloneObj.Definition));
             }
             else if (diffType == DbDifferenceType.Deleted)
             {
-                scripts.Add(this.targetScriptGenerator.Drop(sourceScriptDbObject));
+                scripts.Add(targetScriptGenerator.Drop(sourceScriptDbObject));
             }
             else if (diffType == DbDifferenceType.Modified)
             {
-                var cloneObj = this.CloneDbObject(sourceScriptDbObject, targetScriptDbObject.Schema);
-                scripts.Add(this.targetScriptGenerator.Drop(targetScriptDbObject));
-                scripts.Add(this.targetScriptGenerator.Create(cloneObj));
+                var cloneObj = CloneDbObject(sourceScriptDbObject, targetScriptDbObject.Schema);
+                scripts.Add(targetScriptGenerator.Drop(targetScriptDbObject));
+                scripts.Add(targetScriptGenerator.Create(cloneObj));
             }
 
             return scripts;
@@ -127,78 +122,83 @@ namespace DatabaseManager.Core
 
         public List<Script> GenereateUserDefinedTypeChangedScripts(DbDifference difference, string targetDbSchema)
         {
-            List<Script> scripts = new List<Script>();
+            var scripts = new List<Script>();
 
-            DbDifferenceType diffType = difference.DifferenceType;
+            var diffType = difference.DifferenceType;
 
-            UserDefinedType source = difference.Source as UserDefinedType;
-            UserDefinedType target = difference.Target as UserDefinedType;
+            var source = difference.Source as UserDefinedType;
+            var target = difference.Target as UserDefinedType;
 
             if (diffType == DbDifferenceType.Added)
             {
-                var cloneObj = this.CloneDbObject(source, targetDbSchema);
-                scripts.Add(this.targetScriptGenerator.CreateUserDefinedType(cloneObj));
+                var cloneObj = CloneDbObject(source, targetDbSchema);
+                scripts.Add(targetScriptGenerator.CreateUserDefinedType(cloneObj));
             }
             else if (diffType == DbDifferenceType.Deleted)
             {
-                scripts.Add(this.targetScriptGenerator.DropUserDefinedType(source));
+                scripts.Add(targetScriptGenerator.DropUserDefinedType(source));
             }
             else if (diffType == DbDifferenceType.Modified)
             {
-                var cloneObj = this.CloneDbObject(source, target.Schema);
-                scripts.Add(this.targetScriptGenerator.DropUserDefinedType(target));
-                scripts.Add(this.targetScriptGenerator.CreateUserDefinedType(cloneObj));
+                var cloneObj = CloneDbObject(source, target.Schema);
+                scripts.Add(targetScriptGenerator.DropUserDefinedType(target));
+                scripts.Add(targetScriptGenerator.CreateUserDefinedType(cloneObj));
             }
 
             return scripts;
         }
 
-        public async Task<List<Script>> GenerateTableChangedScripts(SchemaInfo schemaInfo, DbDifference difference, string targetDbSchema)
+        public async Task<List<Script>> GenerateTableChangedScripts(SchemaInfo schemaInfo, DbDifference difference,
+            string targetDbSchema)
         {
-            List<Script> scripts = new List<Script>();
+            var scripts = new List<Script>();
 
-            DbDifferenceType diffType = difference.DifferenceType;
+            var diffType = difference.DifferenceType;
 
-            Table sourceTable = difference.Source as Table;
-            Table targetTable = difference.Target as Table;
+            var sourceTable = difference.Source as Table;
+            var targetTable = difference.Target as Table;
 
             if (diffType == DbDifferenceType.Added)
             {
-                List<TableColumn> columns = schemaInfo.TableColumns.Where(item => item.Schema == sourceTable.Schema && item.TableName == sourceTable.Name).OrderBy(item => item.Order).ToList();
-                TablePrimaryKey primaryKey = schemaInfo.TablePrimaryKeys.FirstOrDefault(item => item.Schema == sourceTable.Schema && item.TableName == sourceTable.Name);
-                List<TableForeignKey> foreignKeys = schemaInfo.TableForeignKeys.Where(item => item.Schema == sourceTable.Schema && item.TableName == sourceTable.Name).ToList();
-                List<TableIndex> indexes = schemaInfo.TableIndexes.Where(item => item.Schema == sourceTable.Schema && item.TableName == sourceTable.Name).OrderBy(item => item.Order).ToList();
-                List<TableConstraint> constraints = schemaInfo.TableConstraints.Where(item => item.Schema == sourceTable.Schema && item.TableName == sourceTable.Name).ToList();
+                var columns = schemaInfo.TableColumns
+                    .Where(item => item.Schema == sourceTable.Schema && item.TableName == sourceTable.Name)
+                    .OrderBy(item => item.Order).ToList();
+                var primaryKey = schemaInfo.TablePrimaryKeys.FirstOrDefault(item =>
+                    item.Schema == sourceTable.Schema && item.TableName == sourceTable.Name);
+                var foreignKeys = schemaInfo.TableForeignKeys
+                    .Where(item => item.Schema == sourceTable.Schema && item.TableName == sourceTable.Name).ToList();
+                var indexes = schemaInfo.TableIndexes
+                    .Where(item => item.Schema == sourceTable.Schema && item.TableName == sourceTable.Name)
+                    .OrderBy(item => item.Order).ToList();
+                var constraints = schemaInfo.TableConstraints
+                    .Where(item => item.Schema == sourceTable.Schema && item.TableName == sourceTable.Name).ToList();
 
-                this.ChangeSchema(columns, targetDbSchema);
-                primaryKey = this.CloneDbObject(primaryKey, targetDbSchema);
-                this.ChangeSchema(foreignKeys, targetDbSchema);
-                this.ChangeSchema(indexes, targetDbSchema);
-                this.ChangeSchema(constraints, targetDbSchema);
+                ChangeSchema(columns, targetDbSchema);
+                primaryKey = CloneDbObject(primaryKey, targetDbSchema);
+                ChangeSchema(foreignKeys, targetDbSchema);
+                ChangeSchema(indexes, targetDbSchema);
+                ChangeSchema(constraints, targetDbSchema);
 
-                scripts.AddRange(this.targetScriptGenerator.CreateTable(sourceTable, columns, primaryKey, foreignKeys, indexes, constraints).Scripts);
+                scripts.AddRange(targetScriptGenerator
+                    .CreateTable(sourceTable, columns, primaryKey, foreignKeys, indexes, constraints).Scripts);
             }
             else if (diffType == DbDifferenceType.Deleted)
             {
-                scripts.Add(this.targetScriptGenerator.DropTable(targetTable));
+                scripts.Add(targetScriptGenerator.DropTable(targetTable));
             }
             else if (diffType == DbDifferenceType.Modified)
             {
                 if (!ValueHelper.IsStringEquals(sourceTable.Comment, targetTable.Comment))
+                    scripts.Add(targetScriptGenerator.SetTableComment(sourceTable,
+                        string.IsNullOrEmpty(targetTable.Comment)));
+
+                foreach (var subDiff in difference.SubDifferences)
                 {
-                    scripts.Add(targetScriptGenerator.SetTableComment(sourceTable, string.IsNullOrEmpty(targetTable.Comment)));
-                }
+                    var subDiffType = subDiff.DifferenceType;
 
-                foreach (DbDifference subDiff in difference.SubDifferences)
-                {
-                    DbDifferenceType subDiffType = subDiff.DifferenceType;
+                    if (subDiffType == DbDifferenceType.None) continue;
 
-                    if (subDiffType == DbDifferenceType.None)
-                    {
-                        continue;
-                    }
-
-                    DatabaseObjectType subDbObjectType = subDiff.DatabaseObjectType;
+                    var subDbObjectType = subDiff.DatabaseObjectType;
 
                     switch (subDbObjectType)
                     {
@@ -207,11 +207,11 @@ namespace DatabaseManager.Core
                         case DatabaseObjectType.ForeignKey:
                         case DatabaseObjectType.Index:
                         case DatabaseObjectType.Constraint:
-                            scripts.AddRange(await this.GenerateTableChildChangedScripts(subDiff));
+                            scripts.AddRange(await GenerateTableChildChangedScripts(subDiff));
                             break;
 
                         case DatabaseObjectType.Trigger:
-                            scripts.AddRange(this.GenereateScriptDbObjectChangedScripts(subDiff, targetDbSchema));
+                            scripts.AddRange(GenereateScriptDbObjectChangedScripts(subDiff, targetDbSchema));
                             break;
                     }
                 }
@@ -222,98 +222,86 @@ namespace DatabaseManager.Core
 
         public async Task<List<Script>> GenerateTableChildChangedScripts(DbDifference difference)
         {
-            List<Script> scripts = new List<Script>();
+            var scripts = new List<Script>();
 
-            Table targetTable = difference.Parent.Target as Table;
+            var targetTable = difference.Parent.Target as Table;
 
-            DbDifferenceType diffType = difference.DifferenceType;
+            var diffType = difference.DifferenceType;
 
-            TableChild source = difference.Source as TableChild;
-            TableChild target = difference.Target as TableChild;
+            var source = difference.Source as TableChild;
+            var target = difference.Target as TableChild;
 
             if (diffType == DbDifferenceType.Added)
             {
-                scripts.Add(this.targetScriptGenerator.Create(this.CloneTableChild(source, difference.DatabaseObjectType, targetTable.Schema)));
+                scripts.Add(targetScriptGenerator.Create(CloneTableChild(source, difference.DatabaseObjectType,
+                    targetTable.Schema)));
             }
             else if (diffType == DbDifferenceType.Deleted)
             {
-                scripts.Add(this.targetScriptGenerator.Drop(target));
+                scripts.Add(targetScriptGenerator.Drop(target));
             }
             else if (diffType == DbDifferenceType.Modified)
             {
                 if (difference.DatabaseObjectType == DatabaseObjectType.Column)
                 {
-                    SchemaInfoFilter filter = new SchemaInfoFilter() { Schema = source.Schema, TableNames = new string[] { source.TableName } };
-                    List<TableDefaultValueConstraint> defaultValueConstraints = await this.tableManager.GetTableDefaultConstraints(filter);
+                    var filter = new SchemaInfoFilter
+                        { Schema = source.Schema, TableNames = new[] { source.TableName } };
+                    var defaultValueConstraints = await tableManager.GetTableDefaultConstraints(filter);
 
-                    Table table = new Table() { Schema = targetTable.Schema, Name = target.TableName };
+                    var table = new Table { Schema = targetTable.Schema, Name = target.TableName };
 
-                    TableColumn sourceColumn = source as TableColumn;
-                    TableColumn targetColumn = target as TableColumn;
+                    var sourceColumn = source as TableColumn;
+                    var targetColumn = target as TableColumn;
 
                     if (tableManager.IsNameChanged(sourceColumn.Name, targetColumn.Name))
-                    {
-                        scripts.Add(this.tableManager.GetColumnRenameScript(table, sourceColumn, targetColumn));
-                    }
+                        scripts.Add(tableManager.GetColumnRenameScript(table, sourceColumn, targetColumn));
 
-                    scripts.AddRange(this.tableManager.GetColumnAlterScripts(table, table, targetColumn, sourceColumn, defaultValueConstraints));
+                    scripts.AddRange(tableManager.GetColumnAlterScripts(table, table, targetColumn, sourceColumn,
+                        defaultValueConstraints));
                 }
                 else
                 {
-                    var clonedSource = this.CloneTableChild(difference.Source, difference.DatabaseObjectType, targetTable.Schema);
+                    var clonedSource = CloneTableChild(difference.Source, difference.DatabaseObjectType,
+                        targetTable.Schema);
 
                     if (difference.DatabaseObjectType == DatabaseObjectType.PrimaryKey)
-                    {
-                        scripts.AddRange(this.tableManager.GetPrimaryKeyAlterScripts(target as TablePrimaryKey, clonedSource as TablePrimaryKey, false));
-                    }
+                        scripts.AddRange(tableManager.GetPrimaryKeyAlterScripts(target as TablePrimaryKey,
+                            clonedSource as TablePrimaryKey, false));
                     else if (difference.DatabaseObjectType == DatabaseObjectType.ForeignKey)
-                    {
-                        scripts.AddRange(this.tableManager.GetForeignKeyAlterScripts(target as TableForeignKey, clonedSource as TableForeignKey));
-                    }
+                        scripts.AddRange(tableManager.GetForeignKeyAlterScripts(target as TableForeignKey,
+                            clonedSource as TableForeignKey));
                     else if (difference.DatabaseObjectType == DatabaseObjectType.Index)
-                    {
-                        scripts.AddRange(this.tableManager.GetIndexAlterScripts(target as TableIndex, clonedSource as TableIndex));
-                    }
+                        scripts.AddRange(tableManager.GetIndexAlterScripts(target as TableIndex,
+                            clonedSource as TableIndex));
                     else if (difference.DatabaseObjectType == DatabaseObjectType.Constraint)
-                    {
-                        scripts.AddRange(this.tableManager.GetConstraintAlterScripts(target as TableConstraint, clonedSource as TableConstraint));
-                    }
+                        scripts.AddRange(tableManager.GetConstraintAlterScripts(target as TableConstraint,
+                            clonedSource as TableConstraint));
                 }
             }
 
             return scripts;
         }
 
-        private DatabaseObject CloneTableChild(DatabaseObject tableChild, DatabaseObjectType databaseObjectType, string targetSchema)
+        private DatabaseObject CloneTableChild(DatabaseObject tableChild, DatabaseObjectType databaseObjectType,
+            string targetSchema)
         {
             if (databaseObjectType == DatabaseObjectType.PrimaryKey)
-            {
-                return this.CloneDbObject(tableChild as TablePrimaryKey, targetSchema);
-            }
-            else if (databaseObjectType == DatabaseObjectType.ForeignKey)
-            {
-                return this.CloneDbObject(tableChild as TableForeignKey, targetSchema);
-            }
-            else if (databaseObjectType == DatabaseObjectType.Index)
-            {
-                return this.CloneDbObject(tableChild as TableIndex, targetSchema);
-            }
-            else if (databaseObjectType == DatabaseObjectType.Constraint)
-            {
-                return this.CloneDbObject(tableChild as TableConstraint, targetSchema);
-            }
+                return CloneDbObject(tableChild as TablePrimaryKey, targetSchema);
+            if (databaseObjectType == DatabaseObjectType.ForeignKey)
+                return CloneDbObject(tableChild as TableForeignKey, targetSchema);
+            if (databaseObjectType == DatabaseObjectType.Index)
+                return CloneDbObject(tableChild as TableIndex, targetSchema);
+            if (databaseObjectType == DatabaseObjectType.Constraint)
+                return CloneDbObject(tableChild as TableConstraint, targetSchema);
 
             return tableChild;
         }
 
         private T CloneDbObject<T>(T dbObject, string owner) where T : DatabaseObject
         {
-            if (dbObject == null)
-            {
-                return null;
-            }
+            if (dbObject == null) return null;
 
-            T clonedObj = ObjectHelper.CloneObject<T>(dbObject);
+            var clonedObj = ObjectHelper.CloneObject<T>(dbObject);
             clonedObj.Schema = owner;
 
             return clonedObj;
@@ -321,27 +309,25 @@ namespace DatabaseManager.Core
 
         private void ChangeSchema<T>(List<T> dbObjects, string schema) where T : DatabaseObject
         {
-            dbObjects.ForEach(item => item = this.CloneDbObject<T>(item, schema));
+            dbObjects.ForEach(item => item = CloneDbObject(item, schema));
         }
 
         public void Feedback(FeedbackInfoType infoType, string message)
         {
-            FeedbackInfo info = new FeedbackInfo() { Owner = this, InfoType = infoType, Message = StringHelper.ToSingleEmptyLine(message) };
+            var info = new FeedbackInfo
+                { Owner = this, InfoType = infoType, Message = StringHelper.ToSingleEmptyLine(message) };
 
-            if (this.observer != null)
-            {
-                FeedbackHelper.Feedback(this.observer, info);
-            }
+            if (observer != null) FeedbackHelper.Feedback(observer, info);
         }
 
         public void FeedbackInfo(string message)
         {
-            this.Feedback(FeedbackInfoType.Info, message);
+            Feedback(FeedbackInfoType.Info, message);
         }
 
         public void FeedbackError(string message)
         {
-            this.Feedback(FeedbackInfoType.Error, message);
+            Feedback(FeedbackInfoType.Error, message);
         }
     }
 }

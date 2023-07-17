@@ -1,5 +1,5 @@
-﻿using DatabaseInterpreter.Model;
-using System.Text;
+﻿using System.Text;
+using DatabaseInterpreter.Model;
 
 namespace DatabaseInterpreter.Core
 {
@@ -7,25 +7,19 @@ namespace DatabaseInterpreter.Core
     {
         public string BuildConntionString(ConnectionInfo connectionInfo)
         {
-            string server = connectionInfo.Server;          
-            string port = connectionInfo.Port;
-            int timeout = DbInterpreter.Setting.CommandTimeout;
+            var server = connectionInfo.Server;
+            var port = connectionInfo.Port;
+            var timeout = DbInterpreter.Setting.CommandTimeout;
 
-            if (string.IsNullOrEmpty(port))
-            {
-                port = PostgresInterpreter.DEFAULT_PORT.ToString();
-            }          
+            if (string.IsNullOrEmpty(port)) port = PostgresInterpreter.DEFAULT_PORT.ToString();
 
-            StringBuilder sb = new StringBuilder($"Host={server};Port={port};Database={connectionInfo.Database};CommandTimeout={timeout};");
+            var sb = new StringBuilder(
+                $"Host={server};Port={port};Database={connectionInfo.Database};CommandTimeout={timeout};");
 
             if (connectionInfo.IntegratedSecurity)
-            {
                 sb.Append($"Integrated Security=True;Username={connectionInfo.UserId};");
-            }
             else
-            {
                 sb.Append($"Username={connectionInfo.UserId};Password={connectionInfo.Password};");
-            }
 
             return sb.ToString();
         }

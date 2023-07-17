@@ -40,12 +40,12 @@
 		<target type="int" />
 	</mapping>
 	<mapping>
-		<source type="interval day([(]\d[)])? to second([(]\d[)])?" isExp="true"/>
-		<target type="datetime"  />
-		<special name="expression" value="interval day[(]0[)] to second([(]\d[)])?" type="time" ></special>
+		<source type="interval day([(]\d[)])? to second([(]\d[)])?" isExp="true" />
+		<target type="datetime" />
+		<special name="expression" value="interval day[(]0[)] to second([(]\d[)])?" type="time"></special>
 	</mapping>
 	<mapping>
-		<source type="interval year([(]\d[)])? to month" isExp="true"/>
+		<source type="interval year([(]\d[)])? to month" isExp="true" />
 		<target type="int" />
 	</mapping>
 	<mapping>
@@ -76,7 +76,7 @@
 	<mapping>
 		<source type="raw" />
 		<target type="binary" />
-		<special name ="maxLength" value="16" type="uniqueidentifier"></special>
+		<special name="maxLength" value="16" type="uniqueidentifier"></special>
 	</mapping>
 	<mapping>
 		<source type="sdo_geometry" />
@@ -95,11 +95,11 @@
 		<target type="datetime2" />
 	</mapping>
 	<mapping>
-		<source type="timestamp([(]\d[)])? with local time zone" isExp="true"/>
+		<source type="timestamp([(]\d[)])? with local time zone" isExp="true" />
 		<target type="datetimeoffset" />
 	</mapping>
 	<mapping>
-		<source type="timestamp([(]\d[)])? with time zone" isExp="true"/>
+		<source type="timestamp([(]\d[)])? with time zone" isExp="true" />
 		<target type="datetimeoffset" />
 	</mapping>
 	<mapping>

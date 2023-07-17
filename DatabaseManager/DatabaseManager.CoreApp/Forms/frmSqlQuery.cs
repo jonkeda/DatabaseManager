@@ -1,52 +1,43 @@
-﻿using DatabaseManager.Helper;
-using DatabaseManager.Model;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
 using System.Windows.Forms;
+using DatabaseManager.Helper;
+using DatabaseManager.Model;
 
-namespace DatabaseManager
+namespace DatabaseManager;
+
+public partial class frmSqlQuery : Form
 {
-    public partial class frmSqlQuery : Form
+    public frmSqlQuery()
     {
-        public bool ReadOnly { get; set; }
-        public int SplitterDistance { get; set; }
-        public bool ShowEditorMessage { get; set; }
+        InitializeComponent();
+    }
 
-        public frmSqlQuery()
-        {
-            InitializeComponent();          
-        }
+    public bool ReadOnly { get; set; }
+    public int SplitterDistance { get; set; }
+    public bool ShowEditorMessage { get; set; }
 
-        private void frmSqlQuery_Load(object sender, EventArgs e)
-        {
-            
-        }
+    private void frmSqlQuery_Load(object sender, EventArgs e)
+    {
+    }
 
-        public void Init()
-        {
-            this.ucSqlQuery.ReadOnly = this.ReadOnly;
-            this.ucSqlQuery.ShowEditorMessage = this.ShowEditorMessage;
-            this.ucSqlQuery.SplitterDistance = this.SplitterDistance;
-        }
+    public void Init()
+    {
+        ucSqlQuery.ReadOnly = ReadOnly;
+        ucSqlQuery.ShowEditorMessage = ShowEditorMessage;
+        ucSqlQuery.SplitterDistance = SplitterDistance;
+    }
 
-        public void Query(DatabaseObjectDisplayInfo displayInfo)
-        {
-            this.ucSqlQuery.Editor.AppendText(displayInfo.Content);
+    public void Query(DatabaseObjectDisplayInfo displayInfo)
+    {
+        ucSqlQuery.Editor.AppendText(displayInfo.Content);
 
-            RichTextBoxHelper.Highlighting(this.ucSqlQuery.Editor, displayInfo.DatabaseType, false);
+        RichTextBoxHelper.Highlighting(ucSqlQuery.Editor, displayInfo.DatabaseType, false);
 
-            this.ucSqlQuery.RunScripts(displayInfo);
-        }
+        ucSqlQuery.RunScripts(displayInfo);
+    }
 
-        private void btnClose_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
+    private void btnClose_Click(object sender, EventArgs e)
+    {
+        Close();
     }
 }

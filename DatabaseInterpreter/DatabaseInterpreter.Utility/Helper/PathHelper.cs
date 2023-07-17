@@ -7,7 +7,7 @@ namespace DatabaseInterpreter.Utility
     {
         public static string GetAssemblyFolder()
         {
-            string dllFolder = Assembly.GetExecutingAssembly().CodeBase;
+            var dllFolder = Assembly.GetExecutingAssembly().CodeBase;
             return Path.GetDirectoryName(dllFolder.Substring(8, dllFolder.Length - 8));
         }
     }

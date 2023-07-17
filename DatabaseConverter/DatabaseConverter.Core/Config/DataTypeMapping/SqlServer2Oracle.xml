@@ -5,7 +5,7 @@
 	</mapping>
 	<mapping>
 		<source type="binary" />
-		<target type="raw" substitute="blob"/>
+		<target type="raw" substitute="blob" />
 	</mapping>
 	<mapping>
 		<source type="bit" />
@@ -69,7 +69,7 @@
 	</mapping>
 	<mapping>
 		<source type="nchar" />
-		<target type="nchar" substitute="nvarchar2,clob"/>
+		<target type="nchar" substitute="nvarchar2,clob" />
 	</mapping>
 	<mapping>
 		<source type="ntext" />
@@ -81,7 +81,7 @@
 	</mapping>
 	<mapping>
 		<source type="nvarchar" />
-		<target type="nvarchar2" substitute="nclob"/>
+		<target type="nvarchar2" substitute="nclob" />
 	</mapping>
 	<mapping>
 		<source type="real" />
@@ -89,11 +89,11 @@
 	</mapping>
 	<mapping>
 		<source type="rowversion" />
-		<target type="raw" length="8"/>
+		<target type="raw" length="8" />
 	</mapping>
 	<mapping>
 		<source type="smalldatetime" />
-		<target type="timestamp"/>
+		<target type="timestamp" />
 	</mapping>
 	<mapping>
 		<source type="smallint" />
@@ -117,11 +117,11 @@
 	</mapping>
 	<mapping>
 		<source type="time" />
-		<target type="interval day to second" args="dayScale:0"/>
+		<target type="interval day to second" args="dayScale:0" />
 	</mapping>
 	<mapping>
 		<source type="timestamp" />
-		<target type="raw" length="8"/>
+		<target type="raw" length="8" />
 	</mapping>
 	<mapping>
 		<source type="tinyint" />
@@ -137,7 +137,7 @@
 	</mapping>
 	<mapping>
 		<source type="varchar" />
-		<target type="varchar2" substitute="clob"/>
+		<target type="varchar2" substitute="clob" />
 	</mapping>
 	<mapping>
 		<source type="xml" />

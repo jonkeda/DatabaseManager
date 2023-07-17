@@ -1,107 +1,121 @@
-﻿using DatabaseInterpreter.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DatabaseInterpreter.Model;
 
 namespace DatabaseInterpreter.Core
 {
     public class PostgresScriptGenerator : DbScriptGenerator
     {
-        public string NotCreateIfExistsClause { get { return this.dbInterpreter.NotCreateIfExists ? "IF NOT EXISTS" : ""; } }
+        public PostgresScriptGenerator(DbInterpreter dbInterpreter) : base(dbInterpreter)
+        {
+        }
 
-        public PostgresScriptGenerator(DbInterpreter dbInterpreter) : base(dbInterpreter) { }
+        public string NotCreateIfExistsClause => dbInterpreter.NotCreateIfExists ? "IF NOT EXISTS" : "";
 
-        #region Schema Script 
+        #region Schema Script
 
         public override ScriptBuilder GenerateSchemaScripts(SchemaInfo schemaInfo)
         {
-            ScriptBuilder sb = new ScriptBuilder();
+            var sb = new ScriptBuilder();
 
             #region User Defined Type
 
             foreach (var userDefinedType in schemaInfo.UserDefinedTypes)
             {
-                this.FeedbackInfo(OperationState.Begin, userDefinedType);
+                FeedbackInfo(OperationState.Begin, userDefinedType);
 
-                sb.AppendLine(this.CreateUserDefinedType(userDefinedType));
+                sb.AppendLine(CreateUserDefinedType(userDefinedType));
 
-                this.FeedbackInfo(OperationState.End, userDefinedType);
+                FeedbackInfo(OperationState.End, userDefinedType);
             }
 
-            #endregion           
-
-            #region Function           
-            sb.AppendRange(this.GenerateScriptDbObjectScripts<Function>(schemaInfo.Functions));
             #endregion
 
-            #region Sequence          
-            foreach (Sequence sequence in schemaInfo.Sequences)
+            #region Function
+
+            sb.AppendRange(GenerateScriptDbObjectScripts(schemaInfo.Functions));
+
+            #endregion
+
+            #region Sequence
+
+            foreach (var sequence in schemaInfo.Sequences)
             {
-                this.FeedbackInfo(OperationState.Begin, sequence);
+                FeedbackInfo(OperationState.Begin, sequence);
 
-                sb.AppendLine(this.CreateSequence(sequence));
+                sb.AppendLine(CreateSequence(sequence));
 
-                this.FeedbackInfo(OperationState.End, sequence);
+                FeedbackInfo(OperationState.End, sequence);
             }
+
             #endregion
 
             #region Table
-            foreach (Table table in schemaInfo.Tables)
+
+            foreach (var table in schemaInfo.Tables)
             {
-                this.FeedbackInfo(OperationState.Begin, table);
+                FeedbackInfo(OperationState.Begin, table);
 
-                IEnumerable<TableColumn> columns = schemaInfo.TableColumns.Where(item => item.TableName == table.Name).OrderBy(item => item.Order);
-                TablePrimaryKey primaryKey = schemaInfo.TablePrimaryKeys.FirstOrDefault(item => item.TableName == table.Name);
-                IEnumerable<TableForeignKey> foreignKeys = schemaInfo.TableForeignKeys.Where(item => item.TableName == table.Name);
-                IEnumerable<TableIndex> indexes = schemaInfo.TableIndexes.Where(item => item.TableName == table.Name).OrderBy(item => item.Order);
-                IEnumerable<TableConstraint> constraints = schemaInfo.TableConstraints.Where(item => item.Schema == table.Schema && item.TableName == table.Name);
+                IEnumerable<TableColumn> columns = schemaInfo.TableColumns.Where(item => item.TableName == table.Name)
+                    .OrderBy(item => item.Order);
+                var primaryKey = schemaInfo.TablePrimaryKeys.FirstOrDefault(item => item.TableName == table.Name);
+                var foreignKeys = schemaInfo.TableForeignKeys.Where(item => item.TableName == table.Name);
+                IEnumerable<TableIndex> indexes = schemaInfo.TableIndexes.Where(item => item.TableName == table.Name)
+                    .OrderBy(item => item.Order);
+                var constraints = schemaInfo.TableConstraints.Where(item =>
+                    item.Schema == table.Schema && item.TableName == table.Name);
 
-                foreach (TableIndex index in schemaInfo.TableIndexes)
+                foreach (var index in schemaInfo.TableIndexes)
                 {
                     var indexName = index.Name;
 
                     if (schemaInfo.Tables.Any(item => item.Name == indexName))
                     {
-                        string columnNames = string.Join("_", index.Columns.Select(item => item.ColumnName));
+                        var columnNames = string.Join("_", index.Columns.Select(item => item.ColumnName));
 
                         index.Name = $"IX_{index.TableName}_{columnNames}";
                     }
                 }
 
-                ScriptBuilder sbTable = this.CreateTable(table, columns, primaryKey, foreignKeys, indexes, constraints);
+                var sbTable = CreateTable(table, columns, primaryKey, foreignKeys, indexes, constraints);
 
                 sb.AppendRange(sbTable.Scripts);
 
-                this.FeedbackInfo(OperationState.End, table);
+                FeedbackInfo(OperationState.End, table);
             }
-            #endregion          
 
-            #region View           
-            sb.AppendRange(this.GenerateScriptDbObjectScripts<View>(schemaInfo.Views));
             #endregion
 
-            #region Trigger           
-            sb.AppendRange(this.GenerateScriptDbObjectScripts<TableTrigger>(schemaInfo.TableTriggers));
+            #region View
+
+            sb.AppendRange(GenerateScriptDbObjectScripts(schemaInfo.Views));
+
             #endregion
 
-            #region Procedure           
-            sb.AppendRange(this.GenerateScriptDbObjectScripts<Procedure>(schemaInfo.Procedures));
+            #region Trigger
+
+            sb.AppendRange(GenerateScriptDbObjectScripts(schemaInfo.TableTriggers));
+
             #endregion
 
-            if (this.option.ScriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToFile))
-            {
-                this.AppendScriptsToFile(sb.ToString(), GenerateScriptMode.Schema, true);
-            }
+            #region Procedure
+
+            sb.AppendRange(GenerateScriptDbObjectScripts(schemaInfo.Procedures));
+
+            #endregion
+
+            if (option.ScriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToFile))
+                AppendScriptsToFile(sb.ToString(), GenerateScriptMode.Schema, true);
 
             return sb;
         }
+
         #endregion
 
-        #region Data Script        
+        #region Data Script
 
         public override async Task<string> GenerateDataScriptsAsync(SchemaInfo schemaInfo)
         {
@@ -112,100 +126,98 @@ namespace DatabaseInterpreter.Core
         {
             if (value != null)
             {
-                string dataType = column.DataType.ToLower();
-                if (dataType == "bytea" || dataType == "bit" || dataType == "bit varying")
-                {
-                    return true;
-                }
+                var dataType = column.DataType.ToLower();
+                if (dataType == "bytea" || dataType == "bit" || dataType == "bit varying") return true;
             }
+
             return false;
         }
+
         #endregion
 
         #region Alter Table
+
         public override Script RenameTable(Table table, string newName)
         {
-            return new AlterDbObjectScript<Table>($"ALTER TABLE {this.GetQuotedDbObjectNameWithSchema(table)} RENAME TO {this.GetQuotedString(newName)};");
+            return new AlterDbObjectScript<Table>(
+                $"ALTER TABLE {GetQuotedDbObjectNameWithSchema(table)} RENAME TO {GetQuotedString(newName)};");
         }
 
         public override Script SetTableComment(Table table, bool isNew = true)
         {
-            return new AlterDbObjectScript<Table>($"COMMENT ON TABLE {this.GetQuotedFullTableName(table)} IS '{this.dbInterpreter.ReplaceSplitChar(this.TransferSingleQuotationString(table.Comment))}'" + this.scriptsDelimiter);
+            return new AlterDbObjectScript<Table>(
+                $"COMMENT ON TABLE {GetQuotedFullTableName(table)} IS '{dbInterpreter.ReplaceSplitChar(TransferSingleQuotationString(table.Comment))}'" +
+                scriptsDelimiter);
         }
 
         public override Script AddTableColumn(Table table, TableColumn column)
         {
-            return new CreateDbObjectScript<TableColumn>($"ALTER TABLE {this.GetQuotedFullTableName(table)} ADD {this.dbInterpreter.ParseColumn(table, column)};");
+            return new CreateDbObjectScript<TableColumn>(
+                $"ALTER TABLE {GetQuotedFullTableName(table)} ADD {dbInterpreter.ParseColumn(table, column)};");
         }
 
         public override Script RenameTableColumn(Table table, TableColumn column, string newName)
         {
-            return new AlterDbObjectScript<TableColumn>($"ALTER TABLE {this.GetQuotedFullTableName(table)} RENAME {this.GetQuotedString(column.Name)} TO {this.GetQuotedString(newName)};");
+            return new AlterDbObjectScript<TableColumn>(
+                $"ALTER TABLE {GetQuotedFullTableName(table)} RENAME {GetQuotedString(column.Name)} TO {GetQuotedString(newName)};");
         }
 
         public override Script AlterTableColumn(Table table, TableColumn newColumn, TableColumn oldColumn)
         {
-            string alter = "";
+            var alter = "";
 
-            string newDataType = this.dbInterpreter.ParseDataType(newColumn);
-            string oldDataType = this.dbInterpreter.ParseDataType(oldColumn);
+            var newDataType = dbInterpreter.ParseDataType(newColumn);
+            var oldDataType = dbInterpreter.ParseDataType(oldColumn);
 
             if (!string.IsNullOrEmpty(newColumn.ComputeExp))
             {
-                alter = this.DropTableColumn(oldColumn).Content;
+                alter = DropTableColumn(oldColumn).Content;
 
-                alter += $"{Environment.NewLine}{this.AddTableColumn(table, newColumn).Content}";
+                alter += $"{Environment.NewLine}{AddTableColumn(table, newColumn).Content}";
 
                 return new AlterDbObjectScript<TableColumn>(alter);
             }
 
-            if (newDataType != oldDataType)
-            {
-                alter = $"TYPE {newDataType}";
-            }
+            if (newDataType != oldDataType) alter = $"TYPE {newDataType}";
 
-            if (newColumn.IsNullable && !oldColumn.IsNullable)
-            {
-                alter = "DROP NOT NULL";
-            }
+            if (newColumn.IsNullable && !oldColumn.IsNullable) alter = "DROP NOT NULL";
 
-            if (!newColumn.IsNullable && oldColumn.IsNullable)
-            {
-                alter = "SET NOT NULL";
-            }
+            if (!newColumn.IsNullable && oldColumn.IsNullable) alter = "SET NOT NULL";
 
             if (!string.IsNullOrEmpty(newColumn.DefaultValue) && string.IsNullOrEmpty(oldColumn.DefaultValue))
-            {
                 alter = $"SET DEFAULT {newColumn.DefaultValue}";
-            }
 
             if (string.IsNullOrEmpty(newColumn.DefaultValue) && !string.IsNullOrEmpty(oldColumn.DefaultValue))
-            {
                 alter = "DROP DEFAULT";
-            }
 
-            return new AlterDbObjectScript<TableColumn>($"ALTER TABLE {this.GetQuotedString(table.Name)} ALTER COLUMN {this.GetQuotedString(newColumn.Name)} {alter};");
+            return new AlterDbObjectScript<TableColumn>(
+                $"ALTER TABLE {GetQuotedString(table.Name)} ALTER COLUMN {GetQuotedString(newColumn.Name)} {alter};");
         }
 
         public override Script SetTableColumnComment(Table table, TableColumn column, bool isNew = true)
         {
-            return new AlterDbObjectScript<TableColumn>($"COMMENT ON COLUMN {this.GetQuotedFullTableChildName(column)} IS '{this.dbInterpreter.ReplaceSplitChar(this.TransferSingleQuotationString(column.Comment))}'" + this.scriptsDelimiter);
+            return new AlterDbObjectScript<TableColumn>(
+                $"COMMENT ON COLUMN {GetQuotedFullTableChildName(column)} IS '{dbInterpreter.ReplaceSplitChar(TransferSingleQuotationString(column.Comment))}'" +
+                scriptsDelimiter);
         }
 
         public override Script DropTableColumn(TableColumn column)
         {
-            return new DropDbObjectScript<TableColumn>($"ALTER TABLE {this.GetQuotedString(column.TableName)} DROP COLUMN {this.GetQuotedString(column.Name)};");
+            return new DropDbObjectScript<TableColumn>(
+                $"ALTER TABLE {GetQuotedString(column.TableName)} DROP COLUMN {GetQuotedString(column.Name)};");
         }
 
         public override Script AddPrimaryKey(TablePrimaryKey primaryKey)
         {
-            string pkName = string.IsNullOrEmpty(primaryKey.Name) ? this.GetQuotedString($"PK_{primaryKey.TableName}") : this.GetQuotedString(primaryKey.Name);
+            var pkName = string.IsNullOrEmpty(primaryKey.Name)
+                ? GetQuotedString($"PK_{primaryKey.TableName}")
+                : GetQuotedString(primaryKey.Name);
 
-            string sql =
-$@"
-ALTER TABLE {this.GetQuotedFullTableName(primaryKey)} ADD CONSTRAINT {pkName} PRIMARY KEY 
+            var sql =
+                $@"
+ALTER TABLE {GetQuotedFullTableName(primaryKey)} ADD CONSTRAINT {pkName} PRIMARY KEY 
 (
-{string.Join(Environment.NewLine, primaryKey.Columns.Select(item => $"{this.GetQuotedString(item.ColumnName)},")).TrimEnd(',')}
+{string.Join(Environment.NewLine, primaryKey.Columns.Select(item => $"{GetQuotedString(item.ColumnName)},")).TrimEnd(',')}
 );";
 
             return new Script(sql);
@@ -213,84 +225,79 @@ ALTER TABLE {this.GetQuotedFullTableName(primaryKey)} ADD CONSTRAINT {pkName} PR
 
         public override Script DropPrimaryKey(TablePrimaryKey primaryKey)
         {
-            return new DropDbObjectScript<TablePrimaryKey>(this.GetDropConstraintSql(primaryKey));
+            return new DropDbObjectScript<TablePrimaryKey>(GetDropConstraintSql(primaryKey));
         }
 
         public override Script AddForeignKey(TableForeignKey foreignKey)
         {
-            string columnNames = string.Join(",", foreignKey.Columns.Select(item => $"{this.GetQuotedString(item.ColumnName)}"));
-            string referenceColumnName = string.Join(",", foreignKey.Columns.Select(item => $"{this.GetQuotedString(item.ReferencedColumnName)}"));
+            var columnNames =
+                string.Join(",", foreignKey.Columns.Select(item => $"{GetQuotedString(item.ColumnName)}"));
+            var referenceColumnName = string.Join(",",
+                foreignKey.Columns.Select(item => $"{GetQuotedString(item.ReferencedColumnName)}"));
 
-            string fkName = string.IsNullOrEmpty(foreignKey.Name) ? this.GetQuotedString($"FK_{foreignKey.TableName}_{foreignKey.ReferencedTableName}") : this.GetQuotedString(foreignKey.Name);
+            var fkName = string.IsNullOrEmpty(foreignKey.Name)
+                ? GetQuotedString($"FK_{foreignKey.TableName}_{foreignKey.ReferencedTableName}")
+                : GetQuotedString(foreignKey.Name);
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             sb.AppendLine(
-$@"
-ALTER TABLE {this.GetQuotedFullTableName(foreignKey)} ADD CONSTRAINT {fkName} FOREIGN KEY ({columnNames})
-REFERENCES {this.GetQuotedDbObjectNameWithSchema(foreignKey.ReferencedSchema, foreignKey.ReferencedTableName)}({referenceColumnName})");
+                $@"
+ALTER TABLE {GetQuotedFullTableName(foreignKey)} ADD CONSTRAINT {fkName} FOREIGN KEY ({columnNames})
+REFERENCES {GetQuotedDbObjectNameWithSchema(foreignKey.ReferencedSchema, foreignKey.ReferencedTableName)}({referenceColumnName})");
 
-            if (foreignKey.UpdateCascade)
-            {
-                sb.AppendLine("ON UPDATE CASCADE");
-            }
+            if (foreignKey.UpdateCascade) sb.AppendLine("ON UPDATE CASCADE");
 
-            if (foreignKey.DeleteCascade)
-            {
-                sb.AppendLine("ON DELETE CASCADE");
-            }
+            if (foreignKey.DeleteCascade) sb.AppendLine("ON DELETE CASCADE");
 
-            sb.Append(this.scriptsDelimiter);
+            sb.Append(scriptsDelimiter);
 
             return new CreateDbObjectScript<TableForeignKey>(sb.ToString());
         }
 
         public override Script DropForeignKey(TableForeignKey foreignKey)
         {
-            return new DropDbObjectScript<TableForeignKey>(this.GetDropConstraintSql(foreignKey));
+            return new DropDbObjectScript<TableForeignKey>(GetDropConstraintSql(foreignKey));
         }
 
         private string GetDropConstraintSql(TableChild tableChild)
         {
-            return $"ALTER TABLE {this.GetQuotedFullTableName(tableChild)} DROP CONSTRAINT {this.GetQuotedString(tableChild.Name)};";
+            return
+                $"ALTER TABLE {GetQuotedFullTableName(tableChild)} DROP CONSTRAINT {GetQuotedString(tableChild.Name)};";
         }
 
         public override Script AddIndex(TableIndex index)
         {
-            string columnNames = string.Join(",", index.Columns.Select(item => $"{this.GetQuotedString(item.ColumnName)}"));
+            var columnNames = string.Join(",", index.Columns.Select(item => $"{GetQuotedString(item.ColumnName)}"));
 
-            string indexName = string.IsNullOrEmpty(index.Name) ? this.GetQuotedString($"IX_{index.TableName}") : this.GetQuotedString(index.Name);
+            var indexName = string.IsNullOrEmpty(index.Name)
+                ? GetQuotedString($"IX_{index.TableName}")
+                : GetQuotedString(index.Name);
 
-            string type = index.Type;
-            IndexType indexType = IndexType.None;
+            var type = index.Type;
+            var indexType = IndexType.None;
 
             foreach (var name in Enum.GetNames(typeof(IndexType)))
-            {
                 if (name.ToUpper() == type?.ToUpper())
                 {
                     indexType = (IndexType)Enum.Parse(typeof(IndexType), name);
                     break;
                 }
-            }
 
-            if (indexType == IndexType.None || ((indexType | this.dbInterpreter.IndexType) != this.dbInterpreter.IndexType))
-            {
+            if (indexType == IndexType.None || (indexType | dbInterpreter.IndexType) != dbInterpreter.IndexType)
                 indexType = IndexType.BTree;
-            }
 
-            string sql = "";
+            var sql = "";
 
             Action addNormOrUnique = () =>
             {
                 if (type == IndexType.Unique.ToString())
-                {
                     //use unique constraint, it can be used for foreign key reference.
-                    sql = $"ALTER TABLE {this.GetQuotedFullTableName(index)} ADD CONSTRAINT {indexName} UNIQUE ({columnNames});";
-                }
+                    sql =
+                        $"ALTER TABLE {GetQuotedFullTableName(index)} ADD CONSTRAINT {indexName} UNIQUE ({columnNames});";
                 else
-                {
-                    sql = $"CREATE INDEX {this.GetQuotedString(index.Name)} ON {this.GetQuotedFullTableName(index)}({columnNames});";
-                }
+                    sql =
+                        $"CREATE INDEX {GetQuotedString(index.Name)} ON {GetQuotedFullTableName(index)}({columnNames});";
             };
 
             if (indexType == IndexType.Unique)
@@ -299,14 +306,11 @@ REFERENCES {this.GetQuotedDbObjectNameWithSchema(foreignKey.ReferencedSchema, fo
             }
             else if (type != IndexType.Unique.ToString())
             {
-                if ((indexType | this.dbInterpreter.IndexType) == this.dbInterpreter.IndexType)
-                {
-                    sql = $"CREATE INDEX {this.GetQuotedString(index.Name)} ON {this.GetQuotedFullTableName(index)} USING {indexType.ToString().ToUpper()}({columnNames});";
-                }
+                if ((indexType | dbInterpreter.IndexType) == dbInterpreter.IndexType)
+                    sql =
+                        $"CREATE INDEX {GetQuotedString(index.Name)} ON {GetQuotedFullTableName(index)} USING {indexType.ToString().ToUpper()}({columnNames});";
                 else
-                {
                     addNormOrUnique();
-                }
             }
 
             return new CreateDbObjectScript<TableIndex>(sql);
@@ -315,85 +319,91 @@ REFERENCES {this.GetQuotedDbObjectNameWithSchema(foreignKey.ReferencedSchema, fo
         public override Script DropIndex(TableIndex index)
         {
             if (index.Type == IndexType.Unique.ToString())
-            {
-                return new CreateDbObjectScript<TableIndex>($"ALTER TABLE IF EXISTS {this.GetQuotedFullTableName(index)} DROP CONSTRAINT  {this.GetQuotedString(index.Name)};");
-            }
-            else
-            {
-                return new DropDbObjectScript<TableIndex>($"DROP INDEX {this.GetQuotedString(index.Name)};");
-            }
+                return new CreateDbObjectScript<TableIndex>(
+                    $"ALTER TABLE IF EXISTS {GetQuotedFullTableName(index)} DROP CONSTRAINT  {GetQuotedString(index.Name)};");
+            return new DropDbObjectScript<TableIndex>($"DROP INDEX {GetQuotedString(index.Name)};");
         }
 
         public override Script AddCheckConstraint(TableConstraint constraint)
         {
-            string ckName = string.IsNullOrEmpty(constraint.Name) ? this.GetQuotedString($"CK_{constraint.Name}") : this.GetQuotedString(constraint.Name);
+            var ckName = string.IsNullOrEmpty(constraint.Name)
+                ? GetQuotedString($"CK_{constraint.Name}")
+                : GetQuotedString(constraint.Name);
 
-            return new CreateDbObjectScript<TableConstraint>($"ALTER TABLE IF EXISTS {this.GetQuotedFullTableName(constraint)} ADD CONSTRAINT {ckName} CHECK {constraint.Definition};");
+            return new CreateDbObjectScript<TableConstraint>(
+                $"ALTER TABLE IF EXISTS {GetQuotedFullTableName(constraint)} ADD CONSTRAINT {ckName} CHECK {constraint.Definition};");
         }
 
         public override Script DropCheckConstraint(TableConstraint constraint)
         {
-            return new DropDbObjectScript<TableConstraint>(this.GetDropConstraintSql(constraint));
+            return new DropDbObjectScript<TableConstraint>(GetDropConstraintSql(constraint));
         }
 
         public override Script SetIdentityEnabled(TableColumn column, bool enabled)
         {
-            return new Script($"ALTER TABLE {this.GetQuotedFullTableName(column)} ALTER COLUMN {this.GetQuotedString(column.Name)} {(enabled ? "ADD" : "DROP")} IDENTITY IF EXISTS");
+            return new Script(
+                $"ALTER TABLE {GetQuotedFullTableName(column)} ALTER COLUMN {GetQuotedString(column.Name)} {(enabled ? "ADD" : "DROP")} IDENTITY IF EXISTS");
         }
+
         #endregion
 
         #region Database Operation
+
         public override Script CreateSchema(DatabaseSchema schema)
         {
-            string script = $"CREATE SCHEMA IF NOT EXISTS {this.GetQuotedString(schema.Name)};";
+            var script = $"CREATE SCHEMA IF NOT EXISTS {GetQuotedString(schema.Name)};";
 
             return new CreateDbObjectScript<DatabaseSchema>(script);
         }
 
         public override Script CreateUserDefinedType(UserDefinedType userDefinedType)
         {
-            string dataTypes = string.Join(",", userDefinedType.Attributes.Select(item => $"{this.GetQuotedString(item.Name)} {this.dbInterpreter.ParseDataType(new TableColumn() { MaxLength = item.MaxLength, DataType = item.DataType, Precision = item.Precision, Scale = item.Scale })}"));
+            var dataTypes = string.Join(",",
+                userDefinedType.Attributes.Select(item =>
+                    $"{GetQuotedString(item.Name)} {dbInterpreter.ParseDataType(new TableColumn { MaxLength = item.MaxLength, DataType = item.DataType, Precision = item.Precision, Scale = item.Scale })}"));
 
-            string script = $"CREATE TYPE {this.GetQuotedString(userDefinedType.Name)} AS ({dataTypes})" + this.dbInterpreter.ScriptsDelimiter;
+            var script = $"CREATE TYPE {GetQuotedString(userDefinedType.Name)} AS ({dataTypes})" +
+                         dbInterpreter.ScriptsDelimiter;
 
             return new CreateDbObjectScript<UserDefinedType>(script);
         }
 
         public override Script CreateSequence(Sequence sequence)
         {
-            string script =
-$@"CREATE SEQUENCE IF NOT EXISTS {this.GetQuotedDbObjectNameWithSchema(sequence)}
+            var script =
+                $@"CREATE SEQUENCE IF NOT EXISTS {GetQuotedDbObjectNameWithSchema(sequence)}
 START {sequence.StartValue}
 INCREMENT {sequence.Increment}
 MINVALUE {(long)sequence.MinValue}
 MAXVALUE {(long)sequence.MaxValue}
 {(sequence.Cycled ? "CYCLE" : "")}
 {(sequence.CacheSize > 0 ? $"CACHE {sequence.CacheSize}" : "")}
-{(sequence.OwnedByTable == null ? "" : $"OWNED BY {this.GetQuotedString(sequence.OwnedByTable)}.{this.GetQuotedString(sequence.OwnedByColumn)}")};";
+{(sequence.OwnedByTable == null ? "" : $"OWNED BY {GetQuotedString(sequence.OwnedByTable)}.{GetQuotedString(sequence.OwnedByColumn)}")};";
 
             return new CreateDbObjectScript<Sequence>(script);
         }
+
         public override ScriptBuilder CreateTable(Table table, IEnumerable<TableColumn> columns,
-         TablePrimaryKey primaryKey,
-         IEnumerable<TableForeignKey> foreignKeys,
-         IEnumerable<TableIndex> indexes,
-         IEnumerable<TableConstraint> constraints)
+            TablePrimaryKey primaryKey,
+            IEnumerable<TableForeignKey> foreignKeys,
+            IEnumerable<TableIndex> indexes,
+            IEnumerable<TableConstraint> constraints)
         {
-            bool isLowDbVersion = this.dbInterpreter.IsLowDbVersion();
+            var isLowDbVersion = dbInterpreter.IsLowDbVersion();
 
-            ScriptBuilder sb = new ScriptBuilder();
+            var sb = new ScriptBuilder();
 
-            string tableName = table.Name;
-            string quotedTableName = this.GetQuotedFullTableName(table);
+            var tableName = table.Name;
+            var quotedTableName = GetQuotedFullTableName(table);
 
             #region Create Table
 
-            string option = this.GetCreateTableOption();
+            var option = GetCreateTableOption();
 
-            string tableScript =
-$@"
-CREATE TABLE {this.NotCreateIfExistsClause} {quotedTableName}(
-{string.Join("," + Environment.NewLine, columns.Select(item => this.dbInterpreter.ParseColumn(table, item))).TrimEnd(',')}
+            var tableScript =
+                $@"
+CREATE TABLE {NotCreateIfExistsClause} {quotedTableName}(
+{string.Join("," + Environment.NewLine, columns.Select(item => dbInterpreter.ParseColumn(table, item))).TrimEnd(',')}
 ){(isLowDbVersion ? "" : option)};";
 
             sb.AppendLine(new CreateDbObjectScript<Table>(tableScript));
@@ -403,142 +413,133 @@ CREATE TABLE {this.NotCreateIfExistsClause} {quotedTableName}(
             sb.AppendLine();
 
             #region Comment
+
             if (this.option.TableScriptsGenerateOption.GenerateComment)
             {
-                if (!string.IsNullOrEmpty(table.Comment))
-                {
-                    sb.AppendLine(this.SetTableComment(table));
-                }
+                if (!string.IsNullOrEmpty(table.Comment)) sb.AppendLine(SetTableComment(table));
 
-                foreach (TableColumn column in columns.Where(item => !string.IsNullOrEmpty(item.Comment)))
-                {
-                    sb.AppendLine(this.SetTableColumnComment(table, column, true));
-                }
+                foreach (var column in columns.Where(item => !string.IsNullOrEmpty(item.Comment)))
+                    sb.AppendLine(SetTableColumnComment(table, column));
             }
+
             #endregion
 
             #region Primary Key
+
             if (this.option.TableScriptsGenerateOption.GeneratePrimaryKey && primaryKey != null)
-            {
-                sb.AppendLine(this.AddPrimaryKey(primaryKey));
-            }
+                sb.AppendLine(AddPrimaryKey(primaryKey));
+
             #endregion
 
             #region Foreign Key
+
             if (this.option.TableScriptsGenerateOption.GenerateForeignKey && foreignKeys != null)
-            {
-                foreach (TableForeignKey foreignKey in foreignKeys)
-                {
-                    sb.AppendLine(this.AddForeignKey(foreignKey));
-                }
-            }
+                foreach (var foreignKey in foreignKeys)
+                    sb.AppendLine(AddForeignKey(foreignKey));
+
             #endregion
 
             #region Index
+
             if (this.option.TableScriptsGenerateOption.GenerateIndex && indexes != null)
             {
-                List<string> indexColumns = new List<string>();
+                var indexColumns = new List<string>();
 
-                foreach (TableIndex index in indexes)
+                foreach (var index in indexes)
                 {
-                    string columnNames = string.Join(",", index.Columns.OrderBy(item => item.ColumnName).Select(item => item.ColumnName));
+                    var columnNames = string.Join(",",
+                        index.Columns.OrderBy(item => item.ColumnName).Select(item => item.ColumnName));
 
                     //Avoid duplicated indexes for one index.
-                    if (indexColumns.Contains(columnNames))
-                    {
-                        continue;
-                    }
+                    if (indexColumns.Contains(columnNames)) continue;
 
-                    sb.AppendLine(this.AddIndex(index));
+                    sb.AppendLine(AddIndex(index));
 
-                    if (!indexColumns.Contains(columnNames))
-                    {
-                        indexColumns.Add(columnNames);
-                    }
+                    if (!indexColumns.Contains(columnNames)) indexColumns.Add(columnNames);
                 }
             }
+
             #endregion
 
             #region Constraint
+
             if (this.option.TableScriptsGenerateOption.GenerateConstraint && constraints != null)
-            {
-                foreach (TableConstraint constraint in constraints)
-                {
-                    sb.AppendLine(this.AddCheckConstraint(constraint));
-                }
-            }
+                foreach (var constraint in constraints)
+                    sb.AppendLine(AddCheckConstraint(constraint));
+
             #endregion
 
             return sb;
         }
+
         public override Script DropUserDefinedType(UserDefinedType userDefinedType)
         {
-            return new DropDbObjectScript<UserDefinedType>(this.GetDropSql(nameof(DatabaseObjectType.Type), userDefinedType));
+            return new DropDbObjectScript<UserDefinedType>(GetDropSql(nameof(DatabaseObjectType.Type),
+                userDefinedType));
         }
 
         public override Script DropSequence(Sequence sequence)
         {
-            return new DropDbObjectScript<Sequence>(this.GetDropSql(nameof(DatabaseObjectType.Sequence), sequence));
+            return new DropDbObjectScript<Sequence>(GetDropSql(nameof(DatabaseObjectType.Sequence), sequence));
         }
 
         public override Script DropTable(Table table)
         {
-            return new DropDbObjectScript<Table>(this.GetDropSql(nameof(DatabaseObjectType.Table), table));
+            return new DropDbObjectScript<Table>(GetDropSql(nameof(DatabaseObjectType.Table), table));
         }
 
         public override Script DropView(View view)
         {
-            return new DropDbObjectScript<View>(this.GetDropSql(nameof(DatabaseObjectType.View), view));
+            return new DropDbObjectScript<View>(GetDropSql(nameof(DatabaseObjectType.View), view));
         }
 
         public override Script DropTrigger(TableTrigger trigger)
         {
-            return new DropDbObjectScript<View>(this.GetDropSql(nameof(DatabaseObjectType.Trigger), trigger));
+            return new DropDbObjectScript<View>(GetDropSql(nameof(DatabaseObjectType.Trigger), trigger));
         }
 
         public override Script DropFunction(Function function)
         {
-            return new DropDbObjectScript<Function>(this.GetDropSql(nameof(DatabaseObjectType.Function), function));
+            return new DropDbObjectScript<Function>(GetDropSql(nameof(DatabaseObjectType.Function), function));
         }
 
         public override Script DropProcedure(Procedure procedure)
         {
-            return new DropDbObjectScript<Procedure>(this.GetDropSql(nameof(DatabaseObjectType.Procedure), procedure));
+            return new DropDbObjectScript<Procedure>(GetDropSql(nameof(DatabaseObjectType.Procedure), procedure));
         }
 
         private string GetDropSql(string typeName, DatabaseObject dbObject)
         {
-            string cascadeOption = (typeName == nameof(Table) || typeName == nameof(View) || typeName == nameof(Function)
-                || typeName == nameof(Procedure)) ? " CASCADE" : "";
+            var cascadeOption = typeName == nameof(Table) || typeName == nameof(View) || typeName == nameof(Function)
+                                || typeName == nameof(Procedure)
+                ? " CASCADE"
+                : "";
 
-            return $"DROP {typeName.ToUpper()} IF EXISTS {this.GetQuotedDbObjectNameWithSchema(dbObject)}{cascadeOption};";
+            return $"DROP {typeName.ToUpper()} IF EXISTS {GetQuotedDbObjectNameWithSchema(dbObject)}{cascadeOption};";
         }
 
         public override IEnumerable<Script> SetConstrainsEnabled(bool enabled)
         {
-            List<string> sqls = new List<string>() { this.GetSqlForEnableTrigger(enabled) };
-            List<string> cmds = new List<string>();
+            var sqls = new List<string> { GetSqlForEnableTrigger(enabled) };
+            var cmds = new List<string>();
 
-            using (DbConnection dbConnection = this.dbInterpreter.CreateConnection())
+            using (var dbConnection = dbInterpreter.CreateConnection())
             {
-                foreach (string sql in sqls)
+                foreach (var sql in sqls)
                 {
-                    IDataReader reader = this.dbInterpreter.GetDataReader(dbConnection, sql);
+                    var reader = dbInterpreter.GetDataReader(dbConnection, sql);
 
                     while (reader.Read())
                     {
-                        string cmd = reader[0].ToString();
+                        var cmd = reader[0].ToString();
                         cmds.Add(cmd);
                     }
                 }
 
-                foreach (string cmd in cmds)
-                {
-                    yield return new Script(cmd);
-                }
+                foreach (var cmd in cmds) yield return new Script(cmd);
             }
 
-            yield return new Script(this.GetSqlForEnableConstraints(enabled));
+            yield return new Script(GetSqlForEnableConstraints(enabled));
         }
 
         private string GetSqlForEnableConstraints(bool enabled)
@@ -548,10 +549,12 @@ CREATE TABLE {this.NotCreateIfExistsClause} {quotedTableName}(
 
         private string GetSqlForEnableTrigger(bool enabled)
         {
-            return $@"SELECT CONCAT('ALTER TABLE ',event_object_schema,'.""',event_object_table,'"" {(enabled ? "ENABLE" : "DISABLE")} TRIGGER ALL;')
+            return
+                $@"SELECT CONCAT('ALTER TABLE ',event_object_schema,'.""',event_object_table,'"" {(enabled ? "ENABLE" : "DISABLE")} TRIGGER ALL;')
                       FROM information_schema.triggers
-                      WHERE UPPER(trigger_catalog)= UPPER('{this.dbInterpreter.ConnectionInfo.Database}')";
+                      WHERE UPPER(trigger_catalog)= UPPER('{dbInterpreter.ConnectionInfo.Database}')";
         }
+
         #endregion
     }
 }

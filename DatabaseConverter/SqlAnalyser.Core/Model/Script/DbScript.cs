@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace SqlAnalyser.Model
+﻿namespace SqlAnalyser.Model
 {
     public class DbScript
     {
@@ -11,14 +9,9 @@ namespace SqlAnalyser.Model
         {
             get
             {
-                if (string.IsNullOrEmpty(this.Schema))
-                {
-                    return this.Name?.ToString();
-                }
-                else
-                {
-                    return $"{this.Schema}.{this.Name}";
-                }
+                if (string.IsNullOrEmpty(Schema))
+                    return Name?.ToString();
+                return $"{Schema}.{Name}";
             }
         }
     }

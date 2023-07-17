@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Utility;
 using DatabaseManager.Helper;
 
 namespace DatabaseManager.Model
@@ -19,30 +15,30 @@ namespace DatabaseManager.Model
         public string From { get; set; }
         public string To { get; set; }
         public List<string> Values { get; set; } = new List<string>();
-        public bool NeedQuoted => FrontQueryHelper.NeedQuotedForSql(this.DataType);
+        public bool NeedQuoted => FrontQueryHelper.NeedQuotedForSql(DataType);
 
         private string GetValue(string value)
         {
-            return this.NeedQuoted ? $"'{FrontQueryHelper.GetSafeValue(value)}'" : value;
+            return NeedQuoted ? $"'{FrontQueryHelper.GetSafeValue(value)}'" : value;
         }
 
         public override string ToString()
         {
-            string conditon = "";
+            var conditon = "";
 
-            if (this.Mode == QueryConditionMode.Single)
+            if (Mode == QueryConditionMode.Single)
             {
-                string value = this.Operator.Contains("LIKE") ? $"'%{this.Value}%'" : this.GetValue(this.Value);
+                var value = Operator.Contains("LIKE") ? $"'%{Value}%'" : GetValue(Value);
 
-                conditon = $"{this.Operator} {value}";
+                conditon = $"{Operator} {value}";
             }
-            else if (this.Mode == QueryConditionMode.Range)
+            else if (Mode == QueryConditionMode.Range)
             {
-                conditon = $"BETWEEN {this.GetValue(this.From)} AND {this.GetValue(this.To)}";
+                conditon = $"BETWEEN {GetValue(From)} AND {GetValue(To)}";
             }
-            else if (this.Mode == QueryConditionMode.Series)
+            else if (Mode == QueryConditionMode.Series)
             {
-                conditon = $"IN({string.Join(",", this.Values.Select(item => this.GetValue(item)))})";
+                conditon = $"IN({string.Join(",", Values.Select(item => GetValue(item)))})";
             }
 
             return conditon;

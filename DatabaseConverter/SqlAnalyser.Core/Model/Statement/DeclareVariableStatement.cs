@@ -8,20 +8,17 @@
 
         public TokenInfo DataType
         {
-            get { return this._dataType; }
+            get => _dataType;
             set
             {
-                this._dataType = value;
+                _dataType = value;
 
-                if (value != null)
-                {
-                    this._dataType.Type = TokenType.DataType;
-                }
+                if (value != null) _dataType.Type = TokenType.DataType;
             }
         }
 
         /// <summary>
-        /// Whether data type is variable%TYPE
+        ///     Whether data type is variable%TYPE
         /// </summary>
         public bool IsCopyingDataType { get; set; }
     }

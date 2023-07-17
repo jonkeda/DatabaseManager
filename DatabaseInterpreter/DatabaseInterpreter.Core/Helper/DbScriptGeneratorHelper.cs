@@ -8,7 +8,7 @@ namespace DatabaseInterpreter.Core
         {
             DbScriptGenerator dbScriptGenerator = null;
 
-            switch(dbInterpreter.DatabaseType)
+            switch (dbInterpreter.DatabaseType)
             {
                 case DatabaseType.SqlServer:
                     dbScriptGenerator = new SqlServerScriptGenerator(dbInterpreter);
@@ -25,7 +25,6 @@ namespace DatabaseInterpreter.Core
                 case DatabaseType.Sqlite:
                     dbScriptGenerator = new SqliteScriptGenerator(dbInterpreter);
                     break;
-
             }
 
             return dbScriptGenerator;

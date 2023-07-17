@@ -30,7 +30,7 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_QueryEditor));
-            this.txtEditor = new System.Windows.Forms.RichTextBox();
+            this.Editor = new System.Windows.Forms.RichTextBox();
             this.editorContexMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.tsmiSelectAll = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmiCopy = new System.Windows.Forms.ToolStripMenuItem();
@@ -51,22 +51,22 @@
             // 
             // txtEditor
             // 
-            this.txtEditor.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txtEditor.EnableAutoDragDrop = true;
-            this.txtEditor.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.txtEditor.HideSelection = false;
-            this.txtEditor.Location = new System.Drawing.Point(0, 0);
-            this.txtEditor.Margin = new System.Windows.Forms.Padding(4);
-            this.txtEditor.Name = "txtEditor";
-            this.txtEditor.Size = new System.Drawing.Size(384, 482);
-            this.txtEditor.TabIndex = 0;
-            this.txtEditor.Text = "";
-            this.txtEditor.SelectionChanged += new System.EventHandler(this.txtEditor_SelectionChanged);
-            this.txtEditor.MouseClick += new System.Windows.Forms.MouseEventHandler(this.txtEditor_MouseClick);
-            this.txtEditor.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtEditor_KeyDown);
-            this.txtEditor.KeyUp += new System.Windows.Forms.KeyEventHandler(this.txtEditor_KeyUp);
-            this.txtEditor.MouseDown += new System.Windows.Forms.MouseEventHandler(this.txtEditor_MouseDown);
-            this.txtEditor.MouseUp += new System.Windows.Forms.MouseEventHandler(this.txtEditor_MouseUp);
+            this.Editor.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.Editor.EnableAutoDragDrop = true;
+            this.Editor.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.Editor.HideSelection = false;
+            this.Editor.Location = new System.Drawing.Point(0, 0);
+            this.Editor.Margin = new System.Windows.Forms.Padding(4);
+            this.Editor.Name = "Editor";
+            this.Editor.Size = new System.Drawing.Size(384, 482);
+            this.Editor.TabIndex = 0;
+            this.Editor.Text = "";
+            this.Editor.SelectionChanged += new System.EventHandler(this.txtEditor_SelectionChanged);
+            this.Editor.MouseClick += new System.Windows.Forms.MouseEventHandler(this.txtEditor_MouseClick);
+            this.Editor.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtEditor_KeyDown);
+            this.Editor.KeyUp += new System.Windows.Forms.KeyEventHandler(this.txtEditor_KeyUp);
+            this.Editor.MouseDown += new System.Windows.Forms.MouseEventHandler(this.txtEditor_MouseDown);
+            this.Editor.MouseUp += new System.Windows.Forms.MouseEventHandler(this.txtEditor_MouseUp);
             // 
             // editorContexMenu
             // 
@@ -208,7 +208,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.panelWords);
             this.Controls.Add(this.txtToolTip);
-            this.Controls.Add(this.txtEditor);
+            this.Controls.Add(this.Editor);
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "UC_QueryEditor";
             this.Size = new System.Drawing.Size(384, 482);
@@ -221,7 +221,6 @@
 
         #endregion
 
-        private System.Windows.Forms.RichTextBox txtEditor;
         private System.Windows.Forms.ContextMenuStrip editorContexMenu;
         private System.Windows.Forms.ToolStripMenuItem tsmiCopy;
         private System.Windows.Forms.ToolStripMenuItem tsmiPaste;

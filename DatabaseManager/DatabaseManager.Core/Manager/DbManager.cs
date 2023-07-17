@@ -1,33 +1,31 @@
-﻿using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Helper;
-using DatabaseManager.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Threading.Tasks;
-
+using DatabaseInterpreter.Core;
+using DatabaseInterpreter.Model;
+using DatabaseInterpreter.Utility;
+using DatabaseManager.Helper;
+using DatabaseManager.Model;
 
 namespace DatabaseManager.Core
 {
     public class DbManager
     {
+        private readonly DbInterpreter dbInterpreter;
         private IObserver<FeedbackInfo> observer;
-        private DbInterpreter dbInterpreter;
-        private DbScriptGenerator scriptGenerator;
+        private readonly DbScriptGenerator scriptGenerator;
 
         public DbManager()
         {
-
         }
 
         public DbManager(DbInterpreter dbInterpreter)
         {
             this.dbInterpreter = dbInterpreter;
-            this.scriptGenerator = DbScriptGeneratorHelper.GetDbScriptGenerator(dbInterpreter);
+            scriptGenerator = DbScriptGeneratorHelper.GetDbScriptGenerator(dbInterpreter);
         }
 
         public void Subscribe(IObserver<FeedbackInfo> observer)
@@ -37,62 +35,55 @@ namespace DatabaseManager.Core
 
         public async Task ClearData(List<Table> tables = null)
         {
-            this.FeedbackInfo("Begin to clear data...");
+            FeedbackInfo("Begin to clear data...");
 
-            if (tables == null)
-            {
-                tables = await this.dbInterpreter.GetTablesAsync();
-            }
+            if (tables == null) tables = await dbInterpreter.GetTablesAsync();
 
-            bool failed = false;
+            var failed = false;
 
             DbTransaction transaction = null;
 
             try
             {
-                this.FeedbackInfo("Disable constrains.");
+                FeedbackInfo("Disable constrains.");
 
-                DbScriptGenerator scriptGenerator = DbScriptGeneratorHelper.GetDbScriptGenerator(this.dbInterpreter);
+                var scriptGenerator = DbScriptGeneratorHelper.GetDbScriptGenerator(dbInterpreter);
 
-                using (DbConnection dbConnection = this.dbInterpreter.CreateConnection())
+                using (var dbConnection = dbInterpreter.CreateConnection())
                 {
                     await dbConnection.OpenAsync();
 
-                    await this.SetConstrainsEnabled(dbConnection, false);
+                    await SetConstrainsEnabled(dbConnection, false);
 
                     transaction = await dbConnection.BeginTransactionAsync();
 
-                    foreach (Table table in tables)
+                    foreach (var table in tables)
                     {
-                        string sql = $"DELETE FROM {this.dbInterpreter.GetQuotedDbObjectNameWithSchema(table)}";
+                        var sql = $"DELETE FROM {dbInterpreter.GetQuotedDbObjectNameWithSchema(table)}";
 
-                        this.FeedbackInfo(sql);
+                        FeedbackInfo(sql);
 
-                        CommandInfo commandInfo = new CommandInfo()
+                        var commandInfo = new CommandInfo
                         {
                             CommandType = CommandType.Text,
                             CommandText = sql,
                             Transaction = transaction
                         };
 
-                        await this.dbInterpreter.ExecuteNonQueryAsync(dbConnection, commandInfo);
+                        await dbInterpreter.ExecuteNonQueryAsync(dbConnection, commandInfo);
                     }
 
-                    if (!this.dbInterpreter.HasError)
-                    {
-                        transaction.Commit();
-                    }
+                    if (!dbInterpreter.HasError) transaction.Commit();
 
-                    await this.SetConstrainsEnabled(dbConnection, true);
+                    await SetConstrainsEnabled(dbConnection, true);
                 }
             }
             catch (Exception ex)
             {
                 failed = true;
-                this.FeedbackError(ExceptionHelper.GetExceptionDetails(ex));
+                FeedbackError(ExceptionHelper.GetExceptionDetails(ex));
 
                 if (transaction != null)
-                {
                     try
                     {
                         transaction.Rollback();
@@ -101,135 +92,126 @@ namespace DatabaseManager.Core
                     {
                         LogHelper.LogError(iex.Message);
                     }
-                }
             }
             finally
             {
                 if (failed)
                 {
-                    this.FeedbackInfo("Enable constrains.");
+                    FeedbackInfo("Enable constrains.");
 
-                    await this.SetConstrainsEnabled(null, true);
+                    await SetConstrainsEnabled(null, true);
                 }
             }
 
-            this.FeedbackInfo("End clear data.");
+            FeedbackInfo("End clear data.");
         }
 
         private async Task SetConstrainsEnabled(DbConnection dbConnection, bool enabled)
         {
-            bool needDispose = false;
+            var needDispose = false;
 
             if (dbConnection == null)
             {
                 needDispose = true;
-                dbConnection = this.dbInterpreter.CreateConnection();
+                dbConnection = dbInterpreter.CreateConnection();
             }
 
-            IEnumerable<Script> scripts = this.scriptGenerator.SetConstrainsEnabled(enabled);
+            var scripts = scriptGenerator.SetConstrainsEnabled(enabled);
 
-            foreach (Script script in scripts)
-            {
-                await this.dbInterpreter.ExecuteNonQueryAsync(dbConnection, script.Content);
-            }
+            foreach (var script in scripts) await dbInterpreter.ExecuteNonQueryAsync(dbConnection, script.Content);
 
             if (needDispose)
             {
-                using (dbConnection) { };
+                using (dbConnection)
+                {
+                }
+
+                ;
             }
         }
 
         public async Task EmptyDatabase(DatabaseObjectType databaseObjectType)
         {
-            bool sortObjectsByReference = this.dbInterpreter.Option.SortObjectsByReference;
-            DatabaseObjectFetchMode fetchMode = this.dbInterpreter.Option.ObjectFetchMode;
+            var sortObjectsByReference = dbInterpreter.Option.SortObjectsByReference;
+            var fetchMode = dbInterpreter.Option.ObjectFetchMode;
 
-            this.dbInterpreter.Option.SortObjectsByReference = true;
-            this.dbInterpreter.Option.ObjectFetchMode = DatabaseObjectFetchMode.Simple;
+            dbInterpreter.Option.SortObjectsByReference = true;
+            dbInterpreter.Option.ObjectFetchMode = DatabaseObjectFetchMode.Simple;
 
-            this.FeedbackInfo("Begin to empty database...");
+            FeedbackInfo("Begin to empty database...");
 
-            SchemaInfo schemaInfo = await this.dbInterpreter.GetSchemaInfoAsync(new SchemaInfoFilter() { DatabaseObjectType = databaseObjectType });
+            var schemaInfo = await dbInterpreter.GetSchemaInfoAsync(new SchemaInfoFilter
+                { DatabaseObjectType = databaseObjectType });
 
             try
             {
-                using (DbConnection connection = this.dbInterpreter.CreateConnection())
+                using (var connection = dbInterpreter.CreateConnection())
                 {
-                    await this.DropDbObjects(connection, schemaInfo.TableTriggers);
-                    await this.DropDbObjects(connection, schemaInfo.Procedures);
-                    await this.DropDbObjects(connection, schemaInfo.Views);
-                    await this.DropDbObjects(connection, schemaInfo.TableTriggers);
-                    await this.DropDbObjects(connection, schemaInfo.TableForeignKeys);
-                    await this.DropDbObjects(connection, schemaInfo.Tables);
-                    await this.DropDbObjects(connection, schemaInfo.Functions);
-                    await this.DropDbObjects(connection, schemaInfo.UserDefinedTypes);
-                    await this.DropDbObjects(connection, schemaInfo.Sequences);
+                    await DropDbObjects(connection, schemaInfo.TableTriggers);
+                    await DropDbObjects(connection, schemaInfo.Procedures);
+                    await DropDbObjects(connection, schemaInfo.Views);
+                    await DropDbObjects(connection, schemaInfo.TableTriggers);
+                    await DropDbObjects(connection, schemaInfo.TableForeignKeys);
+                    await DropDbObjects(connection, schemaInfo.Tables);
+                    await DropDbObjects(connection, schemaInfo.Functions);
+                    await DropDbObjects(connection, schemaInfo.UserDefinedTypes);
+                    await DropDbObjects(connection, schemaInfo.Sequences);
                 }
             }
             catch (Exception ex)
             {
-                this.FeedbackError(ExceptionHelper.GetExceptionDetails(ex));
+                FeedbackError(ExceptionHelper.GetExceptionDetails(ex));
             }
             finally
             {
-                this.dbInterpreter.Option.SortObjectsByReference = sortObjectsByReference;
-                this.dbInterpreter.Option.ObjectFetchMode = fetchMode;
+                dbInterpreter.Option.SortObjectsByReference = sortObjectsByReference;
+                dbInterpreter.Option.ObjectFetchMode = fetchMode;
             }
 
-            this.FeedbackInfo("End empty database.");
+            FeedbackInfo("End empty database.");
         }
 
         private async Task DropDbObjects<T>(DbConnection connection, List<T> dbObjects) where T : DatabaseObject
         {
-            List<string> names = new List<string>();
+            var names = new List<string>();
 
-            foreach (T obj in dbObjects)
-            {
+            foreach (var obj in dbObjects)
                 if (!names.Contains(obj.Name))
-                {
                     try
                     {
-                        await this.DropDbObject(obj, connection, true);
+                        await DropDbObject(obj, connection, true);
 
                         names.Add(obj.Name);
                     }
                     catch (Exception ex)
                     {
-                        this.FeedbackError($@"Error occurs when drop ""{obj.Name}"":{ex.Message}", true);
-
-                        continue;
+                        FeedbackError($@"Error occurs when drop ""{obj.Name}"":{ex.Message}", true);
                     }
-                }
-            }
         }
 
-        private async Task<bool> DropDbObject(DatabaseObject dbObject, DbConnection connection = null, bool continueWhenErrorOccurs = false)
+        private async Task<bool> DropDbObject(DatabaseObject dbObject, DbConnection connection = null,
+            bool continueWhenErrorOccurs = false)
         {
-            string typeName = dbObject.GetType().Name;
+            var typeName = dbObject.GetType().Name;
 
-            this.FeedbackInfo($"Drop {typeName} \"{dbObject.Name}\".");
+            FeedbackInfo($"Drop {typeName} \"{dbObject.Name}\".");
 
-            Script script = this.scriptGenerator.Drop(dbObject);
+            var script = scriptGenerator.Drop(dbObject);
 
             if (script != null && !string.IsNullOrEmpty(script.Content))
             {
-                string sql = script.Content;
+                var sql = script.Content;
 
-                if (this.dbInterpreter.ScriptsDelimiter.Length == 1)
-                {
-                    sql = sql.TrimEnd(this.dbInterpreter.ScriptsDelimiter.ToCharArray());
-                }
+                if (dbInterpreter.ScriptsDelimiter.Length == 1)
+                    sql = sql.TrimEnd(dbInterpreter.ScriptsDelimiter.ToCharArray());
 
-                var commandInfo = new CommandInfo() { CommandText = sql, ContinueWhenErrorOccurs = continueWhenErrorOccurs };
+                var commandInfo = new CommandInfo
+                    { CommandText = sql, ContinueWhenErrorOccurs = continueWhenErrorOccurs };
 
                 if (connection != null)
-                {
-                    await this.dbInterpreter.ExecuteNonQueryAsync(connection, commandInfo);
-                }
+                    await dbInterpreter.ExecuteNonQueryAsync(connection, commandInfo);
                 else
-                {
-                    await this.dbInterpreter.ExecuteNonQueryAsync(commandInfo);
-                }
+                    await dbInterpreter.ExecuteNonQueryAsync(commandInfo);
 
                 return true;
             }
@@ -241,11 +223,11 @@ namespace DatabaseManager.Core
         {
             try
             {
-                return await this.DropDbObject(dbObject, null);
+                return await DropDbObject(dbObject, null);
             }
             catch (Exception ex)
             {
-                this.FeedbackError(ExceptionHelper.GetExceptionDetails(ex));
+                FeedbackError(ExceptionHelper.GetExceptionDetails(ex));
 
                 return false;
             }
@@ -255,80 +237,77 @@ namespace DatabaseManager.Core
         {
             try
             {
-                DbBackup backup = DbBackup.GetInstance(ManagerUtil.GetDatabaseType(setting.DatabaseType));
+                var backup = DbBackup.GetInstance(ManagerUtil.GetDatabaseType(setting.DatabaseType));
                 backup.Setting = setting;
                 backup.ConnectionInfo = connectionInfo;
 
-                this.FeedbackInfo("Begin to backup...");
+                FeedbackInfo("Begin to backup...");
 
-                string saveFilePath = backup.Backup();
+                var saveFilePath = backup.Backup();
 
                 if (File.Exists(saveFilePath))
-                {
-                    this.FeedbackInfo($"Database has been backuped to {saveFilePath}.");
-                }
+                    FeedbackInfo($"Database has been backuped to {saveFilePath}.");
                 else
-                {
-                    this.FeedbackInfo($"Database has been backuped.");
-                }
+                    FeedbackInfo("Database has been backuped.");
 
                 return true;
             }
             catch (Exception ex)
             {
-                this.FeedbackError(ExceptionHelper.GetExceptionDetails(ex));
+                FeedbackError(ExceptionHelper.GetExceptionDetails(ex));
             }
 
             return false;
         }
 
-        public async Task<TableDiagnoseResult> DiagnoseTable(DatabaseType databaseType, ConnectionInfo connectionInfo, string schema, TableDiagnoseType diagnoseType)
+        public async Task<TableDiagnoseResult> DiagnoseTable(DatabaseType databaseType, ConnectionInfo connectionInfo,
+            string schema, TableDiagnoseType diagnoseType)
         {
-            DbDiagnosis dbDiagnosis = DbDiagnosis.GetInstance(databaseType, connectionInfo);
+            var dbDiagnosis = DbDiagnosis.GetInstance(databaseType, connectionInfo);
             dbDiagnosis.Schema = schema;
 
-            dbDiagnosis.OnFeedback += this.Feedback;
+            dbDiagnosis.OnFeedback += Feedback;
 
-            TableDiagnoseResult result = await dbDiagnosis.DiagnoseTable(diagnoseType);
+            var result = await dbDiagnosis.DiagnoseTable(diagnoseType);
 
             return result;
         }
 
-        public async Task<List<ScriptDiagnoseResult>> DiagnoseScript(DatabaseType databaseType, ConnectionInfo connectionInfo, string schema, ScriptDiagnoseType diagnoseType)
+        public async Task<List<ScriptDiagnoseResult>> DiagnoseScript(DatabaseType databaseType,
+            ConnectionInfo connectionInfo, string schema, ScriptDiagnoseType diagnoseType)
         {
-            DbDiagnosis dbDiagnosis = DbDiagnosis.GetInstance(databaseType, connectionInfo);
+            var dbDiagnosis = DbDiagnosis.GetInstance(databaseType, connectionInfo);
             dbDiagnosis.Schema = schema;
 
-            dbDiagnosis.OnFeedback += this.Feedback;
+            dbDiagnosis.OnFeedback += Feedback;
 
-            List<ScriptDiagnoseResult> results = await dbDiagnosis.DiagnoseScript(diagnoseType);
+            var results = await dbDiagnosis.DiagnoseScript(diagnoseType);
 
             return results;
         }
 
         public void Feedback(FeedbackInfoType infoType, string message)
         {
-            FeedbackInfo info = new FeedbackInfo() { Owner = this, InfoType = infoType, Message = StringHelper.ToSingleEmptyLine(message) };
+            var info = new FeedbackInfo
+                { Owner = this, InfoType = infoType, Message = StringHelper.ToSingleEmptyLine(message) };
 
-            this.Feedback(info);
+            Feedback(info);
         }
 
         public void Feedback(FeedbackInfo info)
         {
-            if (this.observer != null)
-            {
-                FeedbackHelper.Feedback(this.observer, info);
-            }
+            if (observer != null) FeedbackHelper.Feedback(observer, info);
         }
 
         public void FeedbackInfo(string message)
         {
-            this.Feedback(FeedbackInfoType.Info, message);
+            Feedback(FeedbackInfoType.Info, message);
         }
 
         public void FeedbackError(string message, bool skipError = false)
         {
-            this.Feedback(new FeedbackInfo() { InfoType = FeedbackInfoType.Error, Message = message, IgnoreError = skipError });
+            Feedback(new FeedbackInfo
+                { InfoType = FeedbackInfoType.Error, Message = message, IgnoreError = skipError });
         }
     }
 }

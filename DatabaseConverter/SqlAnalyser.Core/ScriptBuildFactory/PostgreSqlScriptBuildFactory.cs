@@ -1,15 +1,15 @@
-﻿using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using SqlAnalyser.Core.Model;
-using SqlAnalyser.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DatabaseInterpreter.Model;
+using DatabaseInterpreter.Utility;
+using SqlAnalyser.Core.Model;
+using SqlAnalyser.Model;
 
 namespace SqlAnalyser.Core
 {
-    public class PostgreSqlScriptBuildFactory:ScriptBuildFactory
+    public class PostgreSqlScriptBuildFactory : ScriptBuildFactory
     {
         public override DatabaseType DatabaseType => DatabaseType.Postgres;
 
@@ -17,39 +17,40 @@ namespace SqlAnalyser.Core
         {
             base.PreHandleStatements(statements);
 
-            this.PreHandle();
+            PreHandle();
         }
 
         protected override void PostHandleStatements(StringBuilder sb)
         {
             base.PostHandleStatements(sb);
 
-            this.PostHandle(sb);
+            PostHandle(sb);
         }
 
         private void PreHandle()
         {
-            this.StatementBuilder.Option.CollectDeclareStatement = true;
-            this.StatementBuilder.Option.NotBuildDeclareStatement = true;
-            this.StatementBuilder.Option.CollectSpecialStatementTypes.Add(typeof(PreparedStatement));
+            StatementBuilder.Option.CollectDeclareStatement = true;
+            StatementBuilder.Option.NotBuildDeclareStatement = true;
+            StatementBuilder.Option.CollectSpecialStatementTypes.Add(typeof(PreparedStatement));
         }
 
-        private void PostHandle(StringBuilder sb, RoutineType routineType = RoutineType.UNKNOWN, ScriptBuildResult result = null, int? declareStartIndex = default(int?))
+        private void PostHandle(StringBuilder sb, RoutineType routineType = RoutineType.UNKNOWN,
+            ScriptBuildResult result = null, int? declareStartIndex = default)
         {
-            var declareStatements = this.StatementBuilder.GetDeclareStatements();
+            var declareStatements = StatementBuilder.GetDeclareStatements();
 
             if (declareStatements.Count > 0)
             {
-                this.StatementBuilder.Clear();
+                StatementBuilder.Clear();
 
-                StringBuilder sbDeclare = new StringBuilder();
+                var sbDeclare = new StringBuilder();
 
                 foreach (var declareStatement in declareStatements)
                 {
-                    this.StatementBuilder.Option.NotBuildDeclareStatement = false;
-                    this.StatementBuilder.Option.CollectDeclareStatement = false;
+                    StatementBuilder.Option.NotBuildDeclareStatement = false;
+                    StatementBuilder.Option.CollectDeclareStatement = false;
 
-                    sbDeclare.AppendLine(this.BuildStatement(declareStatement, routineType).Trim());
+                    sbDeclare.AppendLine(BuildStatement(declareStatement, routineType).Trim());
                 }
 
                 sb.Insert(declareStartIndex.HasValue ? declareStartIndex.Value : 0, sbDeclare.ToString());
@@ -59,16 +60,16 @@ namespace SqlAnalyser.Core
                     result.BodyStartIndex += sbDeclare.Length;
                     result.BodyStopIndex += sbDeclare.Length;
                 }
-            }    
+            }
         }
 
         public override ScriptBuildResult GenerateRoutineScripts(RoutineScript script)
         {
-            ScriptBuildResult result = new ScriptBuildResult();
+            var result = new ScriptBuildResult();
 
-            this.PreHandle();
+            PreHandle();
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             sb.Append($"CREATE OR REPLACE {script.Type.ToString()} {script.NameWithSchema}");
 
@@ -77,32 +78,25 @@ namespace SqlAnalyser.Core
                 sb.AppendLine();
                 sb.AppendLine("(");
 
-                int i = 0;
-                foreach (Parameter parameter in script.Parameters)
+                var i = 0;
+                foreach (var parameter in script.Parameters)
                 {
-                    ParameterType parameterType = parameter.ParameterType;
+                    var parameterType = parameter.ParameterType;
 
-                    string dataType = parameter.DataType.Symbol;
-                    string defaultValue = parameter.DefaultValue == null ? "" : $" DEFAULT {parameter.DefaultValue}";
-                    string strParameterType = "";
+                    var dataType = parameter.DataType.Symbol;
+                    var defaultValue = parameter.DefaultValue == null ? "" : $" DEFAULT {parameter.DefaultValue}";
+                    var strParameterType = "";
 
-                    int parenthesesIndex = dataType.IndexOf("(");
+                    var parenthesesIndex = dataType.IndexOf("(");
 
-                    if (parenthesesIndex > 0)
-                    {
-                        dataType = dataType.Substring(0, parenthesesIndex);
-                    }
+                    if (parenthesesIndex > 0) dataType = dataType.Substring(0, parenthesesIndex);
 
                     if (parameterType.HasFlag(ParameterType.IN) && parameterType.HasFlag(ParameterType.OUT))
-                    {
                         strParameterType = "IN OUT";
-                    }
-                    else if (parameterType != ParameterType.NONE)
-                    {
-                        strParameterType = parameterType.ToString();
-                    }
+                    else if (parameterType != ParameterType.NONE) strParameterType = parameterType.ToString();
 
-                    sb.AppendLine($"{parameter.Name} {strParameterType} {dataType}{defaultValue}{(i == script.Parameters.Count - 1 ? "" : ",")}");
+                    sb.AppendLine(
+                        $"{parameter.Name} {strParameterType} {dataType}{defaultValue}{(i == script.Parameters.Count - 1 ? "" : ",")}");
 
                     i++;
                 }
@@ -118,11 +112,11 @@ namespace SqlAnalyser.Core
             {
                 if (script.ReturnDataType != null)
                 {
-                    string dataType = script.ReturnDataType.Symbol;
+                    var dataType = script.ReturnDataType.Symbol;
 
                     if (DataTypeHelper.IsCharType(dataType))
                     {
-                        DataTypeInfo dataTypeInfo = DataTypeHelper.GetDataTypeInfo(dataType);
+                        var dataTypeInfo = DataTypeHelper.GetDataTypeInfo(dataType);
                         dataType = dataTypeInfo.DataType;
                     }
 
@@ -131,16 +125,14 @@ namespace SqlAnalyser.Core
                 else if (script.ReturnTable != null)
                 {
                     if (script.ReturnTable.Columns.Count > 0)
-                    {
-                        sb.AppendLine($"RETURNS TABLE({string.Join(",", script.ReturnTable.Columns.Select(item => this.GetColumnInfo(item)))})");
-                    }
+                        sb.AppendLine(
+                            $"RETURNS TABLE({string.Join(",", script.ReturnTable.Columns.Select(item => GetColumnInfo(item)))})");
                 }
                 else
                 {
                     if (script.Statements.Count > 0 && script.Statements.First() is SelectStatement select)
-                    {
-                        sb.AppendLine($"RETURNS TABLE({string.Join(",", select.Columns.Select(item => $"{item.FieldName} character varying"))})");
-                    }
+                        sb.AppendLine(
+                            $"RETURNS TABLE({string.Join(",", select.Columns.Select(item => $"{item.FieldName} character varying"))})");
                 }
             }
 
@@ -148,32 +140,30 @@ namespace SqlAnalyser.Core
             sb.AppendLine("AS");
             sb.AppendLine("$$");
 
-            int declareStartIndex = sb.Length;
+            var declareStartIndex = sb.Length;
 
             sb.AppendLine("BEGIN");
 
             result.BodyStartIndex = sb.Length;
 
             if (script.Type == RoutineType.FUNCTION)
-            {
                 if (script.ReturnDataType == null)
-                {
                     sb.Append("RETURN QUERY ");
-                }
-            }
 
             FetchCursorStatement fetchCursorStatement = null;
 
-            foreach (Statement statement in script.Statements)
+            foreach (var statement in script.Statements)
             {
                 if (statement is FetchCursorStatement fetch)
                 {
                     fetchCursorStatement = fetch;
                     continue;
                 }
-                else if (statement is WhileStatement @while)
+
+                if (statement is WhileStatement @while)
                 {
-                    FetchCursorStatement fs = @while.Statements.FirstOrDefault(item => item is FetchCursorStatement) as FetchCursorStatement;
+                    var fs =
+                        @while.Statements.FirstOrDefault(item => item is FetchCursorStatement) as FetchCursorStatement;
 
                     if (fetchCursorStatement != null && fs != null)
                     {
@@ -181,21 +171,22 @@ namespace SqlAnalyser.Core
 
                         if (fs.Variables.Count == 0)
                         {
-                            @while.Statements.Insert(0, new LoopExitStatement() { Condition = new TokenInfo("EXIT WHEN NOT FOUND;") });
+                            @while.Statements.Insert(0,
+                                new LoopExitStatement { Condition = new TokenInfo("EXIT WHEN NOT FOUND;") });
                             @while.Statements.Insert(0, fetchCursorStatement);
                         }
                     }
                 }
 
-                sb.AppendLine(this.BuildStatement(statement, script.Type));
+                sb.AppendLine(BuildStatement(statement, script.Type));
             }
 
             result.BodyStopIndex = sb.Length - 1;
 
-            sb.AppendLine($"END");
+            sb.AppendLine("END");
             sb.AppendLine("$$;");
 
-            this.PostHandle(sb, script.Type, result, declareStartIndex);
+            PostHandle(sb, script.Type, result, declareStartIndex);
 
             result.Script = sb.ToString();
 
@@ -204,26 +195,25 @@ namespace SqlAnalyser.Core
 
         private string GetColumnInfo(ColumnInfo columnInfo)
         {
-            string name = columnInfo.Name.FieldName;
-            string dataType = string.IsNullOrEmpty(columnInfo.DataType?.Symbol) ? "character varying" : columnInfo.DataType.Symbol;
+            var name = columnInfo.Name.FieldName;
+            var dataType = string.IsNullOrEmpty(columnInfo.DataType?.Symbol)
+                ? "character varying"
+                : columnInfo.DataType.Symbol;
 
             return $"{name} {dataType}";
         }
 
         public override ScriptBuildResult GenearteViewScripts(ViewScript script)
         {
-            ScriptBuildResult result = new ScriptBuildResult();
+            var result = new ScriptBuildResult();
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             sb.AppendLine($"CREATE OR REPLACE VIEW {script.NameWithSchema} AS");
 
             result.BodyStartIndex = sb.Length;
 
-            foreach (Statement statement in script.Statements)
-            {
-                sb.AppendLine(this.BuildStatement(statement));
-            }
+            foreach (var statement in script.Statements) sb.AppendLine(BuildStatement(statement));
 
             result.BodyStopIndex = sb.Length - 1;
             result.Script = sb.ToString();
@@ -233,11 +223,11 @@ namespace SqlAnalyser.Core
 
         public override ScriptBuildResult GenearteTriggerScripts(TriggerScript script)
         {
-            ScriptBuildResult result = new ScriptBuildResult();
+            var result = new ScriptBuildResult();
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
-            string events = string.Join(" OR ", script.Events);
+            var events = string.Join(" OR ", script.Events);
 
             sb.AppendLine($"CREATE OR REPLACE TRIGGER {script.Name}");
             sb.AppendLine($"{script.Time} {events} ON {script.TableName.NameWithSchema}");

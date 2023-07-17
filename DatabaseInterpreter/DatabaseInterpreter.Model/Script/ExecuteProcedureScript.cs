@@ -1,7 +1,9 @@
 ﻿namespace DatabaseInterpreter.Model
 {
-    public class ExecuteProcedureScript : Script      
+    public class ExecuteProcedureScript : Script
     {
-        public ExecuteProcedureScript(string script) : base(script) { }       
+        public ExecuteProcedureScript(string script) : base(script)
+        {
+        }
     }
 }

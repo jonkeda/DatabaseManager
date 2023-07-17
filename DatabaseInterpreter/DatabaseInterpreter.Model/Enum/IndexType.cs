@@ -3,7 +3,7 @@
 namespace DatabaseInterpreter.Model
 {
     [Flags]
-    public enum IndexType : int
+    public enum IndexType
     {
         None = 0,
         Normal = 2,

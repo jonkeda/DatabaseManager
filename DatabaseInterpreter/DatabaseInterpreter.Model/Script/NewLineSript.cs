@@ -4,9 +4,9 @@ namespace DatabaseInterpreter.Model
 {
     public class NewLineSript : Script
     {
-        public NewLineSript():base()
+        public NewLineSript()
         {
-            this.Content = Environment.NewLine;
+            Content = Environment.NewLine;
         }
     }
 }

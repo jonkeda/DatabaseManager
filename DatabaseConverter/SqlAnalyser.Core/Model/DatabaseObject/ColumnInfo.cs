@@ -8,23 +8,22 @@ namespace SqlAnalyser.Model
         public ColumnName Name { get; set; }
         public bool IsIdentity { get; set; }
         public bool IsNullable { get; set; } = true;
+
         public TokenInfo DataType
         {
-            get { return this._dataType; }
+            get => _dataType;
             set
             {
-                this._dataType = value;
+                _dataType = value;
 
-                if (value != null)
-                {
-                    this._dataType.Type = TokenType.DataType;
-                }
+                if (value != null) _dataType.Type = TokenType.DataType;
             }
         }
+
         public TokenInfo DefaultValue { get; set; }
         public TokenInfo ComputeExp { get; set; }
 
-        public bool IsComputed => this.ComputeExp != null;
+        public bool IsComputed => ComputeExp != null;
         public List<ConstraintInfo> Constraints { get; set; }
     }
 }

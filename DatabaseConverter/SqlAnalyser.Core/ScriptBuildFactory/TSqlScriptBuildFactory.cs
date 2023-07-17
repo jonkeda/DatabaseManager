@@ -1,24 +1,24 @@
-﻿using DatabaseInterpreter.Model;
-using SqlAnalyser.Core.Model;
-using SqlAnalyser.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DatabaseInterpreter.Model;
+using SqlAnalyser.Core.Model;
+using SqlAnalyser.Model;
 
 namespace SqlAnalyser.Core
 {
-    public class TSqlScriptBuildFactory:ScriptBuildFactory
+    public class TSqlScriptBuildFactory : ScriptBuildFactory
     {
         public override DatabaseType DatabaseType => DatabaseType.SqlServer;
 
         public override ScriptBuildResult GenerateRoutineScripts(RoutineScript script)
         {
-            ScriptBuildResult result = new ScriptBuildResult();
+            var result = new ScriptBuildResult();
 
-            this.StatementBuilder.Option.CollectSpecialStatementTypes.Add(typeof(PreparedStatement));
+            StatementBuilder.Option.CollectSpecialStatementTypes.Add(typeof(PreparedStatement));
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             sb.AppendLine($"CREATE {script.Type.ToString()} {script.NameWithSchema}");
 
@@ -26,29 +26,23 @@ namespace SqlAnalyser.Core
             {
                 sb.AppendLine("(");
 
-                int i = 0;
-                foreach (Parameter parameter in script.Parameters)
+                var i = 0;
+                foreach (var parameter in script.Parameters)
                 {
-                    ParameterType parameterType = parameter.ParameterType;
+                    var parameterType = parameter.ParameterType;
 
-                    string strParameterType = "";
+                    var strParameterType = "";
 
                     if (parameterType == ParameterType.IN)
-                    {
                         strParameterType = "";
-                    }
                     else if (parameterType.HasFlag(ParameterType.IN) && parameterType.HasFlag(ParameterType.OUT))
-                    {
                         strParameterType = "OUT";
-                    }
-                    else if (parameterType != ParameterType.NONE)
-                    {
-                        strParameterType = parameterType.ToString();
-                    }
+                    else if (parameterType != ParameterType.NONE) strParameterType = parameterType.ToString();
 
-                    string defaultValue = parameter.DefaultValue == null ? "" : "=" + parameter.DefaultValue;
+                    var defaultValue = parameter.DefaultValue == null ? "" : "=" + parameter.DefaultValue;
 
-                    sb.AppendLine($"{parameter.Name} {parameter.DataType} {defaultValue} {strParameterType}{(i == script.Parameters.Count - 1 ? "" : ",")}");
+                    sb.AppendLine(
+                        $"{parameter.Name} {parameter.DataType} {defaultValue} {strParameterType}{(i == script.Parameters.Count - 1 ? "" : ",")}");
 
                     i++;
                 }
@@ -64,13 +58,10 @@ namespace SqlAnalyser.Core
             if (script.Type == RoutineType.FUNCTION)
             {
                 if (script.ReturnTable == null)
-                {
                     sb.AppendLine($"RETURNS {script.ReturnDataType}");
-                }
                 else
-                {
-                    sb.AppendLine($"RETURNS {script.ReturnTable.Name}({string.Join(",", script.ReturnTable.Columns.Select(t => $"{t.Name.Symbol} {t.DataType}"))})");
-                }
+                    sb.AppendLine(
+                        $"RETURNS {script.ReturnTable.Name}({string.Join(",", script.ReturnTable.Columns.Select(t => $"{t.Name.Symbol} {t.DataType}"))})");
             }
 
             sb.AppendLine("AS");
@@ -79,39 +70,36 @@ namespace SqlAnalyser.Core
 
             result.BodyStartIndex = sb.Length;
 
-            Action<IEnumerable<Statement>> appendStatements = (statements) =>
+            Action<IEnumerable<Statement>> appendStatements = statements =>
             {
-                foreach (Statement statement in statements)
+                foreach (var statement in statements)
                 {
                     if (statement is WhileStatement @while)
                     {
-                        FetchCursorStatement fetchCursorStatement = @while.Statements.FirstOrDefault(item => item is FetchCursorStatement) as FetchCursorStatement;
+                        var fetchCursorStatement =
+                            @while.Statements.FirstOrDefault(item => item is FetchCursorStatement) as
+                                FetchCursorStatement;
 
                         if (fetchCursorStatement != null && !statements.Any(item => item is FetchCursorStatement))
                         {
-                            string condition = @while.Condition?.Symbol;
+                            var condition = @while.Condition?.Symbol;
 
-                            if (condition == null)
-                            {
-                                @while.Condition = new TokenInfo("");
-                            }
+                            if (condition == null) @while.Condition = new TokenInfo("");
 
                             @while.Condition.Symbol = "@@FETCH_STATUS = 0";
 
-                            if (condition != null)
-                            {
-                                @while.Condition.Symbol += " AND " + condition;
-                            }
+                            if (condition != null) @while.Condition.Symbol += " AND " + condition;
 
-                            sb.AppendLine(this.BuildStatement(fetchCursorStatement));
+                            sb.AppendLine(BuildStatement(fetchCursorStatement));
                         }
                     }
 
-                    sb.AppendLine(this.BuildStatement(statement));
+                    sb.AppendLine(BuildStatement(statement));
                 }
             };
 
-            ExceptionStatement exceptionStatement = (ExceptionStatement)script.Statements.FirstOrDefault(item => item is ExceptionStatement);
+            var exceptionStatement =
+                (ExceptionStatement)script.Statements.FirstOrDefault(item => item is ExceptionStatement);
 
             if (exceptionStatement != null)
             {
@@ -121,9 +109,10 @@ namespace SqlAnalyser.Core
 
                 sb.AppendLine("BEGIN CATCH");
 
-                foreach (ExceptionItem exceptionItem in exceptionStatement.Items)
+                foreach (var exceptionItem in exceptionStatement.Items)
                 {
-                    sb.AppendLine($"IF {exceptionItem.Name} = ERROR_PROCEDURE() OR {exceptionItem.Name} = ERROR_NUMBER()");
+                    sb.AppendLine(
+                        $"IF {exceptionItem.Name} = ERROR_PROCEDURE() OR {exceptionItem.Name} = ERROR_NUMBER()");
                     sb.AppendLine("BEGIN");
 
                     appendStatements(exceptionItem.Statements);
@@ -149,18 +138,15 @@ namespace SqlAnalyser.Core
 
         public override ScriptBuildResult GenearteViewScripts(ViewScript script)
         {
-            ScriptBuildResult result = new ScriptBuildResult();
+            var result = new ScriptBuildResult();
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             sb.AppendLine($"CREATE VIEW {script.NameWithSchema} AS");
 
             result.BodyStartIndex = sb.Length;
 
-            foreach (Statement statement in script.Statements)
-            {
-                sb.AppendLine(this.BuildStatement(statement));
-            }
+            foreach (var statement in script.Statements) sb.AppendLine(BuildStatement(statement));
 
             result.BodyStopIndex = sb.Length - 1;
 
@@ -171,12 +157,14 @@ namespace SqlAnalyser.Core
 
         public override ScriptBuildResult GenearteTriggerScripts(TriggerScript script)
         {
-            ScriptBuildResult result = new ScriptBuildResult();
+            var result = new ScriptBuildResult();
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
-            string time = (script.Time == TriggerTime.BEFORE || script.Time == TriggerTime.INSTEAD_OF) ? "INSTEAD OF" : script.Time.ToString();
-            string events = string.Join(",", script.Events);
+            var time = script.Time == TriggerTime.BEFORE || script.Time == TriggerTime.INSTEAD_OF
+                ? "INSTEAD OF"
+                : script.Time.ToString();
+            var events = string.Join(",", script.Events);
 
             sb.AppendLine($"CREATE TRIGGER {script.NameWithSchema} ON {script.TableName}");
             sb.AppendLine($"{time} {events} NOT FOR REPLICATION ");
@@ -186,10 +174,7 @@ namespace SqlAnalyser.Core
 
             result.BodyStartIndex = sb.Length;
 
-            foreach (Statement statement in script.Statements)
-            {
-                sb.Append(this.BuildStatement(statement));
-            }
+            foreach (var statement in script.Statements) sb.Append(BuildStatement(statement));
 
             result.BodyStopIndex = sb.Length - 1;
 

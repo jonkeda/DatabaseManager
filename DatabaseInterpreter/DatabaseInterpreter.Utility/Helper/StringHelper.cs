@@ -3,17 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-
 namespace DatabaseInterpreter.Utility
 {
     public class StringHelper
     {
         public static string GetSingleQuotedString(params string[] values)
         {
-            if (values != null)
-            {
-                return string.Join(",", values.Select(item => $"'{item}'"));
-            }
+            if (values != null) return string.Join(",", values.Select(item => $"'{item}'"));
             return null;
         }
 
@@ -34,47 +30,43 @@ namespace DatabaseInterpreter.Utility
 
         public static string RawToGuid(string text)
         {
-            byte[] bytes = ParseHex(text);
-            Guid guid = new Guid(bytes);
+            var bytes = ParseHex(text);
+            var guid = new Guid(bytes);
             return guid.ToString("N").ToUpperInvariant();
         }
 
         public static string GuidToRaw(string text)
         {
-            Guid guid = new Guid(text);
+            var guid = new Guid(text);
             return BitConverter.ToString(guid.ToByteArray()).Replace("-", "");
         }
 
         public static byte[] ParseHex(string text)
         {
-            byte[] ret = new byte[text.Length / 2];
-            for (int i = 0; i < ret.Length; i++)
-            {
-                ret[i] = Convert.ToByte(text.Substring(i * 2, 2), 16);
-            }
+            var ret = new byte[text.Length / 2];
+            for (var i = 0; i < ret.Length; i++) ret[i] = Convert.ToByte(text.Substring(i * 2, 2), 16);
             return ret;
         }
 
         public static string ToSingleEmptyLine(string value)
         {
             if (value != null)
-            {
-                return Regex.Replace(value, "(\\r\\n){3,}", Environment.NewLine + Environment.NewLine, RegexOptions.Multiline);
-            }
+                return Regex.Replace(value, "(\\r\\n){3,}", Environment.NewLine + Environment.NewLine,
+                    RegexOptions.Multiline);
             return value;
         }
 
         public static string GetFriendlyTypeName(string name)
         {
-            Regex reg = new Regex(@"(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])");
+            var reg = new Regex(@"(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])");
             return reg.Replace(name, " ");
         }
 
         public static string FormatScript(string scripts)
         {
-            Regex regex = new Regex(@"([;]+[\s]*[;]+)|(\r\n[\s]*[;])");
+            var regex = new Regex(@"([;]+[\s]*[;]+)|(\r\n[\s]*[;])");
 
-            return StringHelper.ToSingleEmptyLine(regex.Replace(scripts, ";"));
+            return ToSingleEmptyLine(regex.Replace(scripts, ";"));
         }
 
         public static string HandleSingleQuotationChar(string value)
@@ -85,31 +77,23 @@ namespace DatabaseInterpreter.Utility
         public static string TrimParenthesis(string value)
         {
             while (value.Length > 2 && value.StartsWith("(") && value.EndsWith(")"))
-            {
                 value = value.Substring(1, value.Length - 2);
-            }
 
             return value;
         }
 
         public static string GetParenthesisedString(string value)
         {
-            if (IsParenthesised(value))
-            {
-                return value;
-            }
+            if (IsParenthesised(value)) return value;
 
             return $"({value})";
         }
 
         public static bool IsParenthesised(string value)
         {
-            if (string.IsNullOrEmpty(value))
-            {
-                return false;
-            }
+            if (string.IsNullOrEmpty(value)) return false;
 
-            string trimedValue = value.Trim();
+            var trimedValue = value.Trim();
 
             return trimedValue.StartsWith("(") && trimedValue.EndsWith(")") && IsParenthesisBalanced(trimedValue);
         }
@@ -120,16 +104,11 @@ namespace DatabaseInterpreter.Utility
             {
                 while (value.StartsWith("(") && value.EndsWith(")") && IsParenthesisBalanced(value))
                 {
-                    string trimedValue = value.Substring(1, value.Length - 2);
+                    var trimedValue = value.Substring(1, value.Length - 2);
 
                     if (!IsParenthesisBalanced(trimedValue))
-                    {
                         return value;
-                    }
-                    else
-                    {
-                        value = trimedValue;
-                    }
+                    value = trimedValue;
                 }
 
                 return value.Trim();
@@ -140,19 +119,15 @@ namespace DatabaseInterpreter.Utility
 
         public static bool IsParenthesisBalanced(string value)
         {
-            if (string.IsNullOrEmpty(value) || (!value.Contains("(") && !value.Contains(")")))
-            {
-                return true;
-            }
+            if (string.IsNullOrEmpty(value) || (!value.Contains("(") && !value.Contains(")"))) return true;
 
-            Dictionary<char, char> pairs = new Dictionary<char, char>() { { '(', ')' } };
+            var pairs = new Dictionary<char, char> { { '(', ')' } };
 
-            Stack<char> parenthesises = new Stack<char>();
+            var parenthesises = new Stack<char>();
 
             try
             {
-                foreach (char c in value)
-                {
+                foreach (var c in value)
                     if (pairs.Keys.Contains(c))
                     {
                         parenthesises.Push(c);
@@ -162,20 +137,14 @@ namespace DatabaseInterpreter.Utility
                         if (pairs.Values.Contains(c))
                         {
                             if (c == pairs[parenthesises.First()])
-                            {
                                 parenthesises.Pop();
-                            }
                             else
-                            {
                                 return false;
-                            }
                         }
                         else
                         {
-                            continue;
                         }
                     }
-                }
             }
             catch
             {

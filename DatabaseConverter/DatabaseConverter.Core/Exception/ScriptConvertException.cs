@@ -1,12 +1,13 @@
-﻿using DatabaseInterpreter.Model;
-using System;
+﻿using System;
 
 namespace DatabaseConverter.Core
 {
     public class ScriptConvertException<T> : ConvertException
     {
-        public override string ObjectType => typeof(T).Name;
+        public ScriptConvertException(Exception ex) : base(ex)
+        {
+        }
 
-        public ScriptConvertException(Exception ex) : base(ex) { }
+        public override string ObjectType => typeof(T).Name;
     }
 }

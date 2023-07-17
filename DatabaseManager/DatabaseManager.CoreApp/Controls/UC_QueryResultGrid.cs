@@ -1,122 +1,113 @@
-﻿using DatabaseInterpreter.Utility;
-using DatabaseManager.Helper;
-using System;
+﻿using System;
 using System.Data;
 using System.Reflection;
 using System.Windows.Forms;
+using DatabaseInterpreter.Utility;
+using DatabaseManager.Helper;
 
-namespace DatabaseManager.Controls
+namespace DatabaseManager.Controls;
+
+public partial class UC_QueryResultGrid : UserControl
 {
-    public partial class UC_QueryResultGrid : UserControl
+    public UC_QueryResultGrid()
     {
-        public UC_QueryResultGrid()
+        InitializeComponent();
+
+        typeof(DataGridView).InvokeMember("DoubleBuffered",
+            BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty, null, dgvData,
+            new object[] { true });
+    }
+
+    public void LoadData(DataTable dataTable)
+    {
+        dgvData.DataSource = DataGridViewHelper.ConvertDataTable(dataTable);
+    }
+
+    public void ClearData()
+    {
+        dgvData.DataSource = null;
+    }
+
+    private void tsmiSave_Click(object sender, EventArgs e)
+    {
+        Save();
+    }
+
+    private void Save()
+    {
+        if (dlgSave == null) dlgSave = new SaveFileDialog();
+
+        dlgSave.FileName = "";
+
+        var result = dlgSave.ShowDialog();
+        if (result == DialogResult.OK) DataTableHelper.WriteToFile(dgvData.DataSource as DataTable, dlgSave.FileName);
+    }
+
+    private void dgvData_MouseUp(object sender, MouseEventArgs e)
+    {
+        if (e.Button == MouseButtons.Right)
         {
-            InitializeComponent();
+            SetContextMenuItemVisible();
 
-            typeof(DataGridView).InvokeMember("DoubleBuffered", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty, null, this.dgvData, new object[] { true });
+            contextMenuStrip1.Show(dgvData, e.Location);
         }
+    }
 
-        public void LoadData(DataTable dataTable)
-        {
-            this.dgvData.DataSource = DataGridViewHelper.ConvertDataTable(dataTable);
-        }
+    private void tsmiCopy_Click(object sender, EventArgs e)
+    {
+        Copy(DataGridViewClipboardCopyMode.EnableWithoutHeaderText);
+    }
 
-        public void ClearData()
-        {
-            this.dgvData.DataSource = null;
-        }
+    private void tsmiCopyWithHeader_Click(object sender, EventArgs e)
+    {
+        Copy(DataGridViewClipboardCopyMode.EnableAlwaysIncludeHeaderText);
+    }
 
-        private void tsmiSave_Click(object sender, EventArgs e)
-        {
-            this.Save();
-        }
+    private void Copy(DataGridViewClipboardCopyMode mode)
+    {
+        dgvData.ClipboardCopyMode = mode;
 
-        private void Save()
-        {
-            if (this.dlgSave == null)
-            {
-                this.dlgSave = new SaveFileDialog();
-            }
+        Clipboard.SetDataObject(dgvData.GetClipboardContent());
+    }
 
-            this.dlgSave.FileName = "";
+    private void dgvData_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
+    {
+        dgvData.ClearSelection();
+    }
 
-            DialogResult result = this.dlgSave.ShowDialog();
-            if (result == DialogResult.OK)
-            {
-                DataTableHelper.WriteToFile(this.dgvData.DataSource as DataTable, this.dlgSave.FileName);
-            }
-        }
+    private void dgvData_DataError(object sender, DataGridViewDataErrorEventArgs e)
+    {
+    }
 
-        private void dgvData_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Right)
-            {
-                this.SetContextMenuItemVisible();
+    private void dgvData_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+    {
+        DataGridViewHelper.FormatCell(dgvData, e);
+    }
 
-                this.contextMenuStrip1.Show(this.dgvData, e.Location);
-            }
-        }
+    private void SetContextMenuItemVisible()
+    {
+        var selectedCount = dgvData.GetCellCount(DataGridViewElementStates.Selected);
+        tsmiCopy.Visible = selectedCount > 1;
+        tsmiCopyWithHeader.Visible = selectedCount > 1;
+        tsmiViewGeometry.Visible = selectedCount == 1 && DataGridViewHelper.IsGeometryValue(dgvData);
+        tsmiCopyContent.Visible = selectedCount == 1;
+        tsmiShowContent.Visible = selectedCount == 1;
+    }
 
-        private void tsmiCopy_Click(object sender, EventArgs e)
-        {
-            this.Copy(DataGridViewClipboardCopyMode.EnableWithoutHeaderText);
-        }
+    private void tsmiViewGeometry_Click(object sender, EventArgs e)
+    {
+        DataGridViewHelper.ShowGeometryViewer(dgvData);
+    }
 
-        private void tsmiCopyWithHeader_Click(object sender, EventArgs e)
-        {
-            this.Copy(DataGridViewClipboardCopyMode.EnableAlwaysIncludeHeaderText);
-        }
+    private void tsmiCopyContent_Click(object sender, EventArgs e)
+    {
+        var value = DataGridViewHelper.GetCurrentCellValue(dgvData);
 
-        private void Copy(DataGridViewClipboardCopyMode mode)
-        {
-            this.dgvData.ClipboardCopyMode = mode;
+        if (!string.IsNullOrEmpty(value)) Clipboard.SetDataObject(value);
+    }
 
-            Clipboard.SetDataObject(this.dgvData.GetClipboardContent());
-        }
-
-        private void dgvData_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
-        {
-            this.dgvData.ClearSelection();
-        }
-
-        private void dgvData_DataError(object sender, DataGridViewDataErrorEventArgs e)
-        {
-
-        }
-
-        private void dgvData_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
-        {
-            DataGridViewHelper.FormatCell(this.dgvData, e);
-        }
-
-        private void SetContextMenuItemVisible()
-        {
-            int selectedCount = this.dgvData.GetCellCount(DataGridViewElementStates.Selected);
-            this.tsmiCopy.Visible = selectedCount > 1;
-            this.tsmiCopyWithHeader.Visible = selectedCount > 1;
-            this.tsmiViewGeometry.Visible = selectedCount ==1 && DataGridViewHelper.IsGeometryValue(this.dgvData);
-            this.tsmiCopyContent.Visible = selectedCount == 1;
-            this.tsmiShowContent.Visible = selectedCount == 1;
-        }
-
-        private void tsmiViewGeometry_Click(object sender, EventArgs e)
-        {
-            DataGridViewHelper.ShowGeometryViewer(this.dgvData);
-        }
-
-        private void tsmiCopyContent_Click(object sender, EventArgs e)
-        {
-            var value = DataGridViewHelper.GetCurrentCellValue(this.dgvData);
-
-            if (!string.IsNullOrEmpty(value))
-            {
-                Clipboard.SetDataObject(value);
-            }
-        }
-
-        private void tsmiShowContent_Click(object sender, EventArgs e)
-        {
-            DataGridViewHelper.ShowCellContent(this.dgvData);
-        }
+    private void tsmiShowContent_Click(object sender, EventArgs e)
+    {
+        DataGridViewHelper.ShowCellContent(dgvData);
     }
 }

@@ -1,145 +1,124 @@
-﻿using DatabaseInterpreter.Core;
+﻿using System.Collections.Generic;
+using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
-using System;
-using System.Collections.Generic;
 
 namespace DatabaseConverter.Core
 {
     public class SequenceTranslator : DbObjectTranslator
     {
-        private IEnumerable<Sequence> sequences;
         public const string SqlServerSequenceNextValueFlag = "NEXT VALUE FOR";
         public const string PostgreSeqenceNextValueFlag = "NEXTVAL";
         public const string OracleSequenceNextValueFlag = "NEXTVAL";
+        private readonly IEnumerable<Sequence> sequences;
 
-        public SequenceTranslator(DbInterpreter sourceInterpreter, DbInterpreter targetInterpreter) : base(sourceInterpreter, targetInterpreter)
+        public SequenceTranslator(DbInterpreter sourceInterpreter, DbInterpreter targetInterpreter) : base(
+            sourceInterpreter, targetInterpreter)
         {
-
         }
 
-        public SequenceTranslator(DbInterpreter sourceInterpreter, DbInterpreter targetInterpreter, IEnumerable<Sequence> sequences) : base(sourceInterpreter, targetInterpreter)
+        public SequenceTranslator(DbInterpreter sourceInterpreter, DbInterpreter targetInterpreter,
+            IEnumerable<Sequence> sequences) : base(sourceInterpreter, targetInterpreter)
         {
             this.sequences = sequences;
         }
 
         public override void Translate()
         {
-            if (this.sourceDbType == this.targetDbType)
+            if (sourceDbType == targetDbType) return;
+
+            FeedbackInfo("Begin to translate sequences.");
+
+            foreach (var sequence in sequences)
             {
-                return;
+                ConvertDataType(sequence);
+
+                if (sequence.StartValue < sequence.MinValue) sequence.StartValue = (int)sequence.MinValue;
             }
 
-            this.FeedbackInfo("Begin to translate sequences.");
-
-            foreach (Sequence sequence in this.sequences)
-            {
-                this.ConvertDataType(sequence);
-
-                if (sequence.StartValue < sequence.MinValue)
-                {
-                    sequence.StartValue = (int)sequence.MinValue;
-                }
-            }
-
-            this.FeedbackInfo("End translate sequences.");
+            FeedbackInfo("End translate sequences.");
         }
 
         public void ConvertDataType(Sequence sequence)
         {
-            if (this.targetDbType == DatabaseType.SqlServer)
-            {
-                sequence.DataType = "bigint";
-            }
+            if (targetDbType == DatabaseType.SqlServer) sequence.DataType = "bigint";
         }
 
         public static bool IsSequenceValueFlag(DatabaseType databaseType, string value)
         {
-            string upperValue = value.ToUpper();
+            var upperValue = value.ToUpper();
 
             if (databaseType == DatabaseType.SqlServer)
-            {
                 return upperValue.Contains(SqlServerSequenceNextValueFlag);
-            }
-            else if (databaseType == DatabaseType.Postgres)
-            {
+            if (databaseType == DatabaseType.Postgres)
                 return upperValue.Contains(PostgreSeqenceNextValueFlag);
-            }
-            else if (databaseType == DatabaseType.Oracle)
-            {
-                return upperValue.Contains(OracleSequenceNextValueFlag);
-            }
+            if (databaseType == DatabaseType.Oracle) return upperValue.Contains(OracleSequenceNextValueFlag);
 
             return false;
         }
 
         public string HandleSequenceValue(string value)
         {
-            string nextValueFlag = "";
-            string sequencePart = "";
+            var nextValueFlag = "";
+            var sequencePart = "";
 
-            if (this.sourceDbType == DatabaseType.SqlServer)
+            if (sourceDbType == DatabaseType.SqlServer)
             {
-                nextValueFlag = SequenceTranslator.SqlServerSequenceNextValueFlag;
+                nextValueFlag = SqlServerSequenceNextValueFlag;
             }
-            else if (this.sourceDbType == DatabaseType.Postgres)
+            else if (sourceDbType == DatabaseType.Postgres)
             {
-                nextValueFlag = SequenceTranslator.PostgreSeqenceNextValueFlag;
+                nextValueFlag = PostgreSeqenceNextValueFlag;
                 value = value.Replace("::regclass", "");
             }
-            else if (this.sourceDbType == DatabaseType.Oracle)
+            else if (sourceDbType == DatabaseType.Oracle)
             {
-                nextValueFlag = SequenceTranslator.OracleSequenceNextValueFlag;
+                nextValueFlag = OracleSequenceNextValueFlag;
             }
 
-            sequencePart = StringHelper.GetBalanceParenthesisTrimedValue(value.ReplaceOrdinalIgnoreCase(nextValueFlag, "").Trim()).Trim('\'');
+            sequencePart = StringHelper
+                .GetBalanceParenthesisTrimedValue(value.ReplaceOrdinalIgnoreCase(nextValueFlag, "").Trim()).Trim('\'');
 
             string schema = null, seqenceName = null;
 
             if (sequencePart.Contains("."))
             {
                 var items = sequencePart.Split('.');
-                schema = this.GetTrimedName(items[0]);
-                seqenceName = this.GetTrimedName(items[1]);
+                schema = GetTrimedName(items[0]);
+                seqenceName = GetTrimedName(items[1]);
             }
             else
             {
-                seqenceName = this.GetTrimedName(sequencePart);
-            }           
+                seqenceName = GetTrimedName(sequencePart);
+            }
 
-            string mappedSchema = this.GetMappedSchema(schema);
+            var mappedSchema = GetMappedSchema(schema);
 
-            return ConvertSequenceValue(this.targetDbInterpreter, mappedSchema, seqenceName);
+            return ConvertSequenceValue(targetDbInterpreter, mappedSchema, seqenceName);
         }
 
         public static string ConvertSequenceValue(DbInterpreter targetDbInterpreter, string schema, string sequenceName)
         {
-            DatabaseType targetDbType = targetDbInterpreter.DatabaseType;
+            var targetDbType = targetDbInterpreter.DatabaseType;
 
             if (targetDbType == DatabaseType.SqlServer)
-            {
-                return $"{SqlServerSequenceNextValueFlag} {targetDbInterpreter.GetQuotedDbObjectNameWithSchema(schema, sequenceName)}";
-            }
-            else if (targetDbType == DatabaseType.Postgres)
-            {
-                return $"{PostgreSeqenceNextValueFlag}('{targetDbInterpreter.GetQuotedDbObjectNameWithSchema(schema, sequenceName)}')";
-            }
-            else if (targetDbType == DatabaseType.Oracle)
-            {
-                return $"{targetDbInterpreter.GetQuotedDbObjectNameWithSchema(schema, sequenceName)}.{OracleSequenceNextValueFlag}";
-            }
+                return
+                    $"{SqlServerSequenceNextValueFlag} {targetDbInterpreter.GetQuotedDbObjectNameWithSchema(schema, sequenceName)}";
+            if (targetDbType == DatabaseType.Postgres)
+                return
+                    $"{PostgreSeqenceNextValueFlag}('{targetDbInterpreter.GetQuotedDbObjectNameWithSchema(schema, sequenceName)}')";
+            if (targetDbType == DatabaseType.Oracle)
+                return
+                    $"{targetDbInterpreter.GetQuotedDbObjectNameWithSchema(schema, sequenceName)}.{OracleSequenceNextValueFlag}";
 
             return targetDbInterpreter.GetQuotedDbObjectNameWithSchema(schema, sequenceName);
         }
 
         private string GetMappedSchema(string schema)
         {
-            string mappedSchema = SchemaInfoHelper.GetMappedSchema(this.GetTrimedName(schema), this.Option.SchemaMappings);
+            var mappedSchema = SchemaInfoHelper.GetMappedSchema(GetTrimedName(schema), Option.SchemaMappings);
 
-            if (mappedSchema == null)
-            {
-                mappedSchema = this.targetDbInterpreter.DefaultSchema;
-            }
+            if (mappedSchema == null) mappedSchema = targetDbInterpreter.DefaultSchema;
 
             return mappedSchema;
         }

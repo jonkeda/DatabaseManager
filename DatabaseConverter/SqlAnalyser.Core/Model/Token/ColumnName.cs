@@ -6,35 +6,6 @@ namespace SqlAnalyser.Model
     public class ColumnName : NameToken
     {
         private TokenInfo tableName;
-        public override TokenType Type => TokenType.ColumnName;
-
-        public TokenInfo DataType { get; set; }
-
-        public TokenInfo TableName
-        {
-            get
-            {
-                return this.tableName;
-            }
-            set
-            {
-                value.Type = TokenType.TableName;
-                this.tableName = value;
-            }
-        }
-
-        public string FieldName
-        {
-            get
-            {
-                if (this.alias != null)
-                {
-                    return this.alias.Symbol;
-                }
-
-                return this.Symbol;
-            }
-        }
 
         //public string FullName
         //{
@@ -69,6 +40,30 @@ namespace SqlAnalyser.Model
 
         public ColumnName(string symbol, ITerminalNode node) : base(symbol, node)
         {
+        }
+
+        public override TokenType Type => TokenType.ColumnName;
+
+        public TokenInfo DataType { get; set; }
+
+        public TokenInfo TableName
+        {
+            get => tableName;
+            set
+            {
+                value.Type = TokenType.TableName;
+                tableName = value;
+            }
+        }
+
+        public string FieldName
+        {
+            get
+            {
+                if (alias != null) return alias.Symbol;
+
+                return Symbol;
+            }
         }
     }
 }

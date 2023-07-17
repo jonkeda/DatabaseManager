@@ -1,83 +1,80 @@
-﻿using Antlr4.Runtime;
+﻿using System.Collections.Generic;
+using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
-using System.Collections.Generic;
 
 namespace SqlAnalyser.Model
 {
     public class TokenInfo
     {
+        public TokenInfo(string symbol)
+        {
+            Symbol = symbol;
+        }
+
+        public TokenInfo(ParserRuleContext context)
+        {
+            Symbol = context?.GetText();
+            SetIndex(context);
+        }
+
+        public TokenInfo(string symbol, ParserRuleContext context)
+        {
+            Symbol = symbol;
+            SetIndex(context);
+        }
+
+        public TokenInfo(ITerminalNode node)
+        {
+            Symbol = node?.GetText();
+            SetIndex(node);
+        }
+
+        public TokenInfo(string symbol, ITerminalNode node)
+        {
+            Symbol = symbol;
+            SetIndex(node);
+        }
+
         public virtual TokenType Type { get; set; }
         public string Symbol { get; set; }
         public int? StartIndex { get; set; }
         public int? StopIndex { get; set; }
         public bool IsConst { get; set; }
 
-        public int Length => this.StartIndex.HasValue && this.StopIndex.HasValue ? (this.StopIndex - this.StartIndex + 1).Value : 0;
+        public int Length => StartIndex.HasValue && StopIndex.HasValue ? (StopIndex - StartIndex + 1).Value : 0;
 
         public TokenInfo Parent { get; private set; }
         public List<TokenInfo> Children { get; } = new List<TokenInfo>();
 
-        public TokenInfo(string symbol)
-        {
-            this.Symbol = symbol;
-        }
-
-        public TokenInfo(ParserRuleContext context)
-        {
-            this.Symbol = context?.GetText();
-            this.SetIndex(context);
-        }
-
-        public TokenInfo(string symbol, ParserRuleContext context)
-        {
-            this.Symbol = symbol;
-            this.SetIndex(context);
-        }
-
-        public TokenInfo(ITerminalNode node)
-        {
-            this.Symbol = node?.GetText();
-            this.SetIndex(node);
-        }
-
-        public TokenInfo(string symbol, ITerminalNode node)
-        {
-            this.Symbol = symbol;
-            this.SetIndex(node);
-        }
-
         public TokenInfo SetIndex(ParserRuleContext context)
         {
-            this.StartIndex = context?.Start?.StartIndex;
-            this.StopIndex = context?.Stop?.StopIndex;
+            StartIndex = context?.Start?.StartIndex;
+            StopIndex = context?.Stop?.StopIndex;
 
             return this;
         }
 
         public TokenInfo SetIndex(ITerminalNode node)
         {
-            this.StartIndex = node?.Symbol?.StartIndex;
-            this.StopIndex = node?.Symbol?.StopIndex;
+            StartIndex = node?.Symbol?.StartIndex;
+            StopIndex = node?.Symbol?.StopIndex;
 
             return this;
         }
 
         public override string ToString()
         {
-            return this.Symbol;
+            return Symbol;
         }
 
         public void AddChild(TokenInfo child)
         {
-            if (child == null)
-            {
-                return;
-            }
+            if (child == null) return;
 
-            if (!(child.StartIndex == this.StartIndex && child.StopIndex == this.StopIndex))
+            if (!(child.StartIndex == StartIndex && child.StopIndex == StopIndex))
             {
                 child.Parent = this;
-                this.Children.Add(child);
+                Children.Add(child);
             }
         }
     }
@@ -99,7 +96,7 @@ namespace SqlAnalyser.Model
         UserVariableName, //for mysql
         CursorName,
         ConstraintName,
-        DataType,   
+        DataType,
         TableAlias,
         ColumnAlias,
         IfCondition, //not include query
@@ -117,5 +114,5 @@ namespace SqlAnalyser.Model
         Subquery,
         FunctionCall,
         StringLiteral
-    }   
+    }
 }

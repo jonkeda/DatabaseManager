@@ -16,12 +16,6 @@
 
         public string Name { get; set; }
 
-        public string Description
-        {
-            get
-            {
-                return $"{this.Name}({this.Database})";
-            }
-        }
+        public string Description => $"{Name}({Database})";
     }
 }

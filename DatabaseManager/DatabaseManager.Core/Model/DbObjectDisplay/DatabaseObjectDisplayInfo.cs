@@ -1,10 +1,12 @@
-﻿using DatabaseInterpreter.Model;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using DatabaseInterpreter.Model;
 
 namespace DatabaseManager.Model
 {
     public class DatabaseObjectDisplayInfo
     {
+        public ScriptAction ScriptAction;
+        public List<RoutineParameter> ScriptParameters;
         public string Schema { get; set; }
         public string Name { get; set; }
         public DatabaseObject DatabaseObject { get; set; }
@@ -15,9 +17,7 @@ namespace DatabaseManager.Model
         public object Error { get; set; }
         public bool IsNew { get; set; }
         public string FilePath { get; set; }
-        public ScriptAction ScriptAction;
-        public List<RoutineParameter> ScriptParameters;
-        public bool IsTranlatedScript { get; set; }       
+        public bool IsTranlatedScript { get; set; }
     }
 
     public enum DatabaseObjectDisplayType

@@ -29,7 +29,7 @@
 	</mapping>
 	<mapping>
 		<source type="bit varying" />
-		<target type="blob"/>
+		<target type="blob" />
 	</mapping>
 	<mapping>
 		<source type="bit varying[]" />
@@ -45,7 +45,7 @@
 	</mapping>
 	<mapping>
 		<source type="box" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="box[]" />
@@ -57,7 +57,7 @@
 	</mapping>
 	<mapping>
 		<source type="&quot;char&quot;" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="&quot;char[]&quot;" />
@@ -77,7 +77,7 @@
 	</mapping>
 	<mapping>
 		<source type="cidr" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="cidr[]" />
@@ -121,11 +121,11 @@
 	</mapping>
 	<mapping>
 		<source type="geography" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="geography[]" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="geometry" />
@@ -137,107 +137,107 @@
 	</mapping>
 	<mapping>
 		<source type="gtsvector" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="gtsvector[]" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="inet" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="inet[]" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="int2vector[]" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="int4range" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="int4range[]" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="int8range" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="int8range[]" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="integer" />
-		<target type="integer"/>
+		<target type="integer" />
 	</mapping>
 	<mapping>
 		<source type="integer[]" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="interval" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="interval[]" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="json" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="json[]" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="jsonb" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="jsonb[]" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="jsonpath" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="line" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="line[]" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="lseg" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="lseg[]" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="macaddr" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="macaddr[]" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="macaddr8" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="macaddr8[]" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="money" />
@@ -245,31 +245,31 @@
 	</mapping>
 	<mapping>
 		<source type="money[]" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="name" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="name[]" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="numeric" />
-		<target type="numeric"/>
+		<target type="numeric" />
 	</mapping>
 	<mapping>
 		<source type="numeric[]" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="nummultirange[]" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="numrange" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="numrange[]" />
@@ -477,7 +477,7 @@
 	</mapping>
 	<mapping>
 		<source type="tid" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="time with time zone" />

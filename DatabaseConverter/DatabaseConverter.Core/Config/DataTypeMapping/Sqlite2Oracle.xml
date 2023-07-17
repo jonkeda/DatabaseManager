@@ -17,6 +17,6 @@
 	</mapping>
 	<mapping>
 		<source type="text" />
-		<target type="varchar2" length="100" substitute="clob"/>		
-	</mapping>	
+		<target type="varchar2" length="100" substitute="clob" />
+	</mapping>
 </mappings>

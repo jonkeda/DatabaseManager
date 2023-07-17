@@ -1,254 +1,221 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using DatabaseInterpreter.Model;
-using DatabaseManager.Model;
 using DatabaseManager.Helper;
+using DatabaseManager.Model;
 
-namespace DatabaseManager.Controls
+namespace DatabaseManager.Controls;
+
+public partial class UC_TableConstraints : UserControl
 {
-    public partial class UC_TableConstraints : UserControl
+    public GeneateChangeScriptsHandler OnGenerateChangeScripts;
+
+    public UC_TableConstraints()
     {
-        private bool inited = false;
-        private bool loadedData = false;
+        InitializeComponent();
+    }
 
-        public bool Inited => this.inited;
-        public bool LoadedData => this.loadedData;
-        public Table Table { get; set; }
+    public bool Inited { get; private set; }
 
-        public DatabaseType DatabaseType { get; set; }
+    public bool LoadedData { get; private set; }
 
-        public GeneateChangeScriptsHandler OnGenerateChangeScripts;
-        public event ColumnSelectHandler OnColumnSelect;
+    public Table Table { get; set; }
 
-        public UC_TableConstraints()
+    public DatabaseType DatabaseType { get; set; }
+    public event ColumnSelectHandler OnColumnSelect;
+
+    private void UC_TableConstraints_Load(object sender, EventArgs e)
+    {
+        if (DatabaseType == DatabaseType.MySql) dgvConstraints.Columns["colComment"].Visible = false;
+    }
+
+    public void InitControls()
+    {
+        if (DatabaseType == DatabaseType.Oracle || DatabaseType == DatabaseType.MySql ||
+            DatabaseType == DatabaseType.Sqlite) colComment.Visible = false;
+
+        if (DatabaseType == DatabaseType.Sqlite) colColumnName.Visible = true;
+
+        Inited = true;
+    }
+
+    public void LoadConstraints(IEnumerable<TableConstraintDesignerInfo> constraintDesignerInfos)
+    {
+        dgvConstraints.Rows.Clear();
+
+        foreach (var constriant in constraintDesignerInfos)
         {
-            InitializeComponent();          
+            var rowIndex = dgvConstraints.Rows.Add();
+
+            var row = dgvConstraints.Rows[rowIndex];
+
+            row.Cells[colColumnName.Name].Value = constriant.ColumnName;
+            row.Cells[colName.Name].Value = constriant.Name;
+            row.Cells[colDefinition.Name].Value = constriant.Definition;
+            row.Cells[colComment.Name].Value = constriant.Comment;
+
+            row.Tag = constriant;
         }
 
-        private void UC_TableConstraints_Load(object sender, EventArgs e)
+        LoadedData = true;
+
+        AutoSizeColumns();
+        dgvConstraints.ClearSelection();
+    }
+
+    private void AutoSizeColumns()
+    {
+        DataGridViewHelper.AutoSizeLastColumn(dgvConstraints);
+    }
+
+    public List<TableConstraintDesignerInfo> GetConstraints()
+    {
+        var constraintDesingerInfos = new List<TableConstraintDesignerInfo>();
+
+        foreach (DataGridViewRow row in dgvConstraints.Rows)
         {
-            if (this.DatabaseType == DatabaseType.MySql)
+            var constraint = new TableConstraintDesignerInfo();
+
+            var constraintName = row.Cells[colName.Name].Value?.ToString();
+            var columnName = row.Cells[colColumnName.Name].Value?.ToString();
+
+            if (!string.IsNullOrEmpty(constraintName) || !string.IsNullOrEmpty(columnName))
             {
-                this.dgvConstraints.Columns["colComment"].Visible = false;
+                var tag = row.Tag as TableConstraintDesignerInfo;
+
+                constraint.OldName = tag?.OldName;
+                constraint.Name = constraintName;
+                constraint.ColumnName = columnName;
+                constraint.Definition = DataGridViewHelper.GetCellStringValue(row, colDefinition.Name);
+                constraint.Comment = DataGridViewHelper.GetCellStringValue(row, colComment.Name);
+
+                row.Tag = constraint;
+
+                constraintDesingerInfos.Add(constraint);
             }
         }
 
-        public void InitControls()
+        return constraintDesingerInfos;
+    }
+
+    private void dgvConstraints_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.KeyCode == Keys.Delete) DeleteRow();
+    }
+
+    private void DeleteRow()
+    {
+        var row = DataGridViewHelper.GetSelectedRow(dgvConstraints);
+
+        if (row != null && !row.IsNewRow) dgvConstraints.Rows.RemoveAt(row.Index);
+    }
+
+    private void tsmiDeleteConstraint_Click(object sender, EventArgs e)
+    {
+        DeleteRow();
+    }
+
+    private void dgvConstraints_SizeChanged(object sender, EventArgs e)
+    {
+        AutoSizeColumns();
+    }
+
+    private void dgvConstraints_DataError(object sender, DataGridViewDataErrorEventArgs e)
+    {
+    }
+
+    public void OnSaved()
+    {
+        for (var i = 0; i < dgvConstraints.RowCount; i++)
         {
-            if (this.DatabaseType == DatabaseType.Oracle || this.DatabaseType == DatabaseType.MySql || this.DatabaseType == DatabaseType.Sqlite)
+            var row = dgvConstraints.Rows[i];
+
+            var keyDesingerInfo = row.Tag as TableForeignKeyDesignerInfo;
+
+            if (keyDesingerInfo != null && !string.IsNullOrEmpty(keyDesingerInfo.Name))
+                keyDesingerInfo.OldName = keyDesingerInfo.Name;
+        }
+    }
+
+    public void EndEdit()
+    {
+        dgvConstraints.EndEdit();
+        dgvConstraints.CurrentCell = null;
+    }
+
+    private void dgvConstraints_MouseUp(object sender, MouseEventArgs e)
+    {
+        if (e.Button == MouseButtons.Right)
+        {
+            var row = DataGridViewHelper.GetSelectedRow(dgvConstraints);
+
+            if (row != null)
             {
-                this.colComment.Visible = false;
+                var isEmptyNewRow = row.IsNewRow && DataGridViewHelper.IsEmptyRow(row);
+
+                tsmiDeleteConstraint.Enabled = !isEmptyNewRow;
+            }
+            else
+            {
+                tsmiDeleteConstraint.Enabled = false;
             }
 
-            if(this.DatabaseType == DatabaseType.Sqlite)
-            {
-                this.colColumnName.Visible = true;
-            }
-
-            this.inited = true;
+            contextMenuStrip1.Show(dgvConstraints, e.Location);
         }
+    }
 
-        public void LoadConstraints(IEnumerable<TableConstraintDesignerInfo> constraintDesignerInfos)
+    private void dgvConstraints_RowHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+    {
+        dgvConstraints.EndEdit();
+        dgvConstraints.CurrentCell = null;
+        dgvConstraints.Rows[e.RowIndex].Selected = true;
+    }
+
+    private void tsmiGenerateChangeScripts_Click(object sender, EventArgs e)
+    {
+        if (OnGenerateChangeScripts != null) OnGenerateChangeScripts();
+    }
+
+    private void dgvConstraints_CellContentClick(object sender, DataGridViewCellEventArgs e)
+    {
+        if (e.RowIndex < 0) return;
+
+        if (e.ColumnIndex == colColumnName.Index)
         {
-            this.dgvConstraints.Rows.Clear();
+            var row = dgvConstraints.Rows[e.RowIndex];
+            var cell = row.Cells[colColumnName.Name];
 
-            foreach (TableConstraintDesignerInfo constriant in constraintDesignerInfos)
-            {
-                int rowIndex = this.dgvConstraints.Rows.Add();
+            var designerInfo = row.Tag as TableConstraintDesignerInfo;
 
-                DataGridViewRow row = this.dgvConstraints.Rows[rowIndex];
-
-                row.Cells[this.colColumnName.Name].Value = constriant.ColumnName;
-                row.Cells[this.colName.Name].Value = constriant.Name;
-                row.Cells[this.colDefinition.Name].Value = constriant.Definition;
-                row.Cells[this.colComment.Name].Value = constriant.Comment;
-
-                row.Tag = constriant;
-            }
-
-            this.loadedData = true;
-
-            this.AutoSizeColumns();
-            this.dgvConstraints.ClearSelection();
+            if (OnColumnSelect != null)
+                OnColumnSelect(DatabaseObjectType.Constraint,
+                    designerInfo?.ColumnName == null
+                        ? Enumerable.Empty<SimpleColumn>()
+                        : new SimpleColumn[] { new() { ColumnName = designerInfo.ColumnName } },
+                    false, true
+                );
         }
+    }
 
-        private void AutoSizeColumns()
+    public void SetRowColumns(IEnumerable<SimpleColumn> columnInfos)
+    {
+        var cell = dgvConstraints.CurrentCell;
+
+        if (cell != null)
         {
-            DataGridViewHelper.AutoSizeLastColumn(this.dgvConstraints);
-        }
+            var columnName = columnInfos.FirstOrDefault()?.ColumnName;
 
-        public List<TableConstraintDesignerInfo> GetConstraints()
-        {
-            List<TableConstraintDesignerInfo> constraintDesingerInfos = new List<TableConstraintDesignerInfo>();
+            cell.Value = columnName;
 
-            foreach (DataGridViewRow row in this.dgvConstraints.Rows)
-            {
-                TableConstraintDesignerInfo constraint = new TableConstraintDesignerInfo();
+            var designerInfo = cell.OwningRow.Tag as TableConstraintDesignerInfo;
 
-                string constraintName = row.Cells[this.colName.Name].Value?.ToString();
-                string columnName = row.Cells[this.colColumnName.Name].Value?.ToString();
+            if (designerInfo == null) designerInfo = new TableConstraintDesignerInfo();
 
-                if (!string.IsNullOrEmpty(constraintName) || !string.IsNullOrEmpty(columnName))
-                {
-                    TableConstraintDesignerInfo tag = row.Tag as TableConstraintDesignerInfo;
+            designerInfo.ColumnName = columnName;
 
-                    constraint.OldName = tag?.OldName;
-                    constraint.Name = constraintName;
-                    constraint.ColumnName = columnName;
-                    constraint.Definition = DataGridViewHelper.GetCellStringValue(row, this.colDefinition.Name);
-                    constraint.Comment = DataGridViewHelper.GetCellStringValue(row, this.colComment.Name);
-
-                    row.Tag = constraint;
-
-                    constraintDesingerInfos.Add(constraint);
-                }
-            }
-
-            return constraintDesingerInfos;
-        }
-
-        private void dgvConstraints_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Delete)
-            {
-                this.DeleteRow();
-            }
-        }
-
-        private void DeleteRow()
-        {
-            DataGridViewRow row = DataGridViewHelper.GetSelectedRow(this.dgvConstraints);
-
-            if (row != null && !row.IsNewRow)
-            {
-                this.dgvConstraints.Rows.RemoveAt(row.Index);
-            }
-        }
-
-        private void tsmiDeleteConstraint_Click(object sender, EventArgs e)
-        {
-            this.DeleteRow();
-        }
-
-        private void dgvConstraints_SizeChanged(object sender, EventArgs e)
-        {
-            this.AutoSizeColumns();
-        }
-
-        private void dgvConstraints_DataError(object sender, DataGridViewDataErrorEventArgs e)
-        {
-
-        }
-
-        public void OnSaved()
-        {
-            for (int i = 0; i < this.dgvConstraints.RowCount; i++)
-            {
-                DataGridViewRow row = this.dgvConstraints.Rows[i];
-
-                TableForeignKeyDesignerInfo keyDesingerInfo = row.Tag as TableForeignKeyDesignerInfo;
-
-                if (keyDesingerInfo != null && !string.IsNullOrEmpty(keyDesingerInfo.Name))
-                {
-                    keyDesingerInfo.OldName = keyDesingerInfo.Name;
-                }
-            }
-        }
-
-        public void EndEdit()
-        {
-            this.dgvConstraints.EndEdit();
-            this.dgvConstraints.CurrentCell = null;
-        }
-
-        private void dgvConstraints_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Right)
-            {
-                DataGridViewRow row = DataGridViewHelper.GetSelectedRow(this.dgvConstraints);
-
-                if (row != null)
-                {
-                    bool isEmptyNewRow = row.IsNewRow && DataGridViewHelper.IsEmptyRow(row);
-
-                    this.tsmiDeleteConstraint.Enabled = !isEmptyNewRow;
-                }
-                else
-                {
-                    this.tsmiDeleteConstraint.Enabled = false;
-                }
-
-                this.contextMenuStrip1.Show(this.dgvConstraints, e.Location);
-            }
-        }
-
-        private void dgvConstraints_RowHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
-        {
-            this.dgvConstraints.EndEdit();
-            this.dgvConstraints.CurrentCell = null;
-            this.dgvConstraints.Rows[e.RowIndex].Selected = true;
-        }
-
-        private void tsmiGenerateChangeScripts_Click(object sender, EventArgs e)
-        {
-            if (this.OnGenerateChangeScripts != null)
-            {
-                this.OnGenerateChangeScripts();
-            }
-        }
-
-        private void dgvConstraints_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0)
-            {
-                return;
-            }
-
-            if (e.ColumnIndex == this.colColumnName.Index)
-            {
-                DataGridViewRow row = this.dgvConstraints.Rows[e.RowIndex];
-                DataGridViewCell cell = row.Cells[this.colColumnName.Name];           
-
-                TableConstraintDesignerInfo designerInfo = row.Tag as TableConstraintDesignerInfo;
-
-                if (this.OnColumnSelect != null)
-                {
-                    this.OnColumnSelect(DatabaseObjectType.Constraint,
-                        designerInfo?.ColumnName == null ? Enumerable.Empty<SimpleColumn>() : new SimpleColumn[] { new SimpleColumn() { ColumnName = designerInfo.ColumnName } },
-                        false, true
-                    );
-                }
-            }
-        }
-
-        public void SetRowColumns(IEnumerable<SimpleColumn> columnInfos)
-        {
-            DataGridViewCell cell = this.dgvConstraints.CurrentCell;
-
-            if (cell != null)
-            {
-                string columnName = columnInfos.FirstOrDefault()?.ColumnName;
-
-                cell.Value = columnName;
-
-                TableConstraintDesignerInfo designerInfo = cell.OwningRow.Tag as TableConstraintDesignerInfo;
-
-                if (designerInfo == null)
-                {
-                    designerInfo = new TableConstraintDesignerInfo();
-                }
-
-                designerInfo.ColumnName = columnName;
-
-                cell.OwningRow.Tag = designerInfo;
-            }
+            cell.OwningRow.Tag = designerInfo;
         }
     }
 }

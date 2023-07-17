@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
@@ -11,54 +8,57 @@ namespace DatabaseManager.Core
 {
     public class ScriptTemplate
     {
-        private DbInterpreter dbInterpreter;
         private const string commonTemplateFileName = "Common";
         private const string commonTemplateFileExtension = ".txt";
-        public string TemplateFolder => Path.Combine(PathHelper.GetAssemblyFolder(), "Config/Template");
+        private readonly DbInterpreter dbInterpreter;
 
         public ScriptTemplate(DbInterpreter dbInterpreter)
         {
             this.dbInterpreter = dbInterpreter;
         }
 
-        public string GetTemplateContent(DatabaseObjectType databaseObjectType, ScriptAction scriptAction, DatabaseObject databaseObject)           
+        public string TemplateFolder => Path.Combine(PathHelper.GetAssemblyFolder(), "Config/Template");
+
+        public string GetTemplateContent(DatabaseObjectType databaseObjectType, ScriptAction scriptAction,
+            DatabaseObject databaseObject)
         {
-            string scriptTypeName = databaseObjectType.ToString();
-            string scriptTypeFolder = Path.Combine(TemplateFolder, scriptTypeName);
+            var scriptTypeName = databaseObjectType.ToString();
+            var scriptTypeFolder = Path.Combine(TemplateFolder, scriptTypeName);
 
-            string scriptTemplateFilePath = Path.Combine(scriptTypeFolder, this.dbInterpreter.DatabaseType.ToString() + commonTemplateFileExtension);
+            var scriptTemplateFilePath =
+                Path.Combine(scriptTypeFolder, dbInterpreter.DatabaseType + commonTemplateFileExtension);
 
-            if(!File.Exists(scriptTemplateFilePath))
-            {
-                scriptTemplateFilePath = Path.Combine(scriptTypeFolder, commonTemplateFileName + commonTemplateFileExtension);
-            }
-            
-            if(!File.Exists(scriptTemplateFilePath))
-            {
-                return string.Empty;
-            }
+            if (!File.Exists(scriptTemplateFilePath))
+                scriptTemplateFilePath =
+                    Path.Combine(scriptTypeFolder, commonTemplateFileName + commonTemplateFileExtension);
 
-            string templateContent = File.ReadAllText(scriptTemplateFilePath);
+            if (!File.Exists(scriptTemplateFilePath)) return string.Empty;
 
-            templateContent = this.ReplaceTemplatePlaceHolders(templateContent, databaseObjectType, scriptAction, databaseObject);
+            var templateContent = File.ReadAllText(scriptTemplateFilePath);
+
+            templateContent =
+                ReplaceTemplatePlaceHolders(templateContent, databaseObjectType, scriptAction, databaseObject);
 
             return templateContent;
         }
 
-        private string ReplaceTemplatePlaceHolders(string templateContent, DatabaseObjectType databaseObjectType, ScriptAction scriptAction, DatabaseObject databaseObject)
+        private string ReplaceTemplatePlaceHolders(string templateContent, DatabaseObjectType databaseObjectType,
+            ScriptAction scriptAction, DatabaseObject databaseObject)
         {
-            string nameTemplate = $"{databaseObjectType.ToString().ToUpper()}_NAME";
+            var nameTemplate = $"{databaseObjectType.ToString().ToUpper()}_NAME";
 
-            string name = this.dbInterpreter.DatabaseType == DatabaseType.SqlServer ? this.dbInterpreter.GetQuotedDbObjectNameWithSchema(databaseObject?.Schema, nameTemplate)
-                : this.dbInterpreter.GetQuotedString(nameTemplate);
+            var name = dbInterpreter.DatabaseType == DatabaseType.SqlServer
+                ? dbInterpreter.GetQuotedDbObjectNameWithSchema(databaseObject?.Schema, nameTemplate)
+                : dbInterpreter.GetQuotedString(nameTemplate);
 
-            string tableName = databaseObjectType == DatabaseObjectType.Trigger && databaseObject!=null ? this.dbInterpreter.GetQuotedDbObjectNameWithSchema(databaseObject)
-                            : this.dbInterpreter.GetQuotedString($"TABLE_NAME");
+            var tableName = databaseObjectType == DatabaseObjectType.Trigger && databaseObject != null
+                ? dbInterpreter.GetQuotedDbObjectNameWithSchema(databaseObject)
+                : dbInterpreter.GetQuotedString("TABLE_NAME");
 
 
             templateContent = templateContent.Replace("$ACTION$", scriptAction.ToString())
                 .Replace("$NAME$", name)
-                .Replace("$TABLE_NAME$", tableName);           
+                .Replace("$TABLE_NAME$", tableName);
 
             return templateContent;
         }

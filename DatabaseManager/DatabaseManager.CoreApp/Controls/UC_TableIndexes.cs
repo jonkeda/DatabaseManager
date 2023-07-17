@@ -1,461 +1,401 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using DatabaseManager.Helper;
-using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Core;
-using DatabaseManager.Model;
+using DatabaseInterpreter.Model;
 using DatabaseManager.Core;
+using DatabaseManager.Helper;
+using DatabaseManager.Model;
 
-namespace DatabaseManager.Controls
+namespace DatabaseManager.Controls;
+
+public partial class UC_TableIndexes : UserControl
 {
-    public partial class UC_TableIndexes : UserControl
+    private DateTime dtTypeCellClick = DateTime.Now;
+    public GeneateChangeScriptsHandler OnGenerateChangeScripts;
+
+    public UC_TableIndexes()
     {
-        private bool inited = false;
-        private bool loadedData = false;
-        private DateTime dtTypeCellClick = DateTime.Now;
-        public DatabaseType DatabaseType { get; set; }
-        public Table Table { get; set; }
+        InitializeComponent();
+    }
 
-        public bool Inited => this.inited;
-        public bool LoadedData => this.loadedData;
+    public DatabaseType DatabaseType { get; set; }
+    public Table Table { get; set; }
 
-        public event ColumnSelectHandler OnColumnSelect;
-        public GeneateChangeScriptsHandler OnGenerateChangeScripts;
+    public bool Inited { get; private set; }
 
-        public UC_TableIndexes()
+    public bool LoadedData { get; private set; }
+
+    public event ColumnSelectHandler OnColumnSelect;
+
+    public void InitControls(DbInterpreter dbInterpreter)
+    {
+        if (Inited) return;
+
+        if (!ManagerUtil.SupportComment(DatabaseType)) colComment.Visible = false;
+
+        var types = Enum.GetValues(typeof(IndexType));
+
+        var typeNames = new List<string>();
+
+        foreach (var type in types)
+            if (dbInterpreter.IndexType.HasFlag((IndexType)type) && (IndexType)type != IndexType.None)
+                typeNames.Add(type.ToString());
+
+        colType.DataSource = typeNames;
+
+        if (DatabaseType == DatabaseType.Oracle) colComment.Visible = false;
+
+        Inited = true;
+    }
+
+    public void LoadIndexes(IEnumerable<TableIndexDesignerInfo> indexDesignerInfos)
+    {
+        dgvIndexes.Rows.Clear();
+
+        foreach (var index in indexDesignerInfos)
         {
-            InitializeComponent();
+            var rowIndex = dgvIndexes.Rows.Add();
+
+            var row = dgvIndexes.Rows[rowIndex];
+
+            row.Cells[colIndexName.Name].Value = index.Name;
+            row.Cells[colType.Name].Value = GetIndexTypeEnumName(index.Type);
+            row.Cells[colColumns.Name].Value = GetColumnsDisplayText(index.Columns);
+            row.Cells[colComment.Name].Value = index.Comment;
+
+            row.Tag = index;
         }
 
-        public void InitControls(DbInterpreter dbInterpreter)
-        {
-            if (this.inited)
+        LoadedData = true;
+
+        AutoSizeColumns();
+        dgvIndexes.ClearSelection();
+    }
+
+    private string GetIndexTypeEnumName(string type)
+    {
+        var typeNames = Enum.GetNames(typeof(IndexType));
+
+        foreach (var tn in typeNames)
+            if (tn.ToLower() == type.ToLower())
+                return tn;
+
+        return type;
+    }
+
+    public void LoadPrimaryKeys(IEnumerable<TableColumnDesingerInfo> columnDesingerInfos)
+    {
+        var primaryRowIndex = -1;
+
+        foreach (DataGridViewRow row in dgvIndexes.Rows)
+            if (!row.IsNewRow)
             {
-                return;
-            }
+                var indexDesignerInfo = row.Tag as TableIndexDesignerInfo;
 
-            if (!ManagerUtil.SupportComment(this.DatabaseType))
-            {
-                this.colComment.Visible = false;
-            }
-
-            var types = Enum.GetValues(typeof(IndexType));
-
-            List<string> typeNames = new List<string>();
-
-            foreach (var type in types)
-            {
-                if (dbInterpreter.IndexType.HasFlag((IndexType)type) && (IndexType)type != IndexType.None)
+                if (indexDesignerInfo != null && indexDesignerInfo.IsPrimary)
                 {
-                    typeNames.Add(type.ToString());
+                    primaryRowIndex = row.Index;
+
+                    if (columnDesingerInfos.Count() > 0)
+                    {
+                        indexDesignerInfo.Columns.Clear();
+
+                        indexDesignerInfo.Columns.AddRange(
+                            columnDesingerInfos.Select(item => new IndexColumn { ColumnName = item.Name }));
+
+                        row.Cells[colColumns.Name].Value = GetColumnsDisplayText(indexDesignerInfo.Columns);
+                    }
+
+                    break;
                 }
             }
 
-            this.colType.DataSource = typeNames;
+        if (primaryRowIndex >= 0 && columnDesingerInfos.Count() == 0)
+        {
+            dgvIndexes.Rows.RemoveAt(primaryRowIndex);
+        }
+        else if (primaryRowIndex < 0 && columnDesingerInfos.Count() > 0)
+        {
+            var rowIndex = dgvIndexes.Rows.Add();
 
-            if (this.DatabaseType == DatabaseType.Oracle)
+            var tableIndexDesignerInfo = new TableIndexDesignerInfo
             {
-                this.colComment.Visible = false;
-            }
+                Type = DatabaseType == DatabaseType.Oracle ? IndexType.Unique.ToString() : IndexType.Primary.ToString(),
+                Name = IndexManager.GetPrimaryKeyDefaultName(Table),
+                IsPrimary = true
+            };
 
-            this.inited = true;
+            tableIndexDesignerInfo.Columns.AddRange(columnDesingerInfos.Select(item =>
+                new IndexColumn { ColumnName = item.Name }));
+
+            var primaryRow = dgvIndexes.Rows[rowIndex];
+            primaryRow.Cells[colType.Name].Value = tableIndexDesignerInfo.Type;
+            primaryRow.Cells[colIndexName.Name].Value = tableIndexDesignerInfo.Name;
+            primaryRow.Cells[colColumns.Name].Value = GetColumnsDisplayText(tableIndexDesignerInfo.Columns);
+
+            tableIndexDesignerInfo.ExtraPropertyInfo = new TableIndexExtraPropertyInfo { Clustered = true };
+
+            primaryRow.Tag = tableIndexDesignerInfo;
         }
 
-        public void LoadIndexes(IEnumerable<TableIndexDesignerInfo> indexDesignerInfos)
+        ShowIndexExtraPropertites();
+    }
+
+    private string GetColumnsDisplayText(IEnumerable<IndexColumn> columns)
+    {
+        return string.Join(",", columns.Select(item => item.ColumnName));
+    }
+
+    public List<TableIndexDesignerInfo> GetIndexes()
+    {
+        var indexDesingerInfos = new List<TableIndexDesignerInfo>();
+
+        foreach (DataGridViewRow row in dgvIndexes.Rows)
         {
-            this.dgvIndexes.Rows.Clear();
+            var index = new TableIndexDesignerInfo();
 
-            foreach (TableIndexDesignerInfo index in indexDesignerInfos)
+            var indexName = row.Cells[colIndexName.Name].Value?.ToString();
+
+            if (!string.IsNullOrEmpty(indexName))
             {
-                int rowIndex = this.dgvIndexes.Rows.Add();
+                var tag = row.Tag as TableIndexDesignerInfo;
 
-                DataGridViewRow row = this.dgvIndexes.Rows[rowIndex];
-
-                row.Cells[this.colIndexName.Name].Value = index.Name;
-                row.Cells[this.colType.Name].Value = this.GetIndexTypeEnumName(index.Type);
-                row.Cells[this.colColumns.Name].Value = this.GetColumnsDisplayText(index.Columns);
-                row.Cells[this.colComment.Name].Value = index.Comment;
-
+                index.OldName = tag?.OldName;
+                index.OldType = tag?.OldType;
+                index.Name = indexName;
+                index.Type = DataGridViewHelper.GetCellStringValue(row, colType.Name);
+                index.Columns = tag?.Columns;
+                index.Comment = DataGridViewHelper.GetCellStringValue(row, colComment.Name);
+                index.ExtraPropertyInfo = tag?.ExtraPropertyInfo;
+                index.IsPrimary = tag?.IsPrimary == true;
                 row.Tag = index;
-            }
 
-            this.loadedData = true;
-
-            this.AutoSizeColumns();
-            this.dgvIndexes.ClearSelection();
-        }
-
-        private string GetIndexTypeEnumName(string type)
-        {
-            var typeNames = Enum.GetNames(typeof(IndexType));
-
-            foreach (var tn in typeNames)
-            {
-                if (tn.ToLower() == type.ToLower())
-                {
-                    return tn;
-                }
-            }
-
-            return type;
-        }
-
-        public void LoadPrimaryKeys(IEnumerable<TableColumnDesingerInfo> columnDesingerInfos)
-        {
-            int primaryRowIndex = -1;
-
-            foreach (DataGridViewRow row in this.dgvIndexes.Rows)
-            {
-                if (!row.IsNewRow)
-                {
-                    TableIndexDesignerInfo indexDesignerInfo = row.Tag as TableIndexDesignerInfo;
-
-                    if (indexDesignerInfo != null && indexDesignerInfo.IsPrimary)
-                    {
-                        primaryRowIndex = row.Index;
-
-                        if (columnDesingerInfos.Count() > 0)
-                        {
-                            indexDesignerInfo.Columns.Clear();
-
-                            indexDesignerInfo.Columns.AddRange(columnDesingerInfos.Select(item => new IndexColumn() { ColumnName = item.Name }));
-
-                            row.Cells[this.colColumns.Name].Value = this.GetColumnsDisplayText(indexDesignerInfo.Columns);
-                        }
-
-                        break;
-                    }
-                }
-            }
-
-            if (primaryRowIndex >= 0 && columnDesingerInfos.Count() == 0)
-            {
-                this.dgvIndexes.Rows.RemoveAt(primaryRowIndex);
-            }
-            else if (primaryRowIndex < 0 && columnDesingerInfos.Count() > 0)
-            {
-                int rowIndex = this.dgvIndexes.Rows.Add();
-
-                TableIndexDesignerInfo tableIndexDesignerInfo = new TableIndexDesignerInfo()
-                {
-                    Type = this.DatabaseType == DatabaseType.Oracle ? IndexType.Unique.ToString() : IndexType.Primary.ToString(),
-                    Name = IndexManager.GetPrimaryKeyDefaultName(this.Table),
-                    IsPrimary = true
-                };
-
-                tableIndexDesignerInfo.Columns.AddRange(columnDesingerInfos.Select(item => new IndexColumn() { ColumnName = item.Name }));
-
-                DataGridViewRow primaryRow = this.dgvIndexes.Rows[rowIndex];
-                primaryRow.Cells[this.colType.Name].Value = tableIndexDesignerInfo.Type;
-                primaryRow.Cells[this.colIndexName.Name].Value = tableIndexDesignerInfo.Name;
-                primaryRow.Cells[this.colColumns.Name].Value = this.GetColumnsDisplayText(tableIndexDesignerInfo.Columns);
-
-                tableIndexDesignerInfo.ExtraPropertyInfo = new TableIndexExtraPropertyInfo() { Clustered = true };
-
-                primaryRow.Tag = tableIndexDesignerInfo;
-            }
-
-            this.ShowIndexExtraPropertites();
-        }
-
-        private string GetColumnsDisplayText(IEnumerable<IndexColumn> columns)
-        {
-            return string.Join(",", columns.Select(item => item.ColumnName));
-        }
-
-        public List<TableIndexDesignerInfo> GetIndexes()
-        {
-            List<TableIndexDesignerInfo> indexDesingerInfos = new List<TableIndexDesignerInfo>();
-
-            foreach (DataGridViewRow row in this.dgvIndexes.Rows)
-            {
-                TableIndexDesignerInfo index = new TableIndexDesignerInfo();
-
-                string indexName = row.Cells[this.colIndexName.Name].Value?.ToString();
-
-                if (!string.IsNullOrEmpty(indexName))
-                {
-                    TableIndexDesignerInfo tag = row.Tag as TableIndexDesignerInfo;
-
-                    index.OldName = tag?.OldName;
-                    index.OldType = tag?.OldType;
-                    index.Name = indexName;
-                    index.Type = DataGridViewHelper.GetCellStringValue(row, this.colType.Name);
-                    index.Columns = tag?.Columns;
-                    index.Comment = DataGridViewHelper.GetCellStringValue(row, this.colComment.Name);
-                    index.ExtraPropertyInfo = tag?.ExtraPropertyInfo;
-                    index.IsPrimary = tag?.IsPrimary == true;
-                    row.Tag = index;
-
-                    indexDesingerInfos.Add(index);
-                }
-            }
-
-            return indexDesingerInfos;
-        }
-
-        private void dgvIndexes_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Delete)
-            {
-                this.DeleteRow();
+                indexDesingerInfos.Add(index);
             }
         }
 
-        private void DeleteRow()
+        return indexDesingerInfos;
+    }
+
+    private void dgvIndexes_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.KeyCode == Keys.Delete) DeleteRow();
+    }
+
+    private void DeleteRow()
+    {
+        var row = DataGridViewHelper.GetSelectedRow(dgvIndexes);
+
+        if (row != null && !row.IsNewRow) dgvIndexes.Rows.RemoveAt(row.Index);
+    }
+
+    private void tsmiDeleteIndex_Click(object sender, EventArgs e)
+    {
+        DeleteRow();
+    }
+
+    private void dgvIndexes_SizeChanged(object sender, EventArgs e)
+    {
+        AutoSizeColumns();
+    }
+
+    private void AutoSizeColumns()
+    {
+        DataGridViewHelper.AutoSizeLastColumn(dgvIndexes);
+    }
+
+    private void dgvIndexes_DataError(object sender, DataGridViewDataErrorEventArgs e)
+    {
+    }
+
+    private void dgvIndexes_MouseUp(object sender, MouseEventArgs e)
+    {
+        if (e.Button == MouseButtons.Right)
         {
-            DataGridViewRow row = DataGridViewHelper.GetSelectedRow(this.dgvIndexes);
-
-            if (row != null && !row.IsNewRow)
-            {
-                this.dgvIndexes.Rows.RemoveAt(row.Index);
-            }
-        }
-
-        private void tsmiDeleteIndex_Click(object sender, EventArgs e)
-        {
-            this.DeleteRow();
-        }
-
-        private void dgvIndexes_SizeChanged(object sender, EventArgs e)
-        {
-            this.AutoSizeColumns();
-        }
-
-        private void AutoSizeColumns()
-        {
-            DataGridViewHelper.AutoSizeLastColumn(this.dgvIndexes);
-        }
-
-        private void dgvIndexes_DataError(object sender, DataGridViewDataErrorEventArgs e)
-        {
-
-        }
-
-        private void dgvIndexes_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Right)
-            {
-                DataGridViewRow row = DataGridViewHelper.GetSelectedRow(this.dgvIndexes);
-
-                if (row != null)
-                {
-                    bool isEmptyNewRow = row.IsNewRow && DataGridViewHelper.IsEmptyRow(row);
-
-                    this.tsmiDeleteIndex.Enabled = !isEmptyNewRow;
-                }
-                else
-                {
-                    this.tsmiDeleteIndex.Enabled = false;
-                }
-
-                this.contextMenuStrip1.Show(this.dgvIndexes, e.Location);
-            }
-        }
-
-        private void dgvIndexes_RowHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
-        {
-            this.dgvIndexes.EndEdit();
-            this.dgvIndexes.CurrentCell = null;
-            this.dgvIndexes.Rows[e.RowIndex].Selected = true;
-        }
-
-        private void dgvIndexes_CellValueChanged(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0)
-            {
-                return;
-            }
-
-            if (e.ColumnIndex == this.colType.Index)
-            {
-                this.ShowIndexExtraPropertites();
-
-                DataGridViewRow row = this.dgvIndexes.Rows[e.RowIndex];
-
-                DataGridViewCell nameCell = row.Cells[this.colIndexName.Name];
-
-                string type = DataGridViewHelper.GetCellStringValue(row, this.colType.Name);
-
-                string indexName = DataGridViewHelper.GetCellStringValue(nameCell);
-
-                if (string.IsNullOrEmpty(indexName))
-                {
-                    nameCell.Value = type == IndexType.Primary.ToString() ? IndexManager.GetPrimaryKeyDefaultName(this.Table) : IndexManager.GetIndexDefaultName(type, this.Table);
-                }
-
-                if (row.Tag != null)
-                {
-                    (row.Tag as TableIndexDesignerInfo).IsPrimary = type == IndexType.Primary.ToString();
-                }
-            }
-        }
-
-        private void dgvIndexes_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0)
-            {
-                return;
-            }
-
-            if (e.ColumnIndex == this.colColumns.Index)
-            {
-                DataGridViewRow row = this.dgvIndexes.Rows[e.RowIndex];
-                DataGridViewCell cell = row.Cells[this.colColumns.Name];
-
-                string indexName = DataGridViewHelper.GetCellStringValue(row, this.colIndexName.Name);
-                string type = DataGridViewHelper.GetCellStringValue(row, this.colType.Name);
-
-                if (!string.IsNullOrEmpty(indexName))
-                {
-                    TableIndexDesignerInfo indexDesignerInfo = row.Tag as TableIndexDesignerInfo;
-
-                    if (this.OnColumnSelect != null)
-                    {
-                        this.OnColumnSelect(DatabaseObjectType.Index,
-                            indexDesignerInfo?.Columns == null ? Enumerable.Empty<IndexColumn>() : indexDesignerInfo?.Columns,
-                            type == IndexType.Primary.ToString()
-                        );
-                    }
-                }
-            }
-        }
-
-        public void SetRowColumns(IEnumerable<IndexColumn> columnInfos)
-        {
-            DataGridViewCell cell = this.dgvIndexes.CurrentCell;
-
-            if (cell != null)
-            {
-                cell.Value = string.Join(",", columnInfos.Select(item => item.ColumnName));
-
-                TableIndexDesignerInfo tableIndexDesignerInfo = cell.OwningRow.Tag as TableIndexDesignerInfo;
-
-                if (tableIndexDesignerInfo == null)
-                {
-                    tableIndexDesignerInfo = new TableIndexDesignerInfo();
-                }
-
-                tableIndexDesignerInfo.Columns = columnInfos.ToList();
-
-                cell.OwningRow.Tag = tableIndexDesignerInfo;
-            }
-        }
-
-        private void dgvIndexes_UserAddedRow(object sender, DataGridViewRowEventArgs e)
-        {
-            if (e.Row != null)
-            {
-                if (e.Row.Tag == null)
-                {
-                    e.Row.Tag = new TableIndexDesignerInfo();
-                }
-            }
-        }
-
-        private void ShowIndexExtraPropertites()
-        {
-            var row = DataGridViewHelper.GetSelectedRow(this.dgvIndexes);
+            var row = DataGridViewHelper.GetSelectedRow(dgvIndexes);
 
             if (row != null)
             {
-                string indexName = DataGridViewHelper.GetCellStringValue(row, this.colIndexName.Name);
+                var isEmptyNewRow = row.IsNewRow && DataGridViewHelper.IsEmptyRow(row);
 
-                if (string.IsNullOrEmpty(indexName))
-                {
-                    return;
-                }
-
-                TableIndexDesignerInfo index = row.Tag as TableIndexDesignerInfo;
-
-                if (index == null)
-                {
-                    index = new TableIndexDesignerInfo();
-                    row.Tag = index;
-                }
-
-                TableIndexExtraPropertyInfo extralProperty = index?.ExtraPropertyInfo;
-
-                DataGridViewCell typeCell = row.Cells[this.colType.Name];
-
-                if (extralProperty == null)
-                {
-                    extralProperty = new TableIndexExtraPropertyInfo();
-                    index.ExtraPropertyInfo = extralProperty;
-
-                    if (DataGridViewHelper.GetCellStringValue(typeCell) != IndexType.Primary.ToString())
-                    {
-                        index.ExtraPropertyInfo.Clustered = false;
-                    }
-                }
-
-                if (this.DatabaseType == DatabaseType.Oracle)
-                {
-                    this.indexPropertites.HiddenProperties = new string[] { nameof(extralProperty.Clustered) };
-                }
-                else
-                {
-                    this.indexPropertites.HiddenProperties = null;
-                }
-
-                this.indexPropertites.SelectedObject = extralProperty;
-                this.indexPropertites.Refresh();
+                tsmiDeleteIndex.Enabled = !isEmptyNewRow;
             }
-        }
-
-        private void dgvIndexes_SelectionChanged(object sender, EventArgs e)
-        {
-            this.ShowIndexExtraPropertites();
-        }
-
-        public void EndEdit()
-        {
-            this.dgvIndexes.EndEdit();
-            this.dgvIndexes.CurrentCell = null;
-        }
-
-        public void OnSaved()
-        {
-            for (int i = 0; i < this.dgvIndexes.RowCount; i++)
+            else
             {
-                DataGridViewRow row = this.dgvIndexes.Rows[i];
+                tsmiDeleteIndex.Enabled = false;
+            }
 
-                TableIndexDesignerInfo indexDesingerInfo = row.Tag as TableIndexDesignerInfo;
+            contextMenuStrip1.Show(dgvIndexes, e.Location);
+        }
+    }
 
-                if (indexDesingerInfo != null && !string.IsNullOrEmpty(indexDesingerInfo.Name))
-                {
-                    indexDesingerInfo.OldName = indexDesingerInfo.Name;
-                    indexDesingerInfo.OldType = indexDesingerInfo.Type;
-                }
+    private void dgvIndexes_RowHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+    {
+        dgvIndexes.EndEdit();
+        dgvIndexes.CurrentCell = null;
+        dgvIndexes.Rows[e.RowIndex].Selected = true;
+    }
+
+    private void dgvIndexes_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+    {
+        if (e.RowIndex < 0) return;
+
+        if (e.ColumnIndex == colType.Index)
+        {
+            ShowIndexExtraPropertites();
+
+            var row = dgvIndexes.Rows[e.RowIndex];
+
+            var nameCell = row.Cells[colIndexName.Name];
+
+            var type = DataGridViewHelper.GetCellStringValue(row, colType.Name);
+
+            var indexName = DataGridViewHelper.GetCellStringValue(nameCell);
+
+            if (string.IsNullOrEmpty(indexName))
+                nameCell.Value = type == IndexType.Primary.ToString()
+                    ? IndexManager.GetPrimaryKeyDefaultName(Table)
+                    : IndexManager.GetIndexDefaultName(type, Table);
+
+            if (row.Tag != null) (row.Tag as TableIndexDesignerInfo).IsPrimary = type == IndexType.Primary.ToString();
+        }
+    }
+
+    private void dgvIndexes_CellContentClick(object sender, DataGridViewCellEventArgs e)
+    {
+        if (e.RowIndex < 0) return;
+
+        if (e.ColumnIndex == colColumns.Index)
+        {
+            var row = dgvIndexes.Rows[e.RowIndex];
+            var cell = row.Cells[colColumns.Name];
+
+            var indexName = DataGridViewHelper.GetCellStringValue(row, colIndexName.Name);
+            var type = DataGridViewHelper.GetCellStringValue(row, colType.Name);
+
+            if (!string.IsNullOrEmpty(indexName))
+            {
+                var indexDesignerInfo = row.Tag as TableIndexDesignerInfo;
+
+                if (OnColumnSelect != null)
+                    OnColumnSelect(DatabaseObjectType.Index,
+                        indexDesignerInfo?.Columns == null
+                            ? Enumerable.Empty<IndexColumn>()
+                            : indexDesignerInfo?.Columns,
+                        type == IndexType.Primary.ToString()
+                    );
             }
         }
+    }
 
-        private void tsmiGenerateChangeScripts_Click(object sender, EventArgs e)
+    public void SetRowColumns(IEnumerable<IndexColumn> columnInfos)
+    {
+        var cell = dgvIndexes.CurrentCell;
+
+        if (cell != null)
         {
-            if (this.OnGenerateChangeScripts != null)
+            cell.Value = string.Join(",", columnInfos.Select(item => item.ColumnName));
+
+            var tableIndexDesignerInfo = cell.OwningRow.Tag as TableIndexDesignerInfo;
+
+            if (tableIndexDesignerInfo == null) tableIndexDesignerInfo = new TableIndexDesignerInfo();
+
+            tableIndexDesignerInfo.Columns = columnInfos.ToList();
+
+            cell.OwningRow.Tag = tableIndexDesignerInfo;
+        }
+    }
+
+    private void dgvIndexes_UserAddedRow(object sender, DataGridViewRowEventArgs e)
+    {
+        if (e.Row != null)
+            if (e.Row.Tag == null)
+                e.Row.Tag = new TableIndexDesignerInfo();
+    }
+
+    private void ShowIndexExtraPropertites()
+    {
+        var row = DataGridViewHelper.GetSelectedRow(dgvIndexes);
+
+        if (row != null)
+        {
+            var indexName = DataGridViewHelper.GetCellStringValue(row, colIndexName.Name);
+
+            if (string.IsNullOrEmpty(indexName)) return;
+
+            var index = row.Tag as TableIndexDesignerInfo;
+
+            if (index == null)
             {
-                this.OnGenerateChangeScripts();
+                index = new TableIndexDesignerInfo();
+                row.Tag = index;
+            }
+
+            var extralProperty = index?.ExtraPropertyInfo;
+
+            var typeCell = row.Cells[colType.Name];
+
+            if (extralProperty == null)
+            {
+                extralProperty = new TableIndexExtraPropertyInfo();
+                index.ExtraPropertyInfo = extralProperty;
+
+                if (DataGridViewHelper.GetCellStringValue(typeCell) != IndexType.Primary.ToString())
+                    index.ExtraPropertyInfo.Clustered = false;
+            }
+
+            if (DatabaseType == DatabaseType.Oracle)
+                indexPropertites.HiddenProperties = new[] { nameof(extralProperty.Clustered) };
+            else
+                indexPropertites.HiddenProperties = null;
+
+            indexPropertites.SelectedObject = extralProperty;
+            indexPropertites.Refresh();
+        }
+    }
+
+    private void dgvIndexes_SelectionChanged(object sender, EventArgs e)
+    {
+        ShowIndexExtraPropertites();
+    }
+
+    public void EndEdit()
+    {
+        dgvIndexes.EndEdit();
+        dgvIndexes.CurrentCell = null;
+    }
+
+    public void OnSaved()
+    {
+        for (var i = 0; i < dgvIndexes.RowCount; i++)
+        {
+            var row = dgvIndexes.Rows[i];
+
+            var indexDesingerInfo = row.Tag as TableIndexDesignerInfo;
+
+            if (indexDesingerInfo != null && !string.IsNullOrEmpty(indexDesingerInfo.Name))
+            {
+                indexDesingerInfo.OldName = indexDesingerInfo.Name;
+                indexDesingerInfo.OldType = indexDesingerInfo.Type;
             }
         }
+    }
 
-        private void dgvIndexes_CellLeave(object sender, DataGridViewCellEventArgs e)
+    private void tsmiGenerateChangeScripts_Click(object sender, EventArgs e)
+    {
+        if (OnGenerateChangeScripts != null) OnGenerateChangeScripts();
+    }
+
+    private void dgvIndexes_CellLeave(object sender, DataGridViewCellEventArgs e)
+    {
+        if (e.ColumnIndex == colType.Index)
         {
-            if (e.ColumnIndex == this.colType.Index)
-            {
-                var cell = this.dgvIndexes.CurrentCell;
+            var cell = dgvIndexes.CurrentCell;
 
-                if (cell != null && cell.IsInEditMode && cell.EditedFormattedValue != cell.Value)
-                {
-                    cell.Value = cell.EditedFormattedValue;
-                }
-            }
+            if (cell != null && cell.IsInEditMode && cell.EditedFormattedValue != cell.Value)
+                cell.Value = cell.EditedFormattedValue;
         }
     }
 }

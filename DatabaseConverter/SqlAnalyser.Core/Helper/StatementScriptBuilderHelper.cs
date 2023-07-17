@@ -1,9 +1,9 @@
-﻿using DatabaseInterpreter.Utility;
-using SqlAnalyser.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DatabaseInterpreter.Utility;
+using SqlAnalyser.Model;
 
 namespace SqlAnalyser.Core
 {
@@ -12,13 +12,8 @@ namespace SqlAnalyser.Core
         public static TableName GetSelectStatementTableName(SelectStatement statement)
         {
             if (statement.TableName != null)
-            {
                 return statement.TableName;
-            }
-            else if (statement.HasFromItems)
-            {
-                return statement.FromItems.FirstOrDefault()?.TableName;
-            }
+            if (statement.HasFromItems) return statement.FromItems.FirstOrDefault()?.TableName;
 
             return null;
         }
@@ -33,33 +28,31 @@ namespace SqlAnalyser.Core
 
             var setNames = statement.SetItems.Select(item => item.Name);
 
-            List<string> tableNameOrAliases = new List<string>();
+            var tableNameOrAliases = new List<string>();
 
             foreach (var setName in setItems)
-            {
                 if (setName.Name.Symbol.Contains("."))
-                {
                     tableNameOrAliases.Add(setName.Name.Symbol.Split('.')[0].Trim().ToLower());
-                }
-            }
 
             if (fromItems != null)
-            {
-                tableName = fromItems.FirstOrDefault(item => item.TableName != null && (tableNameOrAliases.Contains(item.TableName.Symbol.ToLower())
-                                                     || (item.TableName.Alias != null && tableNameOrAliases.Contains(item.TableName.Alias.Symbol.ToLower()))))?.TableName;
-            }
+                tableName = fromItems.FirstOrDefault(item => item.TableName != null &&
+                                                             (tableNameOrAliases.Contains(
+                                                                  item.TableName.Symbol.ToLower())
+                                                              || (item.TableName.Alias != null &&
+                                                                  tableNameOrAliases.Contains(item.TableName.Alias
+                                                                      .Symbol.ToLower()))))?.TableName;
 
             if (tableName == null && tableNames != null)
-            {
                 tableName = tableNames.FirstOrDefault(item => tableNameOrAliases.Contains(item.Symbol.ToLower())
-                                                     || (item.Alias != null && tableNameOrAliases.Contains(item.Alias.Symbol.ToLower())));
-            }
+                                                              || (item.Alias != null &&
+                                                                  tableNameOrAliases.Contains(
+                                                                      item.Alias.Symbol.ToLower())));
 
             return tableName;
         }
 
         /// <summary>
-        /// oracle:update table set (col1,col2)=(select col1,col2 from ...)
+        ///     oracle:update table set (col1,col2)=(select col1,col2 from ...)
         /// </summary>
         /// <param name="statement"></param>
         public static bool IsCompositeUpdateSetColumnName(UpdateStatement statement)
@@ -69,15 +62,12 @@ namespace SqlAnalyser.Core
 
         public static string ParseCompositeUpdateSet(StatementScriptBuilder builder, UpdateStatement statement)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             var setItem = statement.SetItems.FirstOrDefault();
             var valueStatement = setItem.ValueStatement;
 
-            if (valueStatement == null)
-            {
-                return string.Empty;
-            }
+            if (valueStatement == null) return string.Empty;
 
             var where = valueStatement.Where;
 
@@ -87,43 +77,35 @@ namespace SqlAnalyser.Core
 
             Action buildSet = () =>
             {
-                for (int i = 0; i < colNames.Length; i++)
+                for (var i = 0; i < colNames.Length; i++)
                 {
-                    sb.Append($"{colNames[i].Trim()}={colValues[i].Trim()}{((i < colNames.Length - 1) ? ", " : "")}");
+                    sb.Append($"{colNames[i].Trim()}={colValues[i].Trim()}{(i < colNames.Length - 1 ? ", " : "")}");
 
-                    if (i == colNames.Length - 1)
-                    {
-                        sb.AppendLine();
-                    }
+                    if (i == colNames.Length - 1) sb.AppendLine();
                 }
             };
 
             Func<string> getFromTables = () =>
             {
                 if (valueStatement.HasFromItems)
-                {
-                    return String.Join(",", valueStatement.FromItems.Select(item => item.TableName.NameWithAlias));
-                }
+                    return string.Join(",", valueStatement.FromItems.Select(item => item.TableName.NameWithAlias));
 
-                return String.Empty;
+                return string.Empty;
             };
 
             Action buildWhere = () =>
             {
-                if (where != null)
-                {
-                    sb.AppendLine($"WHERE {where.Symbol}");
-                }
+                if (where != null) sb.AppendLine($"WHERE {where.Symbol}");
             };
 
             Action buildFromAndWhere = () =>
             {
-                string fromTables = getFromTables();
+                var fromTables = getFromTables();
 
                 sb.AppendLine($"FROM {fromTables}");
 
                 buildWhere();
-            };                   
+            };
 
             if (builder is TSqlStatementScriptBuilder || builder is SqliteStatementScriptBuilder)
             {
@@ -133,7 +115,7 @@ namespace SqlAnalyser.Core
             }
             else if (builder is MySqlStatementScriptBuilder)
             {
-                string fromTables = getFromTables();
+                var fromTables = getFromTables();
 
                 sb.AppendLine(fromTables);
 
@@ -145,35 +127,28 @@ namespace SqlAnalyser.Core
             }
             else if (builder is PostgreSqlStatementScriptBuilder)
             {
-                for (int i = 0; i < colNames.Length; i++)
-                {
+                for (var i = 0; i < colNames.Length; i++)
                     if (colNames[i].Contains("."))
-                    {
                         colNames[i] = colNames[i].Split('.').Last().Trim();
-                    }
-                }
 
                 buildSet();
 
                 if (valueStatement.HasFromItems)
                 {
-                    string fromTables = getFromTables();
+                    var fromTables = getFromTables();
 
-                    TableName tableName = GetUpdateSetTableName(statement);
+                    var tableName = GetUpdateSetTableName(statement);
 
-                    string strTableName = tableName?.Symbol;
-                    string alias = tableName?.Alias?.Symbol;
+                    var strTableName = tableName?.Symbol;
+                    var alias = tableName?.Alias?.Symbol;
 
-                    List<string> fromTableList = new List<string>();
+                    var fromTableList = new List<string>();
 
-                    foreach (string fromTable in fromTables.Split(','))
+                    foreach (var fromTable in fromTables.Split(','))
                     {
                         var items = fromTable.Split(' ').Select(item => item.Trim());
 
-                        if (!items.Any(item => item == strTableName || item == alias))
-                        {
-                            fromTableList.Add(fromTable);
-                        }
+                        if (!items.Any(item => item == strTableName || item == alias)) fromTableList.Add(fromTable);
                     }
 
                     sb.AppendLine($"FROM {string.Join(",", fromTableList)}");
@@ -190,16 +165,11 @@ namespace SqlAnalyser.Core
             value = value.Trim();
 
             if (value.StartsWith("(") && value.EndsWith(")"))
-            {
                 value = StringHelper.GetBalanceParenthesisTrimedValue(value);
-            }
 
-            int fromIndex = value.IndexOf("FROM", StringComparison.OrdinalIgnoreCase);
+            var fromIndex = value.IndexOf("FROM", StringComparison.OrdinalIgnoreCase);
 
-            if (fromIndex < 0)
-            {
-                return $"{name}:={value};";
-            }
+            if (fromIndex < 0) return $"{name}:={value};";
 
             return $"{value.Substring(0, fromIndex)} INTO {name} {value.Substring(fromIndex)};";
         }

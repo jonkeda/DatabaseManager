@@ -1,13 +1,18 @@
-﻿using DatabaseInterpreter.Model;
+﻿using System;
+using DatabaseInterpreter.Model;
 using SqlAnalyser.Model;
-using System;
 
 namespace SqlAnalyser.Core
 {
     public abstract class SqlAnalyserBase
     {
+        public SqlAnalyserBase(string content)
+        {
+            Content = content;
+        }
+
         public string Content { get; set; }
-        public abstract SqlRuleAnalyser RuleAnalyser { get; }      
+        public abstract SqlRuleAnalyser RuleAnalyser { get; }
 
         public abstract SqlSyntaxError Validate();
         public abstract AnalyseResult AnalyseCommon();
@@ -16,44 +21,29 @@ namespace SqlAnalyser.Core
         public abstract AnalyseResult AnalyseFunction();
         public abstract AnalyseResult AnalyseTrigger();
 
-        public SqlAnalyserBase(string content)
-        {
-            this.Content = content;
-        }
-
         public AnalyseResult Analyse<T>() where T : DatabaseObject
         {
             AnalyseResult result = null;
 
-            if (this.RuleAnalyser.Option.IsCommonScript)
+            if (RuleAnalyser.Option.IsCommonScript)
             {
-                result = this.AnalyseCommon();
+                result = AnalyseCommon();
             }
             else
             {
                 if (typeof(T) == typeof(Procedure))
-                {
-                    result = this.AnalyseProcedure();
-                }
+                    result = AnalyseProcedure();
                 else if (typeof(T) == typeof(Function))
-                {
-                    result = this.AnalyseFunction();
-                }
+                    result = AnalyseFunction();
                 else if (typeof(T) == typeof(View))
-                {
-                    result = this.AnalyseView();
-                }
+                    result = AnalyseView();
                 else if (typeof(T) == typeof(TableTrigger))
-                {
-                    result = this.AnalyseTrigger();
-                }
+                    result = AnalyseTrigger();
                 else
-                {
                     throw new NotSupportedException($"Not support analyse for type:{typeof(T).Name}");
-                }
             }
 
             return result;
-        }      
+        }
     }
 }

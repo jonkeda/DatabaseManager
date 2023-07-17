@@ -1,187 +1,174 @@
-﻿using DatabaseInterpreter.Model;
-using DatabaseManager.Core;
-using DatabaseManager.Data;
-using DatabaseManager.Profile;
-using System;
-using System.Data;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using DatabaseInterpreter.Model;
+using DatabaseManager.Core;
+using DatabaseManager.Data;
+using DatabaseManager.Profile;
 
-namespace DatabaseManager.Forms
+namespace DatabaseManager.Forms;
+
+public partial class frmFileConnection : Form
 {
-    public partial class frmFileConnection : Form
+    private bool requriePassword;
+
+    public frmFileConnection()
     {
-        private bool requriePassword = false;
-        public DatabaseType DatabaseType { get; set; }
-        public ConnectionInfo ConnectionInfo { get; set; }
-        public bool ShowChooseControls { get; set; }
+        InitializeComponent();
+    }
 
-        public string FileConnectionProfileId { get; set; }
+    public frmFileConnection(DatabaseType dbType)
+    {
+        InitializeComponent();
 
-        public FileConnectionProfileInfo FileConnectionProfileInfo { get; set; }
+        DatabaseType = dbType;
+    }
 
-        public frmFileConnection()
+    public frmFileConnection(DatabaseType dbType, bool requriePassword)
+    {
+        InitializeComponent();
+
+        DatabaseType = dbType;
+        this.requriePassword = requriePassword;
+    }
+
+    public DatabaseType DatabaseType { get; set; }
+    public ConnectionInfo ConnectionInfo { get; set; }
+    public bool ShowChooseControls { get; set; }
+
+    public string FileConnectionProfileId { get; set; }
+
+    public FileConnectionProfileInfo FileConnectionProfileInfo { get; set; }
+
+    private void frmFileConnection_Load(object sender, EventArgs e)
+    {
+        Init();
+    }
+
+    private void Init()
+    {
+        if (!ShowChooseControls)
         {
-            InitializeComponent();
+            panelChoose.Visible = false;
+
+            var height = panelChoose.Height + 10;
+
+            panelContent.Top -= height;
+            Height -= height;
         }
 
-        public frmFileConnection(DatabaseType dbType)
-        {
-            InitializeComponent();
+        ucFileConnection.DatabaseType = DatabaseType;
 
-            this.DatabaseType = dbType;
+        if (FileConnectionProfileInfo != null)
+        {
+            ucFileConnection.LoadData(FileConnectionProfileInfo);
+
+            txtDisplayName.Text = FileConnectionProfileInfo.Name;
         }
 
-        public frmFileConnection(DatabaseType dbType, bool requriePassword)
-        {
-            InitializeComponent();
+        ucFileConnection.OnFileSelect += OnFileSelected;
+    }
 
-            this.DatabaseType = dbType;
-            this.requriePassword = requriePassword;
+    private void OnFileSelected(object? sender, EventArgs e)
+    {
+        var connectionInfo = ucFileConnection.GetConnectionInfo();
+
+        if (string.IsNullOrEmpty(txtDisplayName.Text) && !string.IsNullOrEmpty(connectionInfo.Database))
+            txtDisplayName.Text = Path.GetFileNameWithoutExtension(connectionInfo.Database);
+    }
+
+    private async void btnConfirm_Click(object sender, EventArgs e)
+    {
+        if (!ucFileConnection.ValidateInfo()) return;
+
+        if (string.IsNullOrEmpty(txtDisplayName.Text.Trim()))
+        {
+            MessageBox.Show("Display name can't be empty.");
+            return;
         }
 
-        private void frmFileConnection_Load(object sender, EventArgs e)
-        {
-            this.Init();
-        }
+        var profileInfo = GetFileConnectionProfileInfo();
 
-        private void Init()
+        var profiles = await FileConnectionProfileManager.GetProfiles(DatabaseType.ToString());
+
+        var isAdd = FileConnectionProfileInfo == null;
+
+        if (isAdd)
         {
-            if (!this.ShowChooseControls)
+            if (profiles.Any(item => item.Database == profileInfo.Database))
             {
-                this.panelChoose.Visible = false;
-
-                int height = this.panelChoose.Height + 10;
-
-                this.panelContent.Top -= height;
-                this.Height -= height;
-            }
-
-            this.ucFileConnection.DatabaseType = this.DatabaseType;
-
-            if (this.FileConnectionProfileInfo != null)
-            {
-                this.ucFileConnection.LoadData(this.FileConnectionProfileInfo);
-
-                this.txtDisplayName.Text = this.FileConnectionProfileInfo.Name;
-            }
-
-            this.ucFileConnection.OnFileSelect += this.OnFileSelected;
-        }
-
-        private void OnFileSelected(object? sender, EventArgs e)
-        {
-            ConnectionInfo connectionInfo = this.ucFileConnection.GetConnectionInfo();
-
-            if (string.IsNullOrEmpty(this.txtDisplayName.Text) && !string.IsNullOrEmpty(connectionInfo.Database))
-            {
-                this.txtDisplayName.Text = Path.GetFileNameWithoutExtension(connectionInfo.Database);
-            }
-        }
-
-        private async void btnConfirm_Click(object sender, EventArgs e)
-        {
-            if (!this.ucFileConnection.ValidateInfo())
-            {
+                MessageBox.Show($"The record has already existed:{profileInfo.Description}");
                 return;
             }
-
-            if (string.IsNullOrEmpty(this.txtDisplayName.Text.Trim()))
+        }
+        else
+        {
+            if (profiles.Where(item => item.Id != FileConnectionProfileInfo.Id)
+                .Any(item => item.Database == profileInfo.Database))
             {
-                MessageBox.Show("Display name can't be empty.");
+                MessageBox.Show($"The record has already existed:{profileInfo.Description}");
                 return;
             }
-
-            FileConnectionProfileInfo profileInfo = this.GetFileConnectionProfileInfo();
-
-            var profiles = await FileConnectionProfileManager.GetProfiles(this.DatabaseType.ToString());
-
-            bool isAdd = this.FileConnectionProfileInfo == null;
-
-            if (isAdd)
-            {
-                if (profiles.Any(item => item.Database == profileInfo.Database))
-                {
-                    MessageBox.Show($"The record has already existed:{profileInfo.Description}");
-                    return;
-                }
-            }
-            else
-            {
-                if (profiles.Where(item => item.Id != this.FileConnectionProfileInfo.Id).Any(item => item.Database == profileInfo.Database))
-                {
-                    MessageBox.Show($"The record has already existed:{profileInfo.Description}");
-                    return;
-                }
-            }
-
-            this.FileConnectionProfileId = await FileConnectionProfileManager.Save(profileInfo, this.ucFileConnection.RememberPassword);
-
-            this.FileConnectionProfileInfo = profileInfo;
-
-            this.DialogResult = DialogResult.OK;
-
-            if (SettingManager.Setting.RememberPasswordDuringSession)
-            {
-                DataStore.SetFileConnectionProfileInfo(profileInfo);
-            }
-
-            this.Close();
         }
 
-        private FileConnectionProfileInfo GetFileConnectionProfileInfo()
+        FileConnectionProfileId =
+            await FileConnectionProfileManager.Save(profileInfo, ucFileConnection.RememberPassword);
+
+        FileConnectionProfileInfo = profileInfo;
+
+        DialogResult = DialogResult.OK;
+
+        if (SettingManager.Setting.RememberPasswordDuringSession) DataStore.SetFileConnectionProfileInfo(profileInfo);
+
+        Close();
+    }
+
+    private FileConnectionProfileInfo GetFileConnectionProfileInfo()
+    {
+        var connectionInfo = ucFileConnection.GetConnectionInfo();
+
+        ConnectionInfo = connectionInfo;
+
+        var profileInfo = new FileConnectionProfileInfo
         {
-            ConnectionInfo connectionInfo = this.ucFileConnection.GetConnectionInfo();
+            DatabaseType = DatabaseType.ToString(),
+            Database = connectionInfo.Database,
+            HasPassword = ucFileConnection.HasPassword,
+            Password = connectionInfo.Password,
+            Name = txtDisplayName.Text.Trim()
+        };
 
-            this.ConnectionInfo = connectionInfo;
+        if (FileConnectionProfileInfo != null) profileInfo.Id = FileConnectionProfileInfo.Id;
 
-            FileConnectionProfileInfo profileInfo = new FileConnectionProfileInfo()
-            {
-                DatabaseType = this.DatabaseType.ToString(),
-                Database = connectionInfo.Database,
-                HasPassword = this.ucFileConnection.HasPassword,
-                Password = connectionInfo.Password,
-                Name = this.txtDisplayName.Text.Trim()
-            };
+        return profileInfo;
+    }
 
-            if (this.FileConnectionProfileInfo != null)
-            {
-                profileInfo.Id = this.FileConnectionProfileInfo.Id;
-            }
+    private void btnCancel_Click(object sender, EventArgs e)
+    {
+        Close();
+    }
 
-            return profileInfo;
-        }
-
-        private void btnCancel_Click(object sender, EventArgs e)
+    private void rbChoose_CheckedChanged(object sender, EventArgs e)
+    {
+        if (rbChoose.Checked)
         {
-            this.Close();
-        }
+            var frm = new frmDbConnectionManage(DatabaseType) { IsForSelecting = true };
 
-        private void rbChoose_CheckedChanged(object sender, EventArgs e)
-        {
-            if (this.rbChoose.Checked)
+            if (frm.ShowDialog() == DialogResult.OK)
             {
-                frmDbConnectionManage frm = new frmDbConnectionManage(this.DatabaseType) { IsForSelecting = true };
+                string password = null;
 
-                if (frm.ShowDialog() == DialogResult.OK)
+                if (SettingManager.Setting.RememberPasswordDuringSession)
                 {
-                    string password = null;
+                    var storeInfo = DataStore.GetFileConnectionProfileInfo(frm.SelectedFileConnectionProfileInfo.Id);
 
-                    if (SettingManager.Setting.RememberPasswordDuringSession)
-                    {
-                        var storeInfo = DataStore.GetFileConnectionProfileInfo(frm.SelectedFileConnectionProfileInfo.Id);
-
-                        if (storeInfo != null && !string.IsNullOrEmpty(storeInfo.Password))
-                        {
-                            password = storeInfo.Password;
-                        }
-                    }
-
-                    this.ucFileConnection.LoadData(frm.SelectedFileConnectionProfileInfo, password);
-
-                    this.txtDisplayName.Text = frm.SelectedFileConnectionProfileInfo.Name;
+                    if (storeInfo != null && !string.IsNullOrEmpty(storeInfo.Password)) password = storeInfo.Password;
                 }
+
+                ucFileConnection.LoadData(frm.SelectedFileConnectionProfileInfo, password);
+
+                txtDisplayName.Text = frm.SelectedFileConnectionProfileInfo.Name;
             }
         }
     }

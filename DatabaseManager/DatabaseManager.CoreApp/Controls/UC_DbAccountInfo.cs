@@ -1,209 +1,190 @@
-﻿using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseManager.Profile;
-using DatabaseManager.Core;
-using DatabaseManager.Model;
-using System;
-using System.Data.Common;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using DatabaseManager.Data;
+using DatabaseInterpreter.Core;
+using DatabaseInterpreter.Model;
+using DatabaseManager.Model;
+using DatabaseManager.Profile;
 
-namespace DatabaseManager.Controls
+namespace DatabaseManager.Controls;
+
+public delegate void TestDbConnectHandler();
+
+public partial class UC_DbAccountInfo : UserControl
 {
-    public delegate void TestDbConnectHandler();
+    public TestDbConnectHandler OnTestConnect;
+    private string serverVersion;
 
-    public partial class UC_DbAccountInfo : UserControl
+    public UC_DbAccountInfo()
     {
-        private string serverVersion;
+        InitializeComponent();
+    }
 
-        public DatabaseType DatabaseType { get; set; }
+    public DatabaseType DatabaseType { get; set; }
 
-        public bool RememberPassword => this.chkRememberPassword.Checked;
+    public bool RememberPassword => chkRememberPassword.Checked;
 
-        public TestDbConnectHandler OnTestConnect;         
-
-        public UC_DbAccountInfo()
+    public async void InitControls()
+    {
+        if (DatabaseType == DatabaseType.MySql)
         {
-            InitializeComponent();
+            lblPort.Visible = txtPort.Visible = true;
+            txtPort.Text = MySqlInterpreter.DEFAULT_PORT.ToString();
+            chkUseSsl.Visible = true;
+        }
+        else if (DatabaseType == DatabaseType.Oracle)
+        {
+            lblPort.Visible = txtPort.Visible = true;
+            txtPort.Text = OracleInterpreter.DEFAULT_PORT.ToString();
+        }
+        else if (DatabaseType == DatabaseType.Postgres)
+        {
+            lblPort.Visible = txtPort.Visible = true;
+            txtPort.Text = PostgresInterpreter.DEFAULT_PORT.ToString();
         }
 
-        public async void InitControls()
+        var authTypes = Enum.GetNames(typeof(AuthenticationType));
+        cboAuthentication.Items.AddRange(authTypes);
+
+        if (DatabaseType != DatabaseType.SqlServer)
+            cboAuthentication.Text = AuthenticationType.Password.ToString();
+        //this.cboAuthentication.Enabled = false;
+        else
+            cboAuthentication.Text = AuthenticationType.IntegratedSecurity.ToString();
+
+        chkAsDba.Visible = DatabaseType == DatabaseType.Oracle;
+
+        var profiles = await AccountProfileManager.GetProfiles(DatabaseType.ToString());
+        var serverNames = profiles.Select(item => item.Server).Distinct().OrderBy(item => item).ToArray();
+        cboServer.Items.AddRange(serverNames);
+    }
+
+    public void LoadData(DatabaseAccountInfo info, string password = null)
+    {
+        cboServer.Text = info.Server;
+        txtPort.Text = info.Port;
+        cboAuthentication.Text = info.IntegratedSecurity
+            ? AuthenticationType.IntegratedSecurity.ToString()
+            : AuthenticationType.Password.ToString();
+        txtUserId.Text = info.UserId;
+        txtPassword.Text = info.Password;
+        chkAsDba.Checked = info.IsDba;
+        chkUseSsl.Checked = info.UseSsl;
+        serverVersion = info.ServerVersion;
+
+        if (info.IntegratedSecurity)
         {
-            if (this.DatabaseType == DatabaseType.MySql)
-            {
-                this.lblPort.Visible = this.txtPort.Visible = true;
-                this.txtPort.Text = MySqlInterpreter.DEFAULT_PORT.ToString();
-                this.chkUseSsl.Visible = true;
-            }
-            else if (this.DatabaseType == DatabaseType.Oracle)
-            {
-                this.lblPort.Visible = this.txtPort.Visible = true;
-                this.txtPort.Text = OracleInterpreter.DEFAULT_PORT.ToString();
-            }
-            else if (this.DatabaseType == DatabaseType.Postgres)
-            {
-                this.lblPort.Visible = this.txtPort.Visible = true;
-                this.txtPort.Text = PostgresInterpreter.DEFAULT_PORT.ToString();
-            }
+            cboAuthentication.Text = AuthenticationType.IntegratedSecurity.ToString();
+        }
+        else
+        {
+            if (!string.IsNullOrEmpty(password)) txtPassword.Text = password;
 
-            var authTypes = Enum.GetNames(typeof(AuthenticationType));
-            this.cboAuthentication.Items.AddRange(authTypes);
+            if (!string.IsNullOrEmpty(info.Password)) chkRememberPassword.Checked = true;
+        }
+    }
 
-            if (this.DatabaseType != DatabaseType.SqlServer)
-            {
-                this.cboAuthentication.Text = AuthenticationType.Password.ToString();
-                //this.cboAuthentication.Enabled = false;
-            }
-            else
-            {
-                this.cboAuthentication.Text = AuthenticationType.IntegratedSecurity.ToString();
-            }
-
-            this.chkAsDba.Visible = this.DatabaseType == DatabaseType.Oracle;
-
-            var profiles = await AccountProfileManager.GetProfiles(this.DatabaseType.ToString());
-            var serverNames = profiles.Select(item => item.Server).Distinct().OrderBy(item => item).ToArray();
-            this.cboServer.Items.AddRange(serverNames);
+    public bool ValidateInfo()
+    {
+        if (string.IsNullOrEmpty(cboServer.Text))
+        {
+            MessageBox.Show("Server name can't be empty.");
+            return false;
         }
 
-        public void LoadData(DatabaseAccountInfo info, string password = null)
+        if (string.IsNullOrEmpty(cboAuthentication.Text))
         {
-            this.cboServer.Text = info.Server;
-            this.txtPort.Text = info.Port;
-            this.cboAuthentication.Text = info.IntegratedSecurity ? AuthenticationType.IntegratedSecurity.ToString() : AuthenticationType.Password.ToString();
-            this.txtUserId.Text = info.UserId;
-            this.txtPassword.Text = info.Password;
-            this.chkAsDba.Checked = info.IsDba;
-            this.chkUseSsl.Checked = info.UseSsl;
-            this.serverVersion = info.ServerVersion;
-
-            if (info.IntegratedSecurity)
-            {
-                this.cboAuthentication.Text = AuthenticationType.IntegratedSecurity.ToString();
-            }
-            else
-            {
-                if(!string.IsNullOrEmpty(password))
-                {
-                    this.txtPassword.Text = password;
-                }  
-                
-                if(!string.IsNullOrEmpty(info.Password))
-                {
-                    this.chkRememberPassword.Checked = true;
-                }
-            }
+            MessageBox.Show("Please select a authentication type.");
+            return false;
         }
 
-        public bool ValidateInfo()
+        if (cboAuthentication.Text == AuthenticationType.Password.ToString())
         {
-            if (string.IsNullOrEmpty(this.cboServer.Text))
+            if (string.IsNullOrEmpty(txtUserId.Text))
             {
-                MessageBox.Show("Server name can't be empty.");
+                MessageBox.Show("User name can't be empty.");
                 return false;
             }
 
-            if (string.IsNullOrEmpty(this.cboAuthentication.Text))
+            if (string.IsNullOrEmpty(txtPassword.Text))
             {
-                MessageBox.Show("Please select a authentication type.");
-                return false;
-            }
-            else if (this.cboAuthentication.Text == AuthenticationType.Password.ToString())
-            {
-                if (string.IsNullOrEmpty(this.txtUserId.Text))
-                {
-                    MessageBox.Show("User name can't be empty.");
-                    return false;
-                }
-                else if (string.IsNullOrEmpty(this.txtPassword.Text))
-                {
-                    MessageBox.Show("Password can't be empty.");
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        public async Task<bool> TestConnect()
-        {
-            if (!this.ValidateInfo())
-            {
-                return false;
-            }
-
-            ConnectionInfo connectionInfo = this.GetConnectionInfo();
-
-            DbInterpreter dbInterpreter = DbInterpreterHelper.GetDbInterpreter(this.DatabaseType, connectionInfo, new DbInterpreterOption());
-
-            try
-            {
-                using (DbConnection dbConnection = dbInterpreter.CreateConnection())
-                {
-                    await dbConnection.OpenAsync();
-
-                    this.serverVersion = dbConnection.ServerVersion;
-
-                    MessageBox.Show("Success.");
-
-                    if (this.OnTestConnect != null)
-                    {
-                        this.OnTestConnect();
-                    }
-
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Failed:" + ex.Message);
+                MessageBox.Show("Password can't be empty.");
                 return false;
             }
         }
 
-        public ConnectionInfo GetConnectionInfo()
-        {
-            ConnectionInfo connectionInfo = new ConnectionInfo()
-            {
-                Server = this.cboServer.Text.Trim(),
-                Port = this.txtPort.Text.Trim(),
-                IntegratedSecurity = this.cboAuthentication.Text != AuthenticationType.Password.ToString(),
-                UserId = this.txtUserId.Text.Trim(),
-                Password = this.txtPassword.Text.Trim(),
-                IsDba = this.chkAsDba.Checked,
-                UseSsl = this.chkUseSsl.Checked                
-            };
+        return true;
+    }
 
-            if(!string.IsNullOrEmpty(this.serverVersion))
+    public async Task<bool> TestConnect()
+    {
+        if (!ValidateInfo()) return false;
+
+        var connectionInfo = GetConnectionInfo();
+
+        var dbInterpreter =
+            DbInterpreterHelper.GetDbInterpreter(DatabaseType, connectionInfo, new DbInterpreterOption());
+
+        try
+        {
+            using (var dbConnection = dbInterpreter.CreateConnection())
             {
-                connectionInfo.ServerVersion = this.serverVersion;
+                await dbConnection.OpenAsync();
+
+                serverVersion = dbConnection.ServerVersion;
+
+                MessageBox.Show("Success.");
+
+                if (OnTestConnect != null) OnTestConnect();
+
+                return true;
             }
-
-            return connectionInfo;
         }
-
-        private void cboAuthentication_SelectedIndexChanged(object sender, EventArgs e)
+        catch (Exception ex)
         {
-            bool isWindowsAuth = this.cboAuthentication.Text == AuthenticationType.IntegratedSecurity.ToString();
-
-            this.txtUserId.Enabled = !isWindowsAuth;
-            this.txtPassword.Enabled = !isWindowsAuth;
-            this.chkRememberPassword.Enabled = !isWindowsAuth;
-
-            this.chkRememberPassword.Checked = false;
-            this.txtUserId.Text = this.txtPassword.Text = "";
+            MessageBox.Show("Failed:" + ex.Message);
+            return false;
         }
+    }
 
-        public void FocusPasswordTextbox()
+    public ConnectionInfo GetConnectionInfo()
+    {
+        var connectionInfo = new ConnectionInfo
         {
-            this.txtPassword.Focus();
-        }
+            Server = cboServer.Text.Trim(),
+            Port = txtPort.Text.Trim(),
+            IntegratedSecurity = cboAuthentication.Text != AuthenticationType.Password.ToString(),
+            UserId = txtUserId.Text.Trim(),
+            Password = txtPassword.Text.Trim(),
+            IsDba = chkAsDba.Checked,
+            UseSsl = chkUseSsl.Checked
+        };
 
-        private async void btnTest_Click(object sender, EventArgs e)
-        {
-            await this.TestConnect();
-        }
+        if (!string.IsNullOrEmpty(serverVersion)) connectionInfo.ServerVersion = serverVersion;
+
+        return connectionInfo;
+    }
+
+    private void cboAuthentication_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        var isWindowsAuth = cboAuthentication.Text == AuthenticationType.IntegratedSecurity.ToString();
+
+        txtUserId.Enabled = !isWindowsAuth;
+        txtPassword.Enabled = !isWindowsAuth;
+        chkRememberPassword.Enabled = !isWindowsAuth;
+
+        chkRememberPassword.Checked = false;
+        txtUserId.Text = txtPassword.Text = "";
+    }
+
+    public void FocusPasswordTextbox()
+    {
+        txtPassword.Focus();
+    }
+
+    private async void btnTest_Click(object sender, EventArgs e)
+    {
+        await TestConnect();
     }
 }

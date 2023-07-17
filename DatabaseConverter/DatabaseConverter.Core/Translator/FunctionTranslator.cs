@@ -1,153 +1,138 @@
-﻿using DatabaseConverter.Model;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using DatabaseConverter.Model;
 using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
-using SqlAnalyser.Core;
 using SqlAnalyser.Model;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
-using static TSqlParser;
 
 namespace DatabaseConverter.Core
 {
     public class FunctionTranslator : DbObjectTranslator
     {
-        private IEnumerable<TokenInfo> functions;
+        private readonly IEnumerable<TokenInfo> functions;
         private List<FunctionSpecification> sourceFuncSpecs;
         private List<FunctionSpecification> targetFuncSpecs;
 
-        public RoutineType RoutineType { get; set; }
-
-        public FunctionTranslator(DbInterpreter sourceInterpreter, DbInterpreter targetInterpreter) : base(sourceInterpreter, targetInterpreter)
+        public FunctionTranslator(DbInterpreter sourceInterpreter, DbInterpreter targetInterpreter) : base(
+            sourceInterpreter, targetInterpreter)
         {
         }
 
-        public FunctionTranslator(DbInterpreter sourceInterpreter, DbInterpreter targetInterpreter, IEnumerable<TokenInfo> functions) : base(sourceInterpreter, targetInterpreter)
+        public FunctionTranslator(DbInterpreter sourceInterpreter, DbInterpreter targetInterpreter,
+            IEnumerable<TokenInfo> functions) : base(sourceInterpreter, targetInterpreter)
         {
             this.functions = functions;
         }
 
+        public RoutineType RoutineType { get; set; }
+
         public override void Translate()
         {
-            if (this.sourceDbType == this.targetDbType)
-            {
-                return;
-            }
+            if (sourceDbType == targetDbType) return;
 
-            this.LoadMappings();
-            this.LoadFunctionSpecifications();
+            LoadMappings();
+            LoadFunctionSpecifications();
 
-            if (this.functions != null)
-            {
-                foreach (TokenInfo token in this.functions)
-                {
-                    token.Symbol = this.GetMappedFunction(token.Symbol);
-                }
-            }
+            if (functions != null)
+                foreach (var token in functions)
+                    token.Symbol = GetMappedFunction(token.Symbol);
         }
 
         public void LoadFunctionSpecifications()
         {
-            this.sourceFuncSpecs = FunctionManager.GetFunctionSpecifications(this.sourceDbType);
-            this.targetFuncSpecs = FunctionManager.GetFunctionSpecifications(this.targetDbType);
+            sourceFuncSpecs = FunctionManager.GetFunctionSpecifications(sourceDbType);
+            targetFuncSpecs = FunctionManager.GetFunctionSpecifications(targetDbType);
         }
 
         public string GetMappedFunction(string value)
         {
-            if (this.sourceDbType == DatabaseType.Postgres)
-            {
+            if (sourceDbType == DatabaseType.Postgres)
                 value = value.ReplaceOrdinalIgnoreCase(@"""substring""", "substring");
-            }
 
-            List<FunctionFormula> formulas = GetFunctionFormulas(this.sourceDbInterpreter, value);
+            var formulas = GetFunctionFormulas(sourceDbInterpreter, value);
 
-            foreach (FunctionFormula formula in formulas)
+            foreach (var formula in formulas)
             {
-                string name = formula.Name;
+                var name = formula.Name;
 
-                if (string.IsNullOrEmpty(name))
-                {
-                    continue;
-                }
+                if (string.IsNullOrEmpty(name)) continue;
 
-                var sourceFuncSpec = this.sourceFuncSpecs.FirstOrDefault(item => item.Name == name.ToUpper());
+                var sourceFuncSpec = sourceFuncSpecs.FirstOrDefault(item => item.Name == name.ToUpper());
 
-                if (sourceFuncSpec == null)
-                {
-                    continue;
-                }
+                if (sourceFuncSpec == null) continue;
 
-                bool useBrackets = false;
+                var useBrackets = false;
 
-                MappingFunctionInfo targetFunctionInfo = this.GetMappingFunctionInfo(name, formula.Body, out useBrackets);
+                var targetFunctionInfo = GetMappingFunctionInfo(name, formula.Body, out useBrackets);
 
                 if (!string.IsNullOrEmpty(targetFunctionInfo.Name))
-                {
                     if (targetFunctionInfo.Name.ToUpper().Trim() != name.ToUpper().Trim())
                     {
-                        bool noParenthesess = false;
-                        bool hasArgs = false;
+                        var noParenthesess = false;
+                        var hasArgs = false;
 
-                        var targetFuncSpec = this.targetFuncSpecs.FirstOrDefault(item => item.Name == targetFunctionInfo.Name);
+                        var targetFuncSpec =
+                            targetFuncSpecs.FirstOrDefault(item => item.Name == targetFunctionInfo.Name);
 
                         if (targetFuncSpec != null)
                         {
                             #region Handle specials
+
                             if (!string.IsNullOrEmpty(targetFunctionInfo.Specials))
                             {
-                                List<FunctionArgumentItemInfo> sourceArgItems = GetFunctionArgumentTokens(sourceFuncSpec, null);
-                                List<FunctionArgumentItemInfo> targetArgItems = GetFunctionArgumentTokens(targetFuncSpec, targetFunctionInfo.Args);
+                                var sourceArgItems = GetFunctionArgumentTokens(sourceFuncSpec, null);
+                                var targetArgItems = GetFunctionArgumentTokens(targetFuncSpec, targetFunctionInfo.Args);
 
                                 var args = formula.GetArgs();
 
-                                Func<string, string> getTrimedContent = (content) =>
-                                {
-                                    return content.Trim('\'');
-                                };
+                                Func<string, string> getTrimedContent = content => { return content.Trim('\''); };
 
                                 foreach (var tai in targetArgItems)
                                 {
-                                    string upperContent = tai.Content.ToUpper();
+                                    var upperContent = tai.Content.ToUpper();
 
                                     if (upperContent == "UNIT" || upperContent == "'UNIT'")
                                     {
-                                        var sourceItem = sourceArgItems.FirstOrDefault(item => getTrimedContent(item.Content) == getTrimedContent(tai.Content));
+                                        var sourceItem = sourceArgItems.FirstOrDefault(item =>
+                                            getTrimedContent(item.Content) == getTrimedContent(tai.Content));
 
                                         if (sourceItem != null && args.Count > sourceItem.Index)
                                         {
-                                            string arg = args[sourceItem.Index];
+                                            var arg = args[sourceItem.Index];
 
-                                            string[] specials = targetFunctionInfo.Specials.Split(';');
+                                            var specials = targetFunctionInfo.Specials.Split(';');
 
                                             foreach (var special in specials)
                                             {
-                                                string[] items = special.Split(':');
+                                                var items = special.Split(':');
 
-                                                string[] subItems = items[0].Split('=');
+                                                var subItems = items[0].Split('=');
 
-                                                string k = subItems[0];
-                                                string v = subItems[1];
+                                                var k = subItems[0];
+                                                var v = subItems[1];
 
                                                 if (k.ToUpper() == upperContent)
                                                 {
-                                                    string mappedUnit = DatetimeHelper.GetMappedUnit(this.sourceDbType, this.targetDbType, arg);
+                                                    var mappedUnit =
+                                                        DatetimeHelper.GetMappedUnit(sourceDbType, targetDbType, arg);
 
                                                     if (mappedUnit == v)
                                                     {
-                                                        targetFunctionInfo = new MappingFunctionInfo() { Name = items[1] };
+                                                        targetFunctionInfo = new MappingFunctionInfo
+                                                            { Name = items[1] };
 
-                                                        targetFuncSpec = this.targetFuncSpecs.FirstOrDefault(item => item.Name == targetFunctionInfo.Name);
+                                                        targetFuncSpec = targetFuncSpecs.FirstOrDefault(item =>
+                                                            item.Name == targetFunctionInfo.Name);
                                                     }
                                                 }
                                             }
                                         }
                                     }
                                 }
-                            } 
+                            }
+
                             #endregion
 
                             noParenthesess = targetFuncSpec.NoParenthesess;
@@ -155,14 +140,12 @@ namespace DatabaseConverter.Core
                             hasArgs = !string.IsNullOrEmpty(targetFuncSpec.Args);
                         }
 
-                        string oldExp = formula.Expression;
+                        var oldExp = formula.Expression;
                         //string newExp = ReplaceValue(formula.Expression, name, targetFunctionInfo.Name);
-                        string newExp = $"{targetFunctionInfo.Name}{(formula.HasParentheses ? "(" : "")}{formula.Body}{(formula.HasParentheses ? ")" : "")}";
+                        var newExp =
+                            $"{targetFunctionInfo.Name}{(formula.HasParentheses ? "(" : "")}{formula.Body}{(formula.HasParentheses ? ")" : "")}";
 
-                        if (!hasArgs && !string.IsNullOrEmpty(formula.Body))
-                        {
-                            newExp = $"{targetFunctionInfo.Name}()";
-                        }
+                        if (!hasArgs && !string.IsNullOrEmpty(formula.Body)) newExp = $"{targetFunctionInfo.Name}()";
 
                         if (noParenthesess)
                         {
@@ -170,10 +153,8 @@ namespace DatabaseConverter.Core
                         }
                         else
                         {
-                            if (sourceFuncSpec.NoParenthesess && targetFuncSpec != null && string.IsNullOrEmpty(targetFuncSpec.Args))
-                            {
-                                newExp += "()";
-                            }
+                            if (sourceFuncSpec.NoParenthesess && targetFuncSpec != null &&
+                                string.IsNullOrEmpty(targetFuncSpec.Args)) newExp += "()";
                         }
 
                         newExp = newExp.Replace("()()", "()");
@@ -182,55 +163,48 @@ namespace DatabaseConverter.Core
 
                         value = ReplaceValue(value, oldExp, newExp);
                     }
-                }
 
                 Dictionary<string, string> dictDataType = null;
 
-                string newExpression = this.ParseFormula(this.sourceFuncSpecs, this.targetFuncSpecs, formula, targetFunctionInfo, out dictDataType, this.RoutineType);
+                var newExpression = ParseFormula(sourceFuncSpecs, targetFuncSpecs, formula, targetFunctionInfo,
+                    out dictDataType, RoutineType);
 
-                if (newExpression != formula.Expression)
-                {
-                    value = ReplaceValue(value, formula.Expression, newExpression);
-                }
+                if (newExpression != formula.Expression) value = ReplaceValue(value, formula.Expression, newExpression);
             }
 
             return value;
-        }   
-        
-        public static List<FunctionFormula> GetFunctionFormulas(DbInterpreter dbInterpreter, string value, bool extractChildren = true)
+        }
+
+        public static List<FunctionFormula> GetFunctionFormulas(DbInterpreter dbInterpreter, string value,
+            bool extractChildren = true)
         {
             value = StringHelper.GetBalanceParenthesisTrimedValue(value);
 
             var functionSpecifications = FunctionManager.GetFunctionSpecifications(dbInterpreter.DatabaseType);
 
-            List<FunctionFormula> functions = new List<FunctionFormula>();
+            var functions = new List<FunctionFormula>();
 
             var trimChars = TranslateHelper.GetTrimChars(dbInterpreter).ToArray();
 
-            Func<string, bool> isValidFunction = (name) =>
+            Func<string, bool> isValidFunction = name =>
             {
-                return functionSpecifications.Any(item => item.Name.ToUpper() == name.Trim().Trim(trimChars).ToUpper());
+                return functionSpecifications.Any(item =>
+                    item.Name.ToUpper() == name.Trim().Trim(trimChars).ToUpper());
             };
 
             if (value.IndexOf("(") < 0)
             {
-                if (isValidFunction(value))
-                {
-                    functions.Add(new FunctionFormula(value, value));
-                }
+                if (isValidFunction(value)) functions.Add(new FunctionFormula(value, value));
             }
             else
             {
-                string select = "SELECT ";
+                var select = "SELECT ";
 
-                string sql = $"{select}{value}";
+                var sql = $"{select}{value}";
 
-                if (dbInterpreter.DatabaseType == DatabaseType.Oracle)
-                {
-                    sql += " FROM DUAL";
-                }
+                if (dbInterpreter.DatabaseType == DatabaseType.Oracle) sql += " FROM DUAL";
 
-                SqlAnalyserBase sqlAnalyser = TranslateHelper.GetSqlAnalyser(dbInterpreter.DatabaseType, sql);
+                var sqlAnalyser = TranslateHelper.GetSqlAnalyser(dbInterpreter.DatabaseType, sql);
 
                 sqlAnalyser.RuleAnalyser.Option.ParseTokenChildren = false;
                 sqlAnalyser.RuleAnalyser.Option.ExtractFunctions = true;
@@ -241,19 +215,19 @@ namespace DatabaseConverter.Core
 
                 if (!result.HasError)
                 {
-                    List<TokenInfo> tokens = result.Script.Functions;
+                    var tokens = result.Script.Functions;
 
-                    foreach (TokenInfo token in tokens)
+                    foreach (var token in tokens)
                     {
-                        string symbol = token.Symbol;
+                        var symbol = token.Symbol;
 
-                        string name = TranslateHelper.ExtractNameFromParenthesis(symbol);
+                        var name = TranslateHelper.ExtractNameFromParenthesis(symbol);
 
                         if (isValidFunction(name))
                         {
                             TranslateHelper.RestoreTokenValue(sql, token);
 
-                            FunctionFormula formula = new FunctionFormula(name, token.Symbol);
+                            var formula = new FunctionFormula(name, token.Symbol);
 
                             functions.Add(formula);
                         }

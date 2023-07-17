@@ -1,13 +1,13 @@
-﻿using DatabaseInterpreter.Model;
-using System;
+﻿using System;
 using System.IO;
+using DatabaseInterpreter.Model;
 
 namespace DatabaseInterpreter.Utility
 {
     public class LogHelper
     {
+        private static readonly object obj = new object();
         public static LogType LogType { get; set; }
-        private static object obj = new object();
 
         public static void LogInfo(string message)
         {
@@ -21,21 +21,18 @@ namespace DatabaseInterpreter.Utility
 
         private static void Log(LogType logType, string message)
         {
-            string logFolder = "log";
+            var logFolder = "log";
 
-            if (!Directory.Exists(logFolder))
-            {
-                Directory.CreateDirectory(logFolder);
-            }
+            if (!Directory.Exists(logFolder)) Directory.CreateDirectory(logFolder);
 
-            string filePath = Path.Combine(logFolder, DateTime.Today.ToString("yyyyMMdd") + ".txt");
+            var filePath = Path.Combine(logFolder, DateTime.Today.ToString("yyyyMMdd") + ".txt");
 
-            string content = $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}({logType}):{message}";
+            var content = $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}({logType}):{message}";
 
             lock (obj)
             {
-                File.AppendAllLines(filePath, new string[] { content });
+                File.AppendAllLines(filePath, new[] { content });
             }
         }
-    }    
+    }
 }

@@ -3,7 +3,7 @@
 namespace DatabaseInterpreter.Model
 {
     [Flags]
-    public enum LogType : int
+    public enum LogType
     {
         None = 0,
         Info = 2,

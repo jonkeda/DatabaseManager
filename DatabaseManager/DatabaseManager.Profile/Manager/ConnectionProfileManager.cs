@@ -1,59 +1,57 @@
-﻿using Dapper;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Dapper;
 using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using DatabaseManager.Model;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace DatabaseManager.Profile
 {
     public class ConnectionProfileManager : ProfileBaseManager
     {
-
         public static async Task<IEnumerable<ConnectionProfileInfo>> GetProfiles(string databaseType)
         {
-            return await GetProfiles(new ProfileFilter() { DatabaseType = databaseType });
+            return await GetProfiles(new ProfileFilter { DatabaseType = databaseType });
         }
 
         public static async Task<IEnumerable<ConnectionProfileInfo>> GetProfilesByAccountId(string accountId)
         {
-            return await GetProfiles(new ProfileFilter() { AccountId = accountId });
+            return await GetProfiles(new ProfileFilter { AccountId = accountId });
         }
 
         public static async Task<ConnectionProfileInfo> GetProfileById(string id)
         {
-            return (await GetProfiles(new ProfileFilter() { Id = id }))?.FirstOrDefault();
+            return (await GetProfiles(new ProfileFilter { Id = id }))?.FirstOrDefault();
         }
 
         private static async Task<IEnumerable<ConnectionProfileInfo>> GetProfiles(ProfileFilter filter)
         {
-            IEnumerable<ConnectionProfileInfo> profiles = Enumerable.Empty<ConnectionProfileInfo>();
+            var profiles = Enumerable.Empty<ConnectionProfileInfo>();
 
             if (ExistsProfileDataFile())
-            {
                 using (var connection = CreateDbConnection())
                 {
                     await connection.OpenAsync();
 
-                    SqlBuilder sb = new SqlBuilder();
+                    var sb = new SqlBuilder();
 
-                    sb.Append($@"SELECT c.Id,c.AccountId, DatabaseType,Server,ServerVersion,Port,IntegratedSecurity,UserId,Password,IsDba,UseSsl,
+                    sb.Append(
+                        @"SELECT c.Id,c.AccountId, DatabaseType,Server,ServerVersion,Port,IntegratedSecurity,UserId,Password,IsDba,UseSsl,
                                 c.Name,c.Database,c.Visible
                                 FROM Connection c 
                                 JOIN Account a ON A.Id=c.AccountId
                                 WHERE 1=1");
 
 
-                    string dbType = filter?.DatabaseType;
-                    string accountId = filter?.AccountId;
-                    string id = filter?.Id;
-                    string name = filter?.Name;
+                    var dbType = filter?.DatabaseType;
+                    var accountId = filter?.AccountId;
+                    var id = filter?.Id;
+                    var name = filter?.Name;
 
-                    Dictionary<string, object> para = new Dictionary<string, object>();
+                    var para = new Dictionary<string, object>();
 
                     if (!string.IsNullOrEmpty(dbType))
                     {
@@ -86,28 +84,22 @@ namespace DatabaseManager.Profile
                     profiles = await connection.QueryAsync<ConnectionProfileInfo>(sb.Content, para);
 
                     if (profiles != null)
-                    {
                         foreach (var profile in profiles)
-                        {
                             if (!string.IsNullOrEmpty(profile.Password))
-                            {
                                 profile.Password = AesHelper.Decrypt(profile.Password);
-                            }
-                        }
-                    }
                 }
-            }
 
             return profiles;
         }
 
         public static async Task<ConnectionInfo> GetConnectionInfo(string dbType, string name)
         {
-            ConnectionProfileInfo profile = (await GetProfiles(new ProfileFilter() { DatabaseType = dbType, Name = name }))?.FirstOrDefault();
+            var profile =
+                (await GetProfiles(new ProfileFilter { DatabaseType = dbType, Name = name }))?.FirstOrDefault();
 
             if (profile != null)
             {
-                ConnectionInfo connectionInfo = new ConnectionInfo()
+                var connectionInfo = new ConnectionInfo
                 {
                     Server = profile.Server,
                     IntegratedSecurity = profile.IntegratedSecurity,
@@ -128,49 +120,38 @@ namespace DatabaseManager.Profile
 
         public static async Task<string> Save(ConnectionProfileInfo info, bool rememberPassword)
         {
-            string password = info.Password;
+            var password = info.Password;
 
-            if (info.IntegratedSecurity || !rememberPassword)
-            {
-                password = null;
-            }
+            if (info.IntegratedSecurity || !rememberPassword) password = null;
 
-            string profileName = info.Name;
+            var profileName = info.Name;
 
-            if (string.IsNullOrEmpty(profileName))
-            {
-                profileName = info.ConnectionDescription;
-            }
+            if (string.IsNullOrEmpty(profileName)) profileName = info.ConnectionDescription;
 
             AccountProfileInfo accountProfile = null;
 
             if (!string.IsNullOrEmpty(info.AccountId))
-            {
                 accountProfile = await AccountProfileManager.GetProfile(info.AccountId);
-            }
 
-            bool changed = false;
+            var changed = false;
 
             if (accountProfile != null)
             {
                 if ((!accountProfile.IntegratedSecurity && accountProfile.Password != password)
-                    || (accountProfile.ServerVersion != info.ServerVersion))
+                    || accountProfile.ServerVersion != info.ServerVersion)
                 {
                     changed = true;
 
                     accountProfile.Password = password;
 
-                    if (!string.IsNullOrEmpty(info.ServerVersion))
-                    {
-                        accountProfile.ServerVersion = info.ServerVersion;
-                    }
+                    if (!string.IsNullOrEmpty(info.ServerVersion)) accountProfile.ServerVersion = info.ServerVersion;
                 }
             }
             else
             {
                 changed = true;
 
-                accountProfile = new AccountProfileInfo()
+                accountProfile = new AccountProfileInfo
                 {
                     DatabaseType = info.DatabaseType,
                     Server = info.Server,
@@ -184,14 +165,12 @@ namespace DatabaseManager.Profile
                 };
             }
 
-            IEnumerable<ConnectionProfileInfo> profiles = Enumerable.Empty<ConnectionProfileInfo>();
+            var profiles = Enumerable.Empty<ConnectionProfileInfo>();
 
-            if (ExistsProfileDataFile())
-            {
-                profiles = await GetProfiles(info.DatabaseType);
-            }
+            if (ExistsProfileDataFile()) profiles = await GetProfiles(info.DatabaseType);
 
-            ConnectionProfileInfo oldProfile = profiles.FirstOrDefault(item => item.Name == info.Name && item.DatabaseType == info.DatabaseType);
+            var oldProfile =
+                profiles.FirstOrDefault(item => item.Name == info.Name && item.DatabaseType == info.DatabaseType);
 
             using (var connection = CreateDbConnection())
             {
@@ -201,19 +180,17 @@ namespace DatabaseManager.Profile
 
                 if (changed)
                 {
-                    SaveResultInfo resultInfo = await AccountProfileManager.Save(accountProfile, rememberPassword, connection);
+                    var resultInfo = await AccountProfileManager.Save(accountProfile, rememberPassword, connection);
 
                     if (accountProfile.Id == null && resultInfo.Id != null)
-                    {
                         info.AccountId = accountProfile.Id = resultInfo.Id;
-                    }
                 }
 
                 if (oldProfile == null)
                 {
-                    string id = Guid.NewGuid().ToString();
+                    var id = Guid.NewGuid().ToString();
 
-                    string sql = $@"INSERT INTO Connection(Id,AccountId,Name,Database)
+                    var sql = @"INSERT INTO Connection(Id,AccountId,Name,Database)
                                     VALUES(@Id,@AccountId,@Name,@Database)";
 
                     var cmd = connection.CreateCommand();
@@ -228,7 +205,7 @@ namespace DatabaseManager.Profile
                 }
                 else
                 {
-                    string sql = $@"UPDATE Connection
+                    var sql = @"UPDATE Connection
                                     SET Name=@Name,Database=@Database
                                     WHERE ID=@Id";
 
@@ -250,28 +227,24 @@ namespace DatabaseManager.Profile
 
         public static async Task<bool> Delete(IEnumerable<string> ids)
         {
-            if (!ValidateIds(ids))
-            {
-                return false;
-            }
+            if (!ValidateIds(ids)) return false;
 
             if (ExistsProfileDataFile())
-            {
                 using (var connection = CreateDbConnection())
                 {
                     await connection.OpenAsync();
 
                     var trans = await connection.BeginTransactionAsync();
 
-                    string strIds = string.Join(",", ids.Select(item => $"'{item}'"));
+                    var strIds = string.Join(",", ids.Select(item => $"'{item}'"));
 
-                    string sql = $@"DELETE FROM Connection
+                    var sql = $@"DELETE FROM Connection
                                     WHERE Id IN({strIds})";
 
                     var cmd = connection.CreateCommand();
                     cmd.CommandText = sql;
 
-                    int result = await cmd.ExecuteNonQueryAsync();
+                    var result = await cmd.ExecuteNonQueryAsync();
 
                     if (result > 0)
                     {
@@ -280,7 +253,6 @@ namespace DatabaseManager.Profile
                         return true;
                     }
                 }
-            }
 
             return false;
         }

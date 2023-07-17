@@ -1,396 +1,333 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using DatabaseManager.Helper;
-using DatabaseManager.Profile;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Model;
 using DatabaseInterpreter.Core;
-using DatabaseManager.Core;
 using DatabaseInterpreter.Model;
+using DatabaseInterpreter.Utility;
+using DatabaseManager.Core;
 using DatabaseManager.Data;
 using DatabaseManager.Forms;
+using DatabaseManager.Helper;
+using DatabaseManager.Model;
+using DatabaseManager.Profile;
 
-namespace DatabaseManager.Controls
+namespace DatabaseManager.Controls;
+
+public partial class UC_DbObjectsNavigator : UserControl
 {
-    public partial class UC_DbObjectsNavigator : UserControl
+    public FeedbackHandler OnFeedback;
+    public ShowDbObjectContentHandler OnShowContent;
+
+    public UC_DbObjectsNavigator()
     {
-        public ShowDbObjectContentHandler OnShowContent;
-        public FeedbackHandler OnFeedback;
+        InitializeComponent();
+    }
 
-        public DatabaseType DatabaseType
+    public DatabaseType DatabaseType => ManagerUtil.GetDatabaseType(cboDbType.Text);
+
+    private void UC_DbObjectsNavigator_Load(object sender, EventArgs e)
+    {
+        InitControls();
+
+        tvDbObjects.OnFeedback += Feedback;
+    }
+
+    private void InitControls()
+    {
+        tvDbObjects.OnShowContent += ShowContent;
+        LoadDbTypes();
+    }
+
+    private void ShowContent(DatabaseObjectDisplayInfo content)
+    {
+        if (OnShowContent != null) OnShowContent(content);
+    }
+
+    private void Feedback(FeedbackInfo info)
+    {
+        if (OnFeedback != null) OnFeedback(info);
+    }
+
+    public void LoadDbTypes()
+    {
+        var databaseTypes = DbInterpreterHelper.GetDisplayDatabaseTypes();
+        foreach (var value in databaseTypes) cboDbType.Items.Add(value.ToString());
+
+        if (cboDbType.Items.Count > 0)
         {
-            get
+            cboDbType.Text = SettingManager.Setting.PreferredDatabase.ToString();
+
+            if (string.IsNullOrEmpty(cboDbType.Text)) cboDbType.SelectedIndex = 0;
+        }
+
+        btnConnect.Focus();
+    }
+
+    private void cboDbType_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        var hasValue = cboDbType.SelectedIndex >= 0;
+        btnAddAccount.Enabled = hasValue;
+
+        if (hasValue)
+        {
+            var databaseType = ManagerUtil.GetDatabaseType(cboDbType.Text);
+
+            if (!ManagerUtil.IsFileConnection(databaseType))
+                LoadAccounts();
+            else
+                LoadFileConnections();
+        }
+    }
+
+    private async void LoadAccounts(string defaultValue = null)
+    {
+        var type = cboDbType.Text;
+
+        var profiles = (await AccountProfileManager.GetProfiles(type)).OrderBy(item => item.Description);
+
+        cboAccount.DataSource = profiles.ToList();
+        cboAccount.DisplayMember = nameof(AccountProfileInfo.Description);
+        cboAccount.ValueMember = nameof(AccountProfileInfo.Id);
+
+        var ids = profiles.Select(item => item.Id).ToList();
+
+        if (string.IsNullOrEmpty(defaultValue))
+        {
+            if (profiles.Count() > 0) cboAccount.SelectedIndex = 0;
+        }
+        else
+        {
+            if (ids.Contains(defaultValue))
+                cboAccount.Text = profiles.FirstOrDefault(item => item.Id == defaultValue)?.Description;
+        }
+
+        btnConnect.Enabled = cboAccount.Items.Count > 0;
+    }
+
+    private async void LoadFileConnections(string defaultValue = null)
+    {
+        var type = cboDbType.Text;
+
+        var profiles = (await FileConnectionProfileManager.GetProfiles(type)).OrderBy(item => item.Description);
+
+        cboAccount.DataSource = profiles.ToList();
+        cboAccount.DisplayMember = nameof(FileConnectionProfileInfo.Description);
+        cboAccount.ValueMember = nameof(FileConnectionProfileInfo.Id);
+
+        var ids = profiles.Select(item => item.Id).ToList();
+
+        if (string.IsNullOrEmpty(defaultValue))
+        {
+            if (profiles.Count() > 0) cboAccount.SelectedIndex = 0;
+        }
+        else
+        {
+            if (ids.Contains(defaultValue))
+                cboAccount.Text = profiles.FirstOrDefault(item => item.Id == defaultValue)?.Description;
+        }
+
+        btnConnect.Enabled = cboAccount.Items.Count > 0;
+    }
+
+    private void btnAddAccount_Click(object sender, EventArgs e)
+    {
+        var databaseType = cboDbType.Text;
+
+        if (string.IsNullOrEmpty(databaseType))
+        {
+            MessageBox.Show("Please select a database type first.");
+        }
+        else
+        {
+            var dbType = ManagerUtil.GetDatabaseType(databaseType);
+
+            if (!ManagerUtil.IsFileConnection(dbType))
             {
-                return ManagerUtil.GetDatabaseType(this.cboDbType.Text);
-            }
-        }
+                var form = new frmAccountInfo(dbType);
+                var result = form.ShowDialog();
 
-        public UC_DbObjectsNavigator()
-        {
-            InitializeComponent();
-        }
-
-        private void UC_DbObjectsNavigator_Load(object sender, EventArgs e)
-        {
-            this.InitControls();
-
-            this.tvDbObjects.OnFeedback += this.Feedback;
-        }
-
-        private void InitControls()
-        {
-            this.tvDbObjects.OnShowContent += this.ShowContent;
-            this.LoadDbTypes();
-        }
-
-        private void ShowContent(DatabaseObjectDisplayInfo content)
-        {
-            if (this.OnShowContent != null)
-            {
-                this.OnShowContent(content);
-            }
-        }
-
-        private void Feedback(FeedbackInfo info)
-        {
-            if (this.OnFeedback != null)
-            {
-                this.OnFeedback(info);
-            }
-        }
-
-        public void LoadDbTypes()
-        {
-            var databaseTypes = DbInterpreterHelper.GetDisplayDatabaseTypes();
-            foreach (var value in databaseTypes)
-            {
-                this.cboDbType.Items.Add(value.ToString());
-            }
-
-            if (this.cboDbType.Items.Count > 0)
-            {
-                this.cboDbType.Text = SettingManager.Setting.PreferredDatabase.ToString();
-
-                if (string.IsNullOrEmpty(this.cboDbType.Text))
+                if (result == DialogResult.OK)
                 {
-                    this.cboDbType.SelectedIndex = 0;
+                    LoadAccounts(form.AccountProfileId);
+
+                    if (cboAccount.SelectedItem != null)
+                        (cboAccount.SelectedItem as AccountProfileInfo).Password = form.AccountProfileInfo.Password;
                 }
             }
-
-            this.btnConnect.Focus();
-        }
-
-        private void cboDbType_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            bool hasValue = this.cboDbType.SelectedIndex >= 0;
-            this.btnAddAccount.Enabled = hasValue;
-
-            if (hasValue)
+            else
             {
-                DatabaseType databaseType = ManagerUtil.GetDatabaseType(this.cboDbType.Text);
+                var form = new frmFileConnection(dbType);
 
-                if(!ManagerUtil.IsFileConnection(databaseType))
+                var result = form.ShowDialog();
+
+                if (result == DialogResult.OK)
                 {
-                    this.LoadAccounts();
+                    LoadFileConnections(form.FileConnectionProfileId);
+
+                    if (cboAccount.SelectedItem != null)
+                        (cboAccount.SelectedItem as FileConnectionProfileInfo).Password =
+                            form.FileConnectionProfileInfo.Password;
+                }
+            }
+        }
+    }
+
+    private void btnConnect_Click(object sender, EventArgs e)
+    {
+        Invoke(Connect);
+    }
+
+    private async void Connect()
+    {
+        var selectedItem = cboAccount.SelectedItem;
+
+        var connectionInfo = new ConnectionInfo();
+
+        AccountProfileInfo accountProfileInfo = null;
+        FileConnectionProfileInfo fileConnectionProfileInfo = null;
+
+        if (selectedItem is AccountProfileInfo)
+        {
+            accountProfileInfo = selectedItem as AccountProfileInfo;
+
+            if (!accountProfileInfo.IntegratedSecurity && string.IsNullOrEmpty(accountProfileInfo.Password))
+            {
+                var storedInfo = DataStore.GetAccountProfileInfo(accountProfileInfo.Id);
+
+                if (storedInfo != null && !string.IsNullOrEmpty(storedInfo.Password))
+                {
+                    accountProfileInfo.Password = storedInfo.Password;
                 }
                 else
                 {
-                    this.LoadFileConnections();
-                }                
+                    MessageBox.Show("Please specify password for the database.");
+
+                    if (!SetConnectionInfo(accountProfileInfo)) return;
+                }
             }
+
+            ObjectHelper.CopyProperties(accountProfileInfo, connectionInfo);
         }
-
-        private async void LoadAccounts(string defaultValue = null)
+        else if (selectedItem is FileConnectionProfileInfo)
         {
-            string type = this.cboDbType.Text;
+            fileConnectionProfileInfo = selectedItem as FileConnectionProfileInfo;
 
-            var profiles = (await AccountProfileManager.GetProfiles(type)).OrderBy(item => item.Description);
-
-            this.cboAccount.DataSource = profiles.ToList();
-            this.cboAccount.DisplayMember = nameof(AccountProfileInfo.Description);
-            this.cboAccount.ValueMember = nameof(AccountProfileInfo.Id);
-
-            List<string> ids = profiles.Select(item => item.Id).ToList();
-
-            if (string.IsNullOrEmpty(defaultValue))
+            if (fileConnectionProfileInfo.HasPassword && string.IsNullOrEmpty(fileConnectionProfileInfo.Password))
             {
-                if (profiles.Count() > 0)
+                var storedInfo = DataStore.GetFileConnectionProfileInfo(fileConnectionProfileInfo.Id);
+
+                if (storedInfo != null && !string.IsNullOrEmpty(storedInfo.Password))
                 {
-                    this.cboAccount.SelectedIndex = 0;
-                }
-            }
-            else
-            {
-                if (ids.Contains(defaultValue))
-                {
-                    this.cboAccount.Text = profiles.FirstOrDefault(item => item.Id == defaultValue)?.Description;
-                }
-            }
-
-            btnConnect.Enabled = this.cboAccount.Items.Count > 0;
-        }
-
-        private async void LoadFileConnections(string defaultValue = null)
-        {
-            string type = this.cboDbType.Text;
-
-            var profiles = (await FileConnectionProfileManager.GetProfiles(type)).OrderBy(item => item.Description);
-
-            this.cboAccount.DataSource = profiles.ToList();
-            this.cboAccount.DisplayMember = nameof(FileConnectionProfileInfo.Description);
-            this.cboAccount.ValueMember = nameof(FileConnectionProfileInfo.Id);
-
-            List<string> ids = profiles.Select(item => item.Id).ToList();
-
-            if (string.IsNullOrEmpty(defaultValue))
-            {
-                if (profiles.Count() > 0)
-                {
-                    this.cboAccount.SelectedIndex = 0;
-                }
-            }
-            else
-            {
-                if (ids.Contains(defaultValue))
-                {
-                    this.cboAccount.Text = profiles.FirstOrDefault(item => item.Id == defaultValue)?.Description;
-                }
-            }
-
-            btnConnect.Enabled = this.cboAccount.Items.Count > 0;
-        }
-
-        private void btnAddAccount_Click(object sender, EventArgs e)
-        {
-            string databaseType = this.cboDbType.Text;
-
-            if (string.IsNullOrEmpty(databaseType))
-            {
-                MessageBox.Show("Please select a database type first.");
-            }
-            else
-            {
-                DatabaseType dbType = ManagerUtil.GetDatabaseType(databaseType);
-
-                if(!ManagerUtil.IsFileConnection(dbType))
-                {
-                    frmAccountInfo form = new frmAccountInfo(dbType);
-                    DialogResult result = form.ShowDialog();
-
-                    if (result == DialogResult.OK)
-                    {
-                        this.LoadAccounts(form.AccountProfileId);
-
-                        if (this.cboAccount.SelectedItem != null)
-                        {
-                            (this.cboAccount.SelectedItem as AccountProfileInfo).Password = form.AccountProfileInfo.Password;
-                        }
-                    }
+                    fileConnectionProfileInfo.Password = storedInfo.Password;
                 }
                 else
                 {
-                    frmFileConnection form = new frmFileConnection(dbType);
+                    MessageBox.Show("Please specify password for the database.");
 
-                    DialogResult result = form.ShowDialog();
-
-                    if (result == DialogResult.OK)
-                    {
-                        this.LoadFileConnections(form.FileConnectionProfileId);
-
-                        if (this.cboAccount.SelectedItem != null)
-                        {
-                            (this.cboAccount.SelectedItem as FileConnectionProfileInfo).Password = form.FileConnectionProfileInfo.Password;
-                        }
-                    }
-                }
-            }
-        }
-
-        private void btnConnect_Click(object sender, EventArgs e)
-        {
-            this.Invoke(new Action(this.Connect));
-        }
-
-        private async void Connect()
-        {
-            object selectedItem = this.cboAccount.SelectedItem;
-
-            ConnectionInfo connectionInfo = new ConnectionInfo();
-
-            AccountProfileInfo accountProfileInfo=null;
-            FileConnectionProfileInfo fileConnectionProfileInfo = null;
-
-            if (selectedItem is AccountProfileInfo)
-            {
-                accountProfileInfo= selectedItem as AccountProfileInfo;
-
-                if (!accountProfileInfo.IntegratedSecurity && string.IsNullOrEmpty(accountProfileInfo.Password))
-                {
-                    var storedInfo = DataStore.GetAccountProfileInfo(accountProfileInfo.Id);
-
-                    if (storedInfo != null && !string.IsNullOrEmpty(storedInfo.Password))
-                    {
-                        accountProfileInfo.Password = storedInfo.Password;
-                    }
-                    else
-                    {
-                        MessageBox.Show("Please specify password for the database.");
-
-                        if (!this.SetConnectionInfo(accountProfileInfo))
-                        {
-                            return;
-                        }
-                    }
-                }
-
-                ObjectHelper.CopyProperties(accountProfileInfo, connectionInfo);
-            }
-            else if(selectedItem is FileConnectionProfileInfo)
-            {
-                fileConnectionProfileInfo= selectedItem as FileConnectionProfileInfo;
-
-                if (fileConnectionProfileInfo.HasPassword && string.IsNullOrEmpty(fileConnectionProfileInfo.Password))
-                {
-                    var storedInfo = DataStore.GetFileConnectionProfileInfo(fileConnectionProfileInfo.Id);
-
-                    if (storedInfo != null && !string.IsNullOrEmpty(storedInfo.Password))
-                    {
-                        fileConnectionProfileInfo.Password = storedInfo.Password;
-                    }
-                    else
-                    {
-                        MessageBox.Show("Please specify password for the database.");
-
-                        if (!this.SetFileConnectionInfo(fileConnectionProfileInfo))
-                        {
-                            return;
-                        }
-                    }
-                }
-
-                ObjectHelper.CopyProperties(fileConnectionProfileInfo, connectionInfo);
-            }            
-
-            this.btnConnect.Enabled = false;
-
-            try
-            {
-                await this.tvDbObjects.LoadTree(this.DatabaseType, connectionInfo);
-
-                if (SettingManager.Setting.RememberPasswordDuringSession)
-                {
-                    if (accountProfileInfo != null)
-                    {
-                        DataStore.SetAccountProfileInfo(accountProfileInfo);
-                    }
-                    else if (fileConnectionProfileInfo != null)
-                    {
-                        DataStore.SetFileConnectionProfileInfo(fileConnectionProfileInfo);
-                    }
-                }               
-            }
-            catch (Exception ex)
-            {
-                this.tvDbObjects.ClearNodes();
-
-                string message = ExceptionHelper.GetExceptionDetails(ex);
-
-                LogHelper.LogError(message);
-
-                MessageBox.Show("Error:" + message);
-
-                if (accountProfileInfo!=null && !this.SetConnectionInfo(accountProfileInfo))
-                {
-                    return;
-                }
-                else if(fileConnectionProfileInfo!=null && !this.SetFileConnectionInfo(fileConnectionProfileInfo))
-                {
-                    return;
-                }
-                else
-                {
-                    this.Connect();
+                    if (!SetFileConnectionInfo(fileConnectionProfileInfo)) return;
                 }
             }
 
-            this.btnConnect.Enabled = true;
+            ObjectHelper.CopyProperties(fileConnectionProfileInfo, connectionInfo);
         }
 
-        private bool SetConnectionInfo(AccountProfileInfo accountProfileInfo)
+        btnConnect.Enabled = false;
+
+        try
         {
-            DatabaseType dbType = ManagerUtil.GetDatabaseType(this.cboDbType.Text);
+            await tvDbObjects.LoadTree(DatabaseType, connectionInfo);
 
-            frmAccountInfo frmAccountInfo = new frmAccountInfo(dbType, true) { AccountProfileInfo = accountProfileInfo };
-
-            DialogResult dialogResult = frmAccountInfo.ShowDialog();
-
-            if (dialogResult == DialogResult.OK)
+            if (SettingManager.Setting.RememberPasswordDuringSession)
             {
-                AccountProfileInfo profileInfo = frmAccountInfo.AccountProfileInfo;
-
-                ObjectHelper.CopyProperties(profileInfo, (this.cboAccount.SelectedItem as AccountProfileInfo));
-                this.cboAccount.Text = profileInfo.Description;                
-
-                return true;
+                if (accountProfileInfo != null)
+                    DataStore.SetAccountProfileInfo(accountProfileInfo);
+                else if (fileConnectionProfileInfo != null)
+                    DataStore.SetFileConnectionProfileInfo(fileConnectionProfileInfo);
             }
-            else
-            {
-                this.btnConnect.Enabled = true;
-            }
-
-            return false;
         }
-
-        private bool SetFileConnectionInfo(FileConnectionProfileInfo fileConnectionProfileInfo)
+        catch (Exception ex)
         {
-            DatabaseType dbType = ManagerUtil.GetDatabaseType(this.cboDbType.Text);
+            tvDbObjects.ClearNodes();
 
-            frmFileConnection form = new frmFileConnection(dbType, true) { FileConnectionProfileInfo = fileConnectionProfileInfo };
+            var message = ExceptionHelper.GetExceptionDetails(ex);
 
-            DialogResult dialogResult = form.ShowDialog();
+            LogHelper.LogError(message);
 
-            if (dialogResult == DialogResult.OK)
-            {
-                FileConnectionProfileInfo profileInfo = form.FileConnectionProfileInfo;
+            MessageBox.Show("Error:" + message);
 
-                ObjectHelper.CopyProperties(profileInfo, (this.cboAccount.SelectedItem as FileConnectionProfileInfo));
-                this.cboAccount.Text = profileInfo.Description;
-
-                return true;
-            }
-            else
-            {
-                this.btnConnect.Enabled = true;
-            }
-
-            return false;
+            if (accountProfileInfo != null && !SetConnectionInfo(accountProfileInfo))
+                return;
+            if (fileConnectionProfileInfo != null && !SetFileConnectionInfo(fileConnectionProfileInfo))
+                return;
+            Connect();
         }
 
-        public ConnectionInfo GetCurrentConnectionInfo()
+        btnConnect.Enabled = true;
+    }
+
+    private bool SetConnectionInfo(AccountProfileInfo accountProfileInfo)
+    {
+        var dbType = ManagerUtil.GetDatabaseType(cboDbType.Text);
+
+        var frmAccountInfo = new frmAccountInfo(dbType, true) { AccountProfileInfo = accountProfileInfo };
+
+        var dialogResult = frmAccountInfo.ShowDialog();
+
+        if (dialogResult == DialogResult.OK)
         {
-            return this.tvDbObjects.GetCurrentConnectionInfo();
+            var profileInfo = frmAccountInfo.AccountProfileInfo;
+
+            ObjectHelper.CopyProperties(profileInfo, cboAccount.SelectedItem as AccountProfileInfo);
+            cboAccount.Text = profileInfo.Description;
+
+            return true;
         }
 
-        public DatabaseObjectDisplayInfo GetDisplayInfo()
+        btnConnect.Enabled = true;
+
+        return false;
+    }
+
+    private bool SetFileConnectionInfo(FileConnectionProfileInfo fileConnectionProfileInfo)
+    {
+        var dbType = ManagerUtil.GetDatabaseType(cboDbType.Text);
+
+        var form = new frmFileConnection(dbType, true) { FileConnectionProfileInfo = fileConnectionProfileInfo };
+
+        var dialogResult = form.ShowDialog();
+
+        if (dialogResult == DialogResult.OK)
         {
-            DatabaseObjectDisplayInfo info = this.tvDbObjects.GetDisplayInfo();
+            var profileInfo = form.FileConnectionProfileInfo;
 
-            info.DatabaseType = this.DatabaseType;
+            ObjectHelper.CopyProperties(profileInfo, cboAccount.SelectedItem as FileConnectionProfileInfo);
+            cboAccount.Text = profileInfo.Description;
 
-            return info;
+            return true;
         }
 
-        private void UC_DbObjectsNavigator_SizeChanged(object sender, EventArgs e)
-        {
-            this.cboDbType.Refresh();
-            this.cboAccount.Refresh();
-        }
+        btnConnect.Enabled = true;
+
+        return false;
+    }
+
+    public ConnectionInfo GetCurrentConnectionInfo()
+    {
+        return tvDbObjects.GetCurrentConnectionInfo();
+    }
+
+    public DatabaseObjectDisplayInfo GetDisplayInfo()
+    {
+        var info = tvDbObjects.GetDisplayInfo();
+
+        info.DatabaseType = DatabaseType;
+
+        return info;
+    }
+
+    private void UC_DbObjectsNavigator_SizeChanged(object sender, EventArgs e)
+    {
+        cboDbType.Refresh();
+        cboAccount.Refresh();
     }
 }

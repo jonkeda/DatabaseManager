@@ -1,8 +1,7 @@
-﻿namespace DatabaseManager.Model
+﻿namespace DatabaseManager.Model;
+
+public class WordMatchInfo
 {
-    public class WordMatchInfo
-    {
-        public int Index { get; set; }
-        public int Length { get; set; }
-    }
+    public int Index { get; set; }
+    public int Length { get; set; }
 }

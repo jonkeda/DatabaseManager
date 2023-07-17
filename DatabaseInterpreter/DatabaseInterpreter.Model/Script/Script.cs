@@ -1,19 +1,17 @@
-﻿using System;
-
-namespace DatabaseInterpreter.Model
+﻿namespace DatabaseInterpreter.Model
 {
     public class Script
     {
-        public string ObjectType { get; protected set; }
-        public string Content { get; set; }
-
         public Script()
         {
         }
 
         public Script(string script)
         {
-            this.Content = script;
+            Content = script;
         }
+
+        public string ObjectType { get; protected set; }
+        public string Content { get; set; }
     }
 }

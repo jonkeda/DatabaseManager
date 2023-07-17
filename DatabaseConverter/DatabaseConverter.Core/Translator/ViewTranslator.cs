@@ -1,87 +1,77 @@
-﻿using DatabaseConverter.Model;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using DatabaseConverter.Model;
+using DatabaseInterpreter.Core;
+using DatabaseInterpreter.Model;
+using DatabaseInterpreter.Utility;
 
 namespace DatabaseConverter.Core
 {
-    public class ViewTranslator: DbObjectTokenTranslator
+    public class ViewTranslator : DbObjectTokenTranslator
     {
-        private List<View> views;     
-       
-        private string targetSchemaName;              
+        private string targetSchemaName;
+        private readonly List<View> views;
 
-        public ViewTranslator(DbInterpreter sourceDbInterpreter, DbInterpreter targetDbInterpreter, List<View> views, string targetSchemaName = null): base(sourceDbInterpreter, targetDbInterpreter)
+        public ViewTranslator(DbInterpreter sourceDbInterpreter, DbInterpreter targetDbInterpreter, List<View> views,
+            string targetSchemaName = null) : base(sourceDbInterpreter, targetDbInterpreter)
         {
-            this.views = views;           
+            this.views = views;
             this.targetSchemaName = targetSchemaName;
         }
 
         public override void Translate()
         {
-            if (sourceDbInterpreter.DatabaseType == targetDbInterpreter.DatabaseType)
-            {
-                return;
-            }
+            if (sourceDbInterpreter.DatabaseType == targetDbInterpreter.DatabaseType) return;
 
-            if (this.hasError)
-            {
-                return;
-            }
+            if (hasError) return;
 
-            this.LoadMappings();
+            LoadMappings();
 
             if (string.IsNullOrEmpty(targetSchemaName))
             {
                 if (targetDbInterpreter is SqlServerInterpreter)
-                {
                     targetSchemaName = "dbo";
-                }
                 else
-                {
                     targetSchemaName = targetDbInterpreter.DefaultSchema;
-                }
             }
 
-            foreach (View view in views)
-            {
+            foreach (var view in views)
                 try
-                {                    
-                    string viewNameWithQuotation = $"{targetDbInterpreter.QuotationLeftChar}{view.Name}{targetDbInterpreter.QuotationRightChar}";
+                {
+                    var viewNameWithQuotation =
+                        $"{targetDbInterpreter.QuotationLeftChar}{view.Name}{targetDbInterpreter.QuotationRightChar}";
 
-                    string definition = view.Definition;
+                    var definition = view.Definition;
 
                     definition = definition
-                               .Replace(sourceDbInterpreter.QuotationLeftChar, '"')
-                               .Replace(sourceDbInterpreter.QuotationRightChar, '"')
-                               .Replace("<>", "!=")
-                               .Replace(">", " > ")
-                               .Replace("<", " < ")
-                               .Replace("!=", "<>");
+                        .Replace(sourceDbInterpreter.QuotationLeftChar, '"')
+                        .Replace(sourceDbInterpreter.QuotationRightChar, '"')
+                        .Replace("<>", "!=")
+                        .Replace(">", " > ")
+                        .Replace("<", " < ")
+                        .Replace("!=", "<>");
 
-                    StringBuilder sb = new StringBuilder();
+                    var sb = new StringBuilder();
 
-                    string[] lines = definition.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-                    
-                    foreach(string line in lines)
+                    var lines = definition.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+
+                    foreach (var line in lines)
                     {
-                        if(line.StartsWith(this.sourceDbInterpreter.CommentString))
-                        {
-                            continue;
-                        }
+                        if (line.StartsWith(sourceDbInterpreter.CommentString)) continue;
 
                         sb.AppendLine(line);
                     }
 
-                    definition = this.ParseDefinition(sb.ToString());
+                    definition = ParseDefinition(sb.ToString());
 
-                    string createClause = this.targetDbInterpreter.DatabaseType == DatabaseType.Oracle ? "CREATE OR REPLACE" : "CREATE";
+                    var createClause = targetDbInterpreter.DatabaseType == DatabaseType.Oracle
+                        ? "CREATE OR REPLACE"
+                        : "CREATE";
 
-                    string createAsClause = $"{createClause} VIEW {(string.IsNullOrEmpty(targetSchemaName)? "": targetSchemaName + "." )}{viewNameWithQuotation} AS ";
+                    var createAsClause =
+                        $"{createClause} VIEW {(string.IsNullOrEmpty(targetSchemaName) ? "" : targetSchemaName + ".")}{viewNameWithQuotation} AS ";
 
                     if (!definition.Trim().ToLower().StartsWith("create"))
                     {
@@ -89,16 +79,17 @@ namespace DatabaseConverter.Core
                     }
                     else
                     {
-                        int asIndex = definition.ToLower().IndexOf("as");
+                        var asIndex = definition.ToLower().IndexOf("as");
                         definition = createAsClause + definition.Substring(asIndex + 2);
                     }
 
                     view.Definition = definition;
 
-                    if (this.Option.CollectTranslateResultAfterTranslated)
-                    {
-                        this.TranslateResults.Add(new TranslateResult() { DbObjectType = DatabaseObjectType.View, DbObjectName = view.Name, Data = view.Definition });
-                    }
+                    if (Option.CollectTranslateResultAfterTranslated)
+                        TranslateResults.Add(new TranslateResult
+                        {
+                            DbObjectType = DatabaseObjectType.View, DbObjectName = view.Name, Data = view.Definition
+                        });
                 }
                 catch (Exception ex)
                 {
@@ -112,16 +103,10 @@ namespace DatabaseConverter.Core
                         TargetObject = view.Name
                     };
 
-                    if (!this.ContinueWhenErrorOccurs)
-                    {
+                    if (!ContinueWhenErrorOccurs)
                         throw vce;
-                    }
-                    else
-                    {
-                        this.FeedbackError(ExceptionHelper.GetExceptionDetails(ex), this.ContinueWhenErrorOccurs);
-                    }                   
+                    FeedbackError(ExceptionHelper.GetExceptionDetails(ex), ContinueWhenErrorOccurs);
                 }
-            }           
         }
 
         public override string ParseDefinition(string definition)
@@ -129,32 +114,34 @@ namespace DatabaseConverter.Core
             definition = base.ParseDefinition(definition);
 
             #region Handle join cluase for mysql which has no "on", so it needs to make up that.
+
             try
             {
-                StringBuilder sb = new StringBuilder();
+                var sb = new StringBuilder();
 
-                if (this.sourceDbInterpreter.GetType() == typeof(MySqlInterpreter))
+                if (sourceDbInterpreter.GetType() == typeof(MySqlInterpreter))
                 {
-                    bool hasError = false;
-                    string formattedDefinition = this.FormatSql(definition, out hasError);
+                    var hasError = false;
+                    var formattedDefinition = FormatSql(definition, out hasError);
 
                     if (!hasError)
                     {
-                        string[] lines = formattedDefinition.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                        var lines = formattedDefinition.Split(new[] { '\r', '\n' },
+                            StringSplitOptions.RemoveEmptyEntries);
 
-                        Regex joinRegex = new Regex(@"\b(join)\b", RegexOptions.IgnoreCase);
-                        Regex onRegex = new Regex(@"\b(on)\b", RegexOptions.IgnoreCase);
-                        Regex wordRegex = new Regex("([a-zA-Z(]+)", RegexOptions.IgnoreCase);
+                        var joinRegex = new Regex(@"\b(join)\b", RegexOptions.IgnoreCase);
+                        var onRegex = new Regex(@"\b(on)\b", RegexOptions.IgnoreCase);
+                        var wordRegex = new Regex("([a-zA-Z(]+)", RegexOptions.IgnoreCase);
 
                         sb = new StringBuilder();
-                        foreach (string line in lines)
+                        foreach (var line in lines)
                         {
-                            bool hasChanged = false;
+                            var hasChanged = false;
 
                             if (joinRegex.IsMatch(line))
                             {
-                                string leftStr = line.Substring(line.ToLower().LastIndexOf("join") + 4);
-                                
+                                var leftStr = line.Substring(line.ToLower().LastIndexOf("join") + 4);
+
                                 if (!onRegex.IsMatch(line) && !wordRegex.IsMatch(leftStr))
                                 {
                                     hasChanged = true;
@@ -162,10 +149,7 @@ namespace DatabaseConverter.Core
                                 }
                             }
 
-                            if (!hasChanged)
-                            {
-                                sb.AppendLine(line);
-                            }
+                            if (!hasChanged) sb.AppendLine(line);
                         }
 
                         definition = sb.ToString();
@@ -174,12 +158,16 @@ namespace DatabaseConverter.Core
             }
             catch (Exception ex)
             {
-                FeedbackInfo info = new FeedbackInfo() { InfoType = FeedbackInfoType.Error, Message = ExceptionHelper.GetExceptionDetails(ex), Owner = this };
+                var info = new FeedbackInfo
+                {
+                    InfoType = FeedbackInfoType.Error, Message = ExceptionHelper.GetExceptionDetails(ex), Owner = this
+                };
                 FeedbackHelper.Feedback(info);
-            } 
+            }
+
             #endregion
 
             return definition.Trim();
-        }             
+        }
     }
 }

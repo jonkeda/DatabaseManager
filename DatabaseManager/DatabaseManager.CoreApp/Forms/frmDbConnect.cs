@@ -1,278 +1,255 @@
-﻿using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseManager.Profile;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Core;
-using System;
-using System.Collections.Generic;
-using System.Data.Common;
+﻿using System;
 using System.Linq;
 using System.Windows.Forms;
+using DatabaseInterpreter.Core;
+using DatabaseInterpreter.Model;
+using DatabaseInterpreter.Utility;
+using DatabaseManager.Core;
 using DatabaseManager.Data;
-using System.Threading.Tasks;
+using DatabaseManager.Profile;
 
-namespace DatabaseManager
+namespace DatabaseManager;
+
+public partial class frmDbConnect : Form
 {
-    public partial class frmDbConnect : Form
+    private readonly bool isAdd = true;
+    private readonly bool requriePassword;
+
+    public frmDbConnect(DatabaseType dbType)
     {
-        private bool requriePassword = false;
-        private bool isAdd = true;
+        InitializeComponent();
+        isAdd = true;
+        DatabaseType = dbType;
+    }
 
-        public DatabaseType DatabaseType { get; set; }
-        public string ProflieName { get; set; }
-        public bool NotUseProfile { get; set; }
+    public frmDbConnect(DatabaseType dbType, string profileName, bool requriePassword = false)
+    {
+        InitializeComponent();
 
-        public ConnectionInfo ConnectionInfo { get; set; }
+        isAdd = false;
+        this.requriePassword = requriePassword;
+        DatabaseType = dbType;
+        ProflieName = profileName;
+    }
 
-        public frmDbConnect(DatabaseType dbType)
+    public DatabaseType DatabaseType { get; set; }
+    public string ProflieName { get; set; }
+    public bool NotUseProfile { get; set; }
+
+    public ConnectionInfo ConnectionInfo { get; set; }
+
+    private void frmDbConnect_Load(object sender, EventArgs e)
+    {
+        Init();
+    }
+
+    private void Init()
+    {
+        ucDbAccountInfo.OnTestConnect += TestConnect;
+        ucDbAccountInfo.DatabaseType = DatabaseType;
+        ucDbAccountInfo.InitControls();
+
+        if (!NotUseProfile)
         {
-            InitializeComponent();
-            this.isAdd = true;
-            this.DatabaseType = dbType;
-        }
-
-        public frmDbConnect(DatabaseType dbType, string profileName, bool requriePassword = false)
-        {
-            InitializeComponent();
-
-            this.isAdd = false;
-            this.requriePassword = requriePassword;
-            this.DatabaseType = dbType;
-            this.ProflieName = profileName;
-        }
-
-        private void frmDbConnect_Load(object sender, EventArgs e)
-        {
-            this.Init();
-        }
-
-        private void Init()
-        {
-            this.ucDbAccountInfo.OnTestConnect += this.TestConnect;
-            this.ucDbAccountInfo.DatabaseType = this.DatabaseType;
-            this.ucDbAccountInfo.InitControls();
-
-            if (!this.NotUseProfile)
+            if (string.IsNullOrEmpty(ProflieName))
             {
-                if (string.IsNullOrEmpty(this.ProflieName))
+                txtProfileName.Text = "";
+            }
+            else
+            {
+                txtProfileName.Text = ProflieName;
+                LoadProfile();
+            }
+        }
+        else
+        {
+            lblProfileName.Visible = false;
+            txtProfileName.Visible = false;
+        }
+    }
+
+    private async void LoadProfile()
+    {
+        var connectionInfo = await ConnectionProfileManager.GetConnectionInfo(DatabaseType.ToString(), ProflieName);
+
+        ucDbAccountInfo.LoadData(connectionInfo, ConnectionInfo?.Password);
+
+        cboDatabase.Text = connectionInfo.Database;
+    }
+
+    private void TestConnect()
+    {
+        PopulateDatabases();
+    }
+
+    private async void PopulateDatabases()
+    {
+        var connectionInfo = GetConnectionInfo();
+        var dbInterpreter =
+            DbInterpreterHelper.GetDbInterpreter(DatabaseType, connectionInfo, new DbInterpreterOption());
+
+        var oldDatabase = cboDatabase.Text;
+
+        try
+        {
+            cboDatabase.Items.Clear();
+
+            var databaseses = await dbInterpreter.GetDatabasesAsync();
+
+            databaseses.ForEach(item => { cboDatabase.Items.Add(item.Name); });
+
+            cboDatabase.Text = oldDatabase;
+
+            cboDatabase.DroppedDown = true;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Failed:" + ex.Message);
+        }
+    }
+
+    public ConnectionInfo GetConnectionInfo()
+    {
+        var connectionInfo = ucDbAccountInfo.GetConnectionInfo();
+        connectionInfo.Database = cboDatabase.Text;
+
+        return connectionInfo;
+    }
+
+    private async void btnConfirm_Click(object sender, EventArgs e)
+    {
+        if (!ucDbAccountInfo.ValidateInfo()) return;
+
+        if (string.IsNullOrEmpty(cboDatabase.Text))
+        {
+            MessageBox.Show("Please select a database.");
+            return;
+        }
+
+        var profileName = txtProfileName.Text.Trim();
+        var database = cboDatabase.Text;
+
+        ConnectionInfo = GetConnectionInfo();
+
+        if (!NotUseProfile)
+        {
+            var profiles = await ConnectionProfileManager.GetProfiles(DatabaseType.ToString());
+
+            string oldAccountProfileId = null;
+
+            if (!string.IsNullOrEmpty(profileName) && profiles.Any(item => item.Name == profileName))
+            {
+                var msg = $"The profile name \"{profileName}\" has been existed";
+
+                if (isAdd)
                 {
-                    this.txtProfileName.Text = "";
+                    var dialogResult = MessageBox.Show(msg + ", are you sure to override it.", "Confirm",
+                        MessageBoxButtons.YesNo);
+
+                    if (dialogResult != DialogResult.Yes)
+                    {
+                        DialogResult = DialogResult.None;
+                        return;
+                    }
                 }
-                else
+                else if (!isAdd && ProflieName != profileName)
                 {
-                    this.txtProfileName.Text = this.ProflieName.ToString();
-                    this.LoadProfile();
+                    MessageBox.Show(msg + ", please edit that.");
+                    return;
+                }
+                else //edit
+                {
+                    oldAccountProfileId = profiles.FirstOrDefault(item => item.Name == profileName).AccountId;
                 }
             }
             else
             {
-                this.lblProfileName.Visible = false;
-                this.txtProfileName.Visible = false;
+                var accountProfile = await AccountProfileManager.GetProfile(DatabaseType.ToString(),
+                    ConnectionInfo.Server, ConnectionInfo.Port, ConnectionInfo.IntegratedSecurity,
+                    ConnectionInfo.UserId);
+
+                if (accountProfile != null) oldAccountProfileId = accountProfile.Id;
             }
-        }
 
-        private async void LoadProfile()
-        {
-            ConnectionInfo connectionInfo = await ConnectionProfileManager.GetConnectionInfo(this.DatabaseType.ToString(), this.ProflieName);
-
-            this.ucDbAccountInfo.LoadData(connectionInfo, this.ConnectionInfo?.Password);
-
-            this.cboDatabase.Text = connectionInfo.Database;
-        }
-
-        private void TestConnect()
-        {
-            this.PopulateDatabases();
-        }
-
-        private async void PopulateDatabases()
-        {
-            ConnectionInfo connectionInfo = this.GetConnectionInfo();
-            DbInterpreter dbInterpreter = DbInterpreterHelper.GetDbInterpreter(this.DatabaseType, connectionInfo, new DbInterpreterOption());
-
-            string oldDatabase = this.cboDatabase.Text;
-
-            try
+            var profile = new ConnectionProfileInfo
             {
-                this.cboDatabase.Items.Clear();
+                AccountId = oldAccountProfileId,
+                DatabaseType = DatabaseType.ToString(),
+                Server = ConnectionInfo.Server,
+                Port = ConnectionInfo.Port,
+                Database = ConnectionInfo.Database,
+                IntegratedSecurity = InvokeRequired,
+                UserId = ConnectionInfo.UserId,
+                Password = ConnectionInfo.Password,
+                IsDba = ConnectionInfo.IsDba,
+                UseSsl = ConnectionInfo.UseSsl
+            };
 
-                List<Database> databaseses = await dbInterpreter.GetDatabasesAsync();
+            if (!string.IsNullOrEmpty(oldAccountProfileId)) profile.AccountId = oldAccountProfileId;
 
-                databaseses.ForEach(item =>
+            profile.Name = profileName;
+            profile.DatabaseType = DatabaseType.ToString();
+
+            ProflieName = await ConnectionProfileManager.Save(profile, ucDbAccountInfo.RememberPassword);
+
+            if (SettingManager.Setting.RememberPasswordDuringSession)
+                if (!ConnectionInfo.IntegratedSecurity && !ucDbAccountInfo.RememberPassword &&
+                    !string.IsNullOrEmpty(ConnectionInfo.Password))
                 {
-                    this.cboDatabase.Items.Add(item.Name);
-                });
+                    var accountProfileInfo = new AccountProfileInfo { Id = profile.AccountId };
 
-                this.cboDatabase.Text = oldDatabase;
+                    ObjectHelper.CopyProperties(ConnectionInfo, accountProfileInfo);
+                    accountProfileInfo.Password = ConnectionInfo.Password;
 
-                this.cboDatabase.DroppedDown = true;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Failed:" + ex.Message);
-            }
-        }
-
-        public ConnectionInfo GetConnectionInfo()
-        {
-            ConnectionInfo connectionInfo = this.ucDbAccountInfo.GetConnectionInfo();
-            connectionInfo.Database = this.cboDatabase.Text;
-
-            return connectionInfo;
-        }
-
-        private async void btnConfirm_Click(object sender, EventArgs e)
-        {
-            if (!this.ucDbAccountInfo.ValidateInfo())
-            {
-                return;
-            }
-
-            if (string.IsNullOrEmpty(this.cboDatabase.Text))
-            {
-                MessageBox.Show("Please select a database.");
-                return;
-            }
-
-            string profileName = this.txtProfileName.Text.Trim();
-            string database = this.cboDatabase.Text;
-
-            this.ConnectionInfo = this.GetConnectionInfo();
-
-            if (!this.NotUseProfile)
-            {
-                IEnumerable<ConnectionProfileInfo> profiles = await ConnectionProfileManager.GetProfiles(this.DatabaseType.ToString());
-
-                string oldAccountProfileId = null;
-
-                if (!string.IsNullOrEmpty(profileName) && profiles.Any(item => item.Name == profileName))
-                {
-                    string msg = $"The profile name \"{profileName}\" has been existed";
-
-                    if (this.isAdd)
-                    {
-                        DialogResult dialogResult = MessageBox.Show(msg + ", are you sure to override it.", "Confirm", MessageBoxButtons.YesNo);
-
-                        if (dialogResult != DialogResult.Yes)
-                        {
-                            this.DialogResult = DialogResult.None;
-                            return;
-                        }
-                    }
-                    else if (!this.isAdd && this.ProflieName != profileName)
-                    {
-                        MessageBox.Show(msg + ", please edit that.");
-                        return;
-                    }
-                    else //edit
-                    {
-                        oldAccountProfileId = profiles.FirstOrDefault(item => item.Name == profileName).AccountId;
-                    }
+                    DataStore.SetAccountProfileInfo(accountProfileInfo);
                 }
-                else
-                {
-                    AccountProfileInfo accountProfile = await AccountProfileManager.GetProfile(this.DatabaseType.ToString(), this.ConnectionInfo.Server, this.ConnectionInfo.Port, this.ConnectionInfo.IntegratedSecurity, this.ConnectionInfo.UserId);
+        }
 
-                    if (accountProfile != null)
-                    {
-                        oldAccountProfileId = accountProfile.Id;
-                    }
-                }
+        DialogResult = DialogResult.OK;
+    }
 
-                ConnectionProfileInfo profile = new ConnectionProfileInfo()
-                {
-                    AccountId = oldAccountProfileId,
-                    DatabaseType = this.DatabaseType.ToString(),
-                    Server = this.ConnectionInfo.Server,
-                    Port = this.ConnectionInfo.Port,
-                    Database = this.ConnectionInfo.Database,
-                    IntegratedSecurity = this.InvokeRequired,
-                    UserId = this.ConnectionInfo.UserId,
-                    Password =this.ConnectionInfo.Password,
-                    IsDba = this.ConnectionInfo.IsDba,
-                    UseSsl = this.ConnectionInfo.UseSsl
-                };
+    private void frmDbConnect_Activated(object sender, EventArgs e)
+    {
+        if (requriePassword) ucDbAccountInfo.FocusPasswordTextbox();
+    }
 
-                if (!string.IsNullOrEmpty(oldAccountProfileId))
-                {
-                    profile.AccountId = oldAccountProfileId;
-                }
+    private void btnCancel_Click(object sender, EventArgs e)
+    {
+        Close();
+    }
 
-                profile.Name = profileName;
-                profile.DatabaseType = this.DatabaseType.ToString();
+    private void cboDatabase_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        if (string.IsNullOrEmpty(txtProfileName.Text) && !string.IsNullOrEmpty(cboDatabase.Text))
+            txtProfileName.Text = cboDatabase.Text;
+    }
 
-                this.ProflieName = await ConnectionProfileManager.Save(profile, this.ucDbAccountInfo.RememberPassword);
+    private void rbChoose_CheckedChanged(object sender, EventArgs e)
+    {
+        if (rbChoose.Checked)
+        {
+            var frm = new frmDbConnectionManage(DatabaseType) { IsForSelecting = true };
+
+            if (frm.ShowDialog() == DialogResult.OK)
+            {
+                string password = null;
 
                 if (SettingManager.Setting.RememberPasswordDuringSession)
                 {
-                    if (!this.ConnectionInfo.IntegratedSecurity && !this.ucDbAccountInfo.RememberPassword && !string.IsNullOrEmpty(this.ConnectionInfo.Password))
-                    {
-                        AccountProfileInfo accountProfileInfo = new AccountProfileInfo() { Id = profile.AccountId };
+                    var storeInfo = DataStore.GetAccountProfileInfo(frm.SelectedAccountProfileInfo.Id);
 
-                        ObjectHelper.CopyProperties(this.ConnectionInfo, accountProfileInfo);
-                        accountProfileInfo.Password = this.ConnectionInfo.Password;
-
-                        DataStore.SetAccountProfileInfo(accountProfileInfo);
-                    }
+                    if (storeInfo != null && !frm.SelectedAccountProfileInfo.IntegratedSecurity &&
+                        !string.IsNullOrEmpty(storeInfo.Password)) password = storeInfo.Password;
                 }
-            }
 
-            this.DialogResult = DialogResult.OK;
-        }
-
-        private void frmDbConnect_Activated(object sender, EventArgs e)
-        {
-            if (this.requriePassword)
-            {
-                this.ucDbAccountInfo.FocusPasswordTextbox();
+                ucDbAccountInfo.LoadData(frm.SelectedAccountProfileInfo, password);
             }
         }
-
-        private void btnCancel_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
-
-        private void cboDatabase_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (string.IsNullOrEmpty(this.txtProfileName.Text) && !string.IsNullOrEmpty(this.cboDatabase.Text))
-            {
-                this.txtProfileName.Text = this.cboDatabase.Text;
-            }
-        }
-
-        private void rbChoose_CheckedChanged(object sender, EventArgs e)
-        {
-            if (this.rbChoose.Checked)
-            {
-                frmDbConnectionManage frm = new frmDbConnectionManage(this.DatabaseType) { IsForSelecting = true };
-
-                if (frm.ShowDialog() == DialogResult.OK)
-                {
-                    string password = null;
-
-                    if (SettingManager.Setting.RememberPasswordDuringSession)
-                    {
-                        var storeInfo = DataStore.GetAccountProfileInfo(frm.SelectedAccountProfileInfo.Id);
-
-                        if (storeInfo != null && !frm.SelectedAccountProfileInfo.IntegratedSecurity && !string.IsNullOrEmpty(storeInfo.Password))
-                        {
-                            password = storeInfo.Password;
-                        }
-                    }
-
-                    this.ucDbAccountInfo.LoadData(frm.SelectedAccountProfileInfo, password);
-                }
-            }
-        }
+    }
 
 
-        private void cboDatabase_MouseClick(object sender, MouseEventArgs e)
-        {
-            if (this.cboDatabase.Items.Count == 0)
-            {
-                this.PopulateDatabases();
-            }
-        }
+    private void cboDatabase_MouseClick(object sender, MouseEventArgs e)
+    {
+        if (cboDatabase.Items.Count == 0) PopulateDatabases();
     }
 }

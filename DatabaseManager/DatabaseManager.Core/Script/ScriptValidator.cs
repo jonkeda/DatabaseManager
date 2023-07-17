@@ -10,7 +10,7 @@ namespace DatabaseManager.Core
         {
             var sqlAnalyser = TranslateHelper.GetSqlAnalyser(databaseType, script);
 
-            SqlSyntaxError sqlSyntaxError = sqlAnalyser.Validate();
+            var sqlSyntaxError = sqlAnalyser.Validate();
 
             return sqlSyntaxError;
         }

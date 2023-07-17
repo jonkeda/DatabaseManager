@@ -1,5 +1,5 @@
-﻿using DatabaseInterpreter.Utility;
-using System.IO;
+﻿using System.IO;
+using DatabaseInterpreter.Utility;
 
 namespace DatabaseInterpreter.Core
 {

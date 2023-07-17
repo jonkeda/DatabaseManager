@@ -10,22 +10,18 @@ namespace DatabaseManager.Profile
         public string DatabaseType { get; set; }
         public bool Visible { get; set; } = true;
 
-        public string ConnectionDescription => $"server={this.Server}{(string.IsNullOrEmpty(this.Port) ? "" : (":" + this.Port))};database={this.Database}";
+        public string ConnectionDescription =>
+            $"server={Server}{(string.IsNullOrEmpty(Port) ? "" : ":" + Port)};database={Database}";
 
         public string Description
         {
             get
             {
-                string connectionDescription = this.ConnectionDescription;
+                var connectionDescription = ConnectionDescription;
 
-                if (this.Name == connectionDescription)
-                {
-                    return this.Name;
-                }
-                else
-                {
-                    return $"{this.Name}({connectionDescription})";
-                }
+                if (Name == connectionDescription)
+                    return Name;
+                return $"{Name}({connectionDescription})";
             }
         }
     }

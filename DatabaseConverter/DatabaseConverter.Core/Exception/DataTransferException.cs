@@ -1,12 +1,14 @@
-﻿using DatabaseInterpreter.Model;
-using System;
+﻿using System;
+using DatabaseInterpreter.Model;
 
 namespace DatabaseConverter.Core
 {
-    public class DataTransferException: ConvertException
+    public class DataTransferException : ConvertException
     {
-        public override string ObjectType => nameof(Table);
+        public DataTransferException(Exception ex) : base(ex)
+        {
+        }
 
-        public DataTransferException(Exception ex) : base(ex) { }
+        public override string ObjectType => nameof(Table);
     }
 }

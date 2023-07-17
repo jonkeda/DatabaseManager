@@ -1,10 +1,9 @@
-﻿using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Xml.Linq;
+using DatabaseInterpreter.Model;
+using DatabaseInterpreter.Utility;
 
 namespace DatabaseInterpreter.Core
 {
@@ -15,15 +14,13 @@ namespace DatabaseInterpreter.Core
         public static List<FunctionSpecification> GetFunctionSpecifications(DatabaseType dbType)
         {
             if (_functionSpecifications != null && _functionSpecifications.ContainsKey(dbType))
-            {
                 return _functionSpecifications[dbType];
-            }
 
-            string filePath = Path.Combine(ConfigRootFolder, $"FunctionSpecification/{dbType}.xml");
+            var filePath = Path.Combine(ConfigRootFolder, $"FunctionSpecification/{dbType}.xml");
 
-            XDocument doc = XDocument.Load(filePath);
+            var doc = XDocument.Load(filePath);
 
-            var functionSpecs = doc.Root.Elements("item").Select(item => new FunctionSpecification()
+            var functionSpecs = doc.Root.Elements("item").Select(item => new FunctionSpecification
             {
                 Name = item.Attribute("name").Value,
                 Args = item.Attribute("args").Value,
@@ -33,9 +30,7 @@ namespace DatabaseInterpreter.Core
             }).ToList();
 
             if (_functionSpecifications == null)
-            {
                 _functionSpecifications = new Dictionary<DatabaseType, List<FunctionSpecification>>();
-            }
 
             _functionSpecifications.Add(dbType, functionSpecs);
 

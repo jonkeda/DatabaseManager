@@ -1,82 +1,70 @@
-﻿using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseManager.Model;
-using SqlAnalyser.Model;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using DatabaseInterpreter.Core;
+using DatabaseInterpreter.Model;
+using DatabaseManager.Model;
 
 namespace DatabaseManager.Core
 {
     public class ScriptCorrector
     {
-        private DbInterpreter dbInterpreter;
-        private char quotationLeftChar;
-        private char quotationRightChar;
+        private readonly DbInterpreter dbInterpreter;
+        private readonly char quotationLeftChar;
+        private readonly char quotationRightChar;
 
         public ScriptCorrector(DbInterpreter dbInterpreter)
         {
             this.dbInterpreter = dbInterpreter;
-            this.quotationLeftChar = dbInterpreter.QuotationLeftChar;
-            this.quotationRightChar = dbInterpreter.QuotationRightChar;
+            quotationLeftChar = dbInterpreter.QuotationLeftChar;
+            quotationRightChar = dbInterpreter.QuotationRightChar;
         }
 
-        public async Task<IEnumerable<ScriptDiagnoseResult>> CorrectNotMatchNames(ScriptDiagnoseType scriptDiagnoseType, IEnumerable<ScriptDiagnoseResult> results)
+        public async Task<IEnumerable<ScriptDiagnoseResult>> CorrectNotMatchNames(ScriptDiagnoseType scriptDiagnoseType,
+            IEnumerable<ScriptDiagnoseResult> results)
         {
-            List<Script> scripts = new List<Script>();
+            var scripts = new List<Script>();
 
-            Dictionary<int, string> dictDifinition = new Dictionary<int, string>();
+            var dictDifinition = new Dictionary<int, string>();
 
-            int i = 0;
+            var i = 0;
 
-            foreach(var result in results)
+            foreach (var result in results)
             {
-                ScriptGenerator scriptGenerator = new ScriptGenerator(dbInterpreter);
+                var scriptGenerator = new ScriptGenerator(dbInterpreter);
 
-                string script = (await scriptGenerator.Generate(result.DbObject, ScriptAction.ALTER)).Script;
+                var script = (await scriptGenerator.Generate(result.DbObject, ScriptAction.ALTER)).Script;
 
-                if(string.IsNullOrEmpty(script))
+                if (string.IsNullOrEmpty(script)) continue;
+
+                var definition = result.DbObject.Definition;
+
+                foreach (var detail in result.Details)
                 {
-                    continue;
-                }
+                    script = ReplaceDefinition(script, detail.InvalidName, detail.Name);
+                    definition = ReplaceDefinition(definition, detail.InvalidName, detail.Name);
 
-                string definition = result.DbObject.Definition;
-
-                foreach(var detail in result.Details)
-                {
-                    script = this.ReplaceDefinition(script, detail.InvalidName, detail.Name);
-                    definition = this.ReplaceDefinition(definition, detail.InvalidName, detail.Name);
-
-                    if(scriptDiagnoseType == ScriptDiagnoseType.ViewColumnAliasWithoutQuotationChar)
+                    if (scriptDiagnoseType == ScriptDiagnoseType.ViewColumnAliasWithoutQuotationChar)
                     {
-                        script = this.ReplaceDuplicateQuotationChar(script, detail.Name);
-                        definition = this.ReplaceDuplicateQuotationChar(definition, detail.Name);
+                        script = ReplaceDuplicateQuotationChar(script, detail.Name);
+                        definition = ReplaceDuplicateQuotationChar(definition, detail.Name);
                     }
-                }              
+                }
 
-                if(result.DbObject is View)
-                {
+                if (result.DbObject is View)
                     scripts.Add(new AlterDbObjectScript<View>(script));
-                }
-                else if(result.DbObject is Procedure)
-                {
+                else if (result.DbObject is Procedure)
                     scripts.Add(new AlterDbObjectScript<Procedure>(script));
-                }
-                else if (result.DbObject is Function)
-                {
-                    scripts.Add(new AlterDbObjectScript<Function>(script));
-                }
+                else if (result.DbObject is Function) scripts.Add(new AlterDbObjectScript<Function>(script));
 
                 dictDifinition.Add(i, definition);
 
                 i++;
             }
 
-            ScriptRunner scriptRunner = new ScriptRunner();
+            var scriptRunner = new ScriptRunner();
 
-            await scriptRunner.Run(this.dbInterpreter, scripts);
+            await scriptRunner.Run(dbInterpreter, scripts);
 
             i = 0;
 
@@ -92,7 +80,7 @@ namespace DatabaseManager.Core
 
         private string ReplaceDuplicateQuotationChar(string content, string value)
         {
-            content = content.Replace($"{this.quotationLeftChar}{value}{this.quotationRightChar}", value);
+            content = content.Replace($"{quotationLeftChar}{value}{quotationRightChar}", value);
 
             return content;
         }
@@ -100,6 +88,6 @@ namespace DatabaseManager.Core
         private string ReplaceDefinition(string definition, string oldValue, string newValue)
         {
             return Regex.Replace(definition, $@"\b{oldValue}\b", newValue, RegexOptions.Multiline);
-        }        
+        }
     }
 }

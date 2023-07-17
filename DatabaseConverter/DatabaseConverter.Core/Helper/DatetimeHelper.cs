@@ -1,8 +1,8 @@
-﻿using DatabaseConverter.Core.Model;
+﻿using System;
+using System.Linq;
+using DatabaseConverter.Core.Model;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
-using System;
-using System.Linq;
 
 namespace DatabaseConverter.Core
 {
@@ -15,12 +15,10 @@ namespace DatabaseConverter.Core
 
         public static string GetOracleUniformDatetimeString(string value, bool isTimestamp)
         {
-            string trimedValue = value.Trim('\'', ' ');
+            var trimedValue = value.Trim('\'', ' ');
 
             if (DateTime.TryParse(trimedValue, out var date))
-            {
                 value = date.ToString(isTimestamp ? DatetimeFormat : DateFormat);
-            }
 
             return $"'{value}'";
         }
@@ -29,7 +27,7 @@ namespace DatabaseConverter.Core
         {
             if (ValueHelper.IsStringValue(value))
             {
-                bool isTimestamp = value.Contains(" ");
+                var isTimestamp = value.Contains(" ");
 
                 if (databaseType == DatabaseType.Postgres)
                 {
@@ -53,7 +51,7 @@ namespace DatabaseConverter.Core
 
         public static string GetMappedUnit(DatabaseType sourceDbType, DatabaseType targetDbType, string unit)
         {
-            string trimedUnit = unit?.Trim('\'');
+            var trimedUnit = unit?.Trim('\'');
 
             //Sqlserver: https://learn.microsoft.com/en-us/sql/t-sql/functions/datepart-transact-sql?view=sql-server-ver16
             //Postgres: https://www.postgresql.org/docs/current/functions-datetime.html
@@ -64,40 +62,31 @@ namespace DatabaseConverter.Core
 
             if (mappings != null)
             {
-                var mapping = mappings.FirstOrDefault(item => item.Items.Any(t => IsDateUnitMatched(sourceDbType, t, trimedUnit)));
+                var mapping = mappings.FirstOrDefault(item =>
+                    item.Items.Any(t => IsDateUnitMatched(sourceDbType, t, trimedUnit)));
 
                 if (mapping != null)
                 {
                     var target = mapping.Items.FirstOrDefault(item => item.DbType == targetDbType.ToString());
 
-                    if(target == null || !target.Formal)
-                    {
+                    if (target == null || !target.Formal)
                         return mapping.Name;
-                    }
-                    else
-                    {
-                        return target.Unit;
-                    }
+                    return target.Unit;
                 }
             }
 
-            return unit;            
+            return unit;
         }
 
         private static bool IsDateUnitMatched(DatabaseType dbType, DateUnitMappingItem mappingItem, string unit)
         {
             if (dbType.ToString() == mappingItem.DbType)
             {
-                string[] unitItems = mappingItem.Unit.Split(',');
+                var unitItems = mappingItem.Unit.Split(',');
 
                 if (!mappingItem.CaseSensitive)
-                {
                     return unitItems.Any(item => item.ToUpper() == unit.ToUpper());
-                }
-                else
-                {
-                    return unitItems.Any(item => item == unit);
-                }
+                return unitItems.Any(item => item == unit);
             }
 
             return false;
@@ -105,9 +94,9 @@ namespace DatabaseConverter.Core
 
         public static string GetSqliteStrfTimeFormat(DatabaseType sourceDbType, string unit)
         {
-            string mappedUnit = GetMappedUnit(sourceDbType, DatabaseType.Sqlite, unit);
+            var mappedUnit = GetMappedUnit(sourceDbType, DatabaseType.Sqlite, unit);
 
-            string format = "";
+            var format = "";
 
             switch (mappedUnit)
             {
@@ -134,7 +123,7 @@ namespace DatabaseConverter.Core
                     break;
                 case "SECOND":
                     format = "S";
-                    break;               
+                    break;
                 case "DAYOFYEAR":
                     format = "j";
                     break;

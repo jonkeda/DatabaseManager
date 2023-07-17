@@ -1,5 +1,4 @@
 ﻿using DatabaseInterpreter.Model;
-using System;
 
 namespace DatabaseManager.Profile
 {
@@ -8,13 +7,8 @@ namespace DatabaseManager.Profile
         public string Id { get; set; }
 
         public string DatabaseType { get; set; }
-      
-        public string Description
-        {
-            get
-            {
-                return $"{((!string.IsNullOrEmpty(this.UserId) ? this.UserId : "Integrated Security"))}({this.Server}{(string.IsNullOrEmpty(this.Port) ? "" : (":" + this.Port))})";
-            }
-        }
+
+        public string Description =>
+            $"{(!string.IsNullOrEmpty(UserId) ? UserId : "Integrated Security")}({Server}{(string.IsNullOrEmpty(Port) ? "" : ":" + Port)})";
     }
 }

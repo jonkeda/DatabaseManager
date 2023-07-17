@@ -99,7 +99,7 @@
 	<mapping>
 		<source type="numeric" />
 		<target type="decimal" />
-	</mapping>	
+	</mapping>
 	<mapping>
 		<source type="point" />
 		<target type="geometry" />
@@ -114,7 +114,7 @@
 	</mapping>
 	<mapping>
 		<source type="set" />
-		<target type="varchar" length="1000"/>
+		<target type="varchar" length="1000" />
 	</mapping>
 	<mapping>
 		<source type="smallint" />
@@ -150,7 +150,7 @@
 	</mapping>
 	<mapping>
 		<source type="varchar" />
-		<target type="varchar" substitute="text"/>
+		<target type="varchar" substitute="text" />
 	</mapping>
 	<mapping>
 		<source type="year" />

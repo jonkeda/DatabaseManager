@@ -40,12 +40,12 @@
 		<target type="integer" />
 	</mapping>
 	<mapping>
-		<source type="interval day([(]\d[)])? to second([(]\d[)])?" isExp="true"/>
-		<target type="timestamp without time zone"  />
-		<special name="expression" value="interval day[(]0[)] to second([(]\d[)])?" type="time without time zone" ></special>
+		<source type="interval day([(]\d[)])? to second([(]\d[)])?" isExp="true" />
+		<target type="timestamp without time zone" />
+		<special name="expression" value="interval day[(]0[)] to second([(]\d[)])?" type="time without time zone"></special>
 	</mapping>
 	<mapping>
-		<source type="interval year([(]\d[)])? to month" isExp="true"/>
+		<source type="interval year([(]\d[)])? to month" isExp="true" />
 		<target type="integer" />
 	</mapping>
 	<mapping>
@@ -93,13 +93,13 @@
 	<mapping>
 		<source type="timestamp" />
 		<target type="timestamp with time zone" />
-	</mapping>	
+	</mapping>
 	<mapping>
-		<source type="timestamp([(]\d[)])? with local time zone" isExp="true"/>
+		<source type="timestamp([(]\d[)])? with local time zone" isExp="true" />
 		<target type="timestamp with time zone" />
 	</mapping>
 	<mapping>
-		<source type="timestamp([(]\d[)])? with time zone" isExp="true"/>
+		<source type="timestamp([(]\d[)])? with time zone" isExp="true" />
 		<target type="timestamp with time zone" />
 	</mapping>
 	<mapping>

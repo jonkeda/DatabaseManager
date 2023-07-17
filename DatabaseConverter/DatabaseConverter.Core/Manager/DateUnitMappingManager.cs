@@ -1,30 +1,22 @@
-﻿using DatabaseConverter.Core.Model;
-using DatabaseConverter.Model;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Xml.Linq;
+using DatabaseConverter.Core.Model;
 using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Utility;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Xml.Linq;
 
 namespace DatabaseConverter.Core
 {
     public class DateUnitMappingManager : ConfigManager
     {
-        public static string DateUnitMappingFilePath { get { return Path.Combine(ConfigRootFolder, "DateUnitMapping.xml"); } }
-
         public static List<DateUnitMapping> _dateUnitMappings;
+        public static string DateUnitMappingFilePath => Path.Combine(ConfigRootFolder, "DateUnitMapping.xml");
 
         public static List<DateUnitMapping> DateUnitMappings
         {
             get
             {
-                if (_dateUnitMappings == null)
-                {
-                    _dateUnitMappings = GetDateUnitMappings();
-                }
+                if (_dateUnitMappings == null) _dateUnitMappings = GetDateUnitMappings();
 
                 return _dateUnitMappings;
             }
@@ -32,23 +24,23 @@ namespace DatabaseConverter.Core
 
         public static List<DateUnitMapping> GetDateUnitMappings()
         {
-            List<DateUnitMapping> mappings = new List<DateUnitMapping>();
+            var mappings = new List<DateUnitMapping>();
 
-            XDocument doc = XDocument.Load(DateUnitMappingFilePath);
+            var doc = XDocument.Load(DateUnitMappingFilePath);
 
             var elements = doc.Root.Elements("mapping");
 
-            foreach(var element in elements)
+            foreach (var element in elements)
             {
-                DateUnitMapping mapping = new DateUnitMapping();
+                var mapping = new DateUnitMapping();
 
                 mapping.Name = element.Attribute("name").Value;
 
                 var items = element.Elements();
 
-                foreach(var item in items)
+                foreach (var item in items)
                 {
-                    DateUnitMappingItem mappingItem = new DateUnitMappingItem();
+                    var mappingItem = new DateUnitMappingItem();
 
                     mappingItem.DbType = item.Name.ToString();
                     mappingItem.Unit = item.Value;

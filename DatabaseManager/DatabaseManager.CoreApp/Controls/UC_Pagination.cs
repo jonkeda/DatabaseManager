@@ -1,243 +1,182 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 
-namespace DatabaseManager.Controls
+namespace DatabaseManager.Controls;
+
+public partial class UC_Pagination : UserControl
 {
-    public partial class UC_Pagination : UserControl
+    public delegate void PageNumberChangeHandler(long pageNum);
+
+    private const int defaultPageSize = 10;
+    private bool isSetting;
+    private long pageCount;
+    private long pageNum = 1;
+
+    private int pageSize = 10;
+    private long totalCount;
+
+    public UC_Pagination()
     {
-        private const int defaultPageSize = 10;
+        InitializeComponent();
+        PageNum = 1;
+    }
 
-        private int pageSize = 10;
-        private long pageCount = 0;
-        private long totalCount = 0;
-        private long pageNum = 1;
-        private bool isSetting = false;
-
-        public delegate void PageNumberChangeHandler(long pageNum);
-
-        public event PageNumberChangeHandler OnPageNumberChanged;
-
-        public UC_Pagination()
+    public int PageSize
+    {
+        get
         {
-            InitializeComponent();
-            this.PageNum = 1;
+            if (int.TryParse(cboPageSize.Text, out pageSize))
+                pageSize = int.Parse(cboPageSize.Text);
+            else
+                pageSize = defaultPageSize;
+
+            return pageSize;
         }
-
-        public int PageSize
+        set
         {
-            get
+            pageSize = value;
+
+            cboPageSize.Text = pageSize.ToString();
+        }
+    }
+
+    public long PageCount
+    {
+        get => pageCount;
+        set
+        {
+            pageCount = value;
+
+            var currentPageNum = cboPageNum.Text;
+            isSetting = true;
+            cboPageNum.Items.Clear();
+
+            for (var i = 1; i <= pageCount; i++)
             {
-                if (int.TryParse(this.cboPageSize.Text, out this.pageSize))
-                {
-                    this.pageSize = int.Parse(this.cboPageSize.Text);
-                }
+                cboPageNum.Items.Add(i.ToString());
+
+                if (i.ToString() == currentPageNum) cboPageNum.SelectedItem = i.ToString();
+            }
+
+            if (pageNum > pageCount) PageNum = pageCount;
+
+            if (pageCount == 0) btnFirst.Enabled = btnPrevious.Enabled = btnNext.Enabled = btnLast.Enabled = false;
+
+            isSetting = false;
+            lblPageCount.Text = pageCount.ToString();
+        }
+    }
+
+    public long PageNum
+    {
+        get
+        {
+            if (long.TryParse(cboPageNum.Text, out pageNum))
+                pageNum = long.Parse(cboPageNum.Text);
+            else
+                pageNum = 1;
+
+            return pageNum;
+        }
+        set
+        {
+            pageNum = value;
+
+            if (pageNum < 1) pageNum = 1;
+            cboPageNum.Text = pageNum.ToString();
+        }
+    }
+
+    public long TotalCount
+    {
+        get => totalCount;
+        set
+        {
+            totalCount = value;
+            lblTotalCount.Text = $"Total:{totalCount}";
+
+            if (pageSize != 0)
+                PageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
+            else
+                PageCount = 0;
+        }
+    }
+
+    public event PageNumberChangeHandler OnPageNumberChanged;
+
+    private void cboPageSize_TextChanged(object sender, EventArgs e)
+    {
+        if (int.TryParse(cboPageSize.Text, out pageSize))
+        {
+            pageSize = int.Parse(cboPageSize.Text);
+
+            var pCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
+
+            if (pageNum > pCount)
+                PageNum = pCount;
+            else
+                ToPage(pageNum);
+        }
+    }
+
+    private void btnFirst_Click(object sender, EventArgs e)
+    {
+        PageNum = 1;
+    }
+
+    private void btnPrevious_Click(object sender, EventArgs e)
+    {
+        if (pageNum > 1) PageNum--;
+    }
+
+    private void btnNext_Click(object sender, EventArgs e)
+    {
+        if (pageNum < pageCount) PageNum++;
+    }
+
+    private void btnLast_Click(object sender, EventArgs e)
+    {
+        PageNum = pageCount;
+    }
+
+    private void ToPage(long pageNum)
+    {
+        btnFirst.Enabled = pageNum != 1;
+        btnPrevious.Enabled = pageNum > 1;
+        btnNext.Enabled = pageNum < pageCount;
+        btnLast.Enabled = pageNum != pageCount;
+
+        if (OnPageNumberChanged != null)
+            if (!isSetting)
+                OnPageNumberChanged(pageNum);
+    }
+
+    private void btnRefresh_Click(object sender, EventArgs e)
+    {
+        if (OnPageNumberChanged != null) OnPageNumberChanged(pageNum);
+    }
+
+    private void cboPageNum_SelectedValueChanged(object sender, EventArgs e)
+    {
+        if (long.TryParse(cboPageNum.Text, out pageNum))
+        {
+            pageNum = long.Parse(cboPageNum.Text);
+
+            ToPage(pageNum);
+        }
+    }
+
+    private void cboPageNum_KeyPress(object sender, KeyPressEventArgs e)
+    {
+        if (e.KeyChar == (char)Keys.Enter)
+            if (long.TryParse(cboPageNum.Text, out pageNum))
+            {
+                if (pageNum < 1)
+                    PageNum = 0;
+                else if (pageNum > pageCount)
+                    PageNum = pageCount;
                 else
-                {
-                    this.pageSize = defaultPageSize;
-                }
-
-                return this.pageSize;
+                    PageNum = pageNum;
             }
-            set
-            {
-                this.pageSize = value;
-
-                this.cboPageSize.Text = this.pageSize.ToString();
-            }
-        }
-
-        public long PageCount
-        {
-            get
-            {
-                return this.pageCount;
-            }
-            set
-            {
-                this.pageCount = value;
-
-                var currentPageNum = this.cboPageNum.Text;
-                isSetting = true;
-                this.cboPageNum.Items.Clear();
-
-                for (var i = 1; i <= this.pageCount; i++)
-                {
-                    this.cboPageNum.Items.Add(i.ToString());
-
-                    if (i.ToString() == currentPageNum)
-                    {
-                        this.cboPageNum.SelectedItem = i.ToString();
-                    }
-                }
-                if (this.pageNum > this.pageCount)
-                {
-                    this.PageNum = this.pageCount;
-                }
-
-                if (this.pageCount == 0)
-                {
-                    this.btnFirst.Enabled = this.btnPrevious.Enabled = this.btnNext.Enabled = this.btnLast.Enabled = false;
-                }
-
-                isSetting = false;
-                this.lblPageCount.Text = this.pageCount.ToString();
-            }
-        }
-
-        public long PageNum
-        {
-            get
-            {
-                if (long.TryParse(this.cboPageNum.Text, out pageNum))
-                {
-                    pageNum = long.Parse(this.cboPageNum.Text);
-                }
-                else
-                {
-                    pageNum = 1;
-                }
-
-                return pageNum;
-            }
-            set
-            {
-                this.pageNum = value;
-
-                if (this.pageNum < 1)
-                {
-                    this.pageNum = 1;
-                }
-                this.cboPageNum.Text = this.pageNum.ToString();
-            }
-        }
-
-        public long TotalCount
-        {
-            get
-            {
-                return this.totalCount;
-            }
-            set
-            {
-                this.totalCount = value;
-                this.lblTotalCount.Text = $"Total:{totalCount}";
-
-                if (this.pageSize != 0)
-                {
-                    this.PageCount = this.totalCount % this.pageSize == 0 ? this.totalCount / this.pageSize : this.totalCount / this.pageSize + 1;
-                }
-                else
-                {
-                    this.PageCount = 0;
-                }
-            }
-        }
-
-        private void cboPageSize_TextChanged(object sender, EventArgs e)
-        {
-            if (int.TryParse(this.cboPageSize.Text, out this.pageSize))
-            {
-                this.pageSize = int.Parse(this.cboPageSize.Text);
-
-                var pCount = this.totalCount % this.pageSize == 0 ? this.totalCount / this.pageSize : this.totalCount / this.pageSize + 1;
-
-                if (this.pageNum > pCount)
-                {
-                    this.PageNum = pCount;
-                }
-                else
-                {
-                    this.ToPage(this.pageNum);
-                }
-            }
-        }
-
-        private void btnFirst_Click(object sender, EventArgs e)
-        {
-            this.PageNum = 1;
-        }
-
-        private void btnPrevious_Click(object sender, EventArgs e)
-        {
-            if (this.pageNum > 1)
-            {
-                this.PageNum--;
-            }
-        }
-
-        private void btnNext_Click(object sender, EventArgs e)
-        {
-            if (this.pageNum < this.pageCount)
-            {
-                this.PageNum++;
-            }
-        }
-
-        private void btnLast_Click(object sender, EventArgs e)
-        {
-            this.PageNum = this.pageCount;
-        }
-
-        private void ToPage(long pageNum)
-        {
-            this.btnFirst.Enabled = pageNum != 1;
-            this.btnPrevious.Enabled = pageNum > 1;
-            this.btnNext.Enabled = pageNum < this.pageCount;
-            this.btnLast.Enabled = pageNum != this.pageCount;
-
-            if (this.OnPageNumberChanged != null)
-            {
-                if (!isSetting)
-                {
-                    this.OnPageNumberChanged(pageNum);
-                }
-            }
-        }
-
-        private void btnRefresh_Click(object sender, EventArgs e)
-        {
-            if (this.OnPageNumberChanged != null)
-            {
-                this.OnPageNumberChanged(this.pageNum);
-            }
-        }
-
-        private void cboPageNum_SelectedValueChanged(object sender, EventArgs e)
-        {
-            if (long.TryParse(this.cboPageNum.Text, out pageNum))
-            {
-                this.pageNum = long.Parse(this.cboPageNum.Text);
-
-                this.ToPage(this.pageNum);
-            }
-        }
-
-        private void cboPageNum_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == (char)Keys.Enter)
-            {
-                if (long.TryParse(this.cboPageNum.Text, out pageNum))
-                {
-                    if (pageNum < 1)
-                    {
-                        this.PageNum = 0;
-                    }
-                    else if (pageNum > this.pageCount)
-                    {
-                        this.PageNum = this.pageCount;
-                    }
-                    else
-                    {
-                        this.PageNum = pageNum;
-                    }
-                }
-            }
-        }
     }
 }

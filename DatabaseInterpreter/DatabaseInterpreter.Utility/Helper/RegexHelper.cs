@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace DatabaseInterpreter.Utility
 {
@@ -16,8 +11,8 @@ namespace DatabaseInterpreter.Utility
 
         public static string Replace(string input, string pattern, string replacement, RegexOptions options)
         {
-            string escapedPattern = Regex.Escape(pattern);
-            string escapedReplacement = CheckReplacement(replacement);
+            var escapedPattern = Regex.Escape(pattern);
+            var escapedReplacement = CheckReplacement(replacement);
 
             return Regex.Replace(input, escapedPattern, escapedReplacement, options);
         }
@@ -25,10 +20,7 @@ namespace DatabaseInterpreter.Utility
         public static string CheckReplacement(string replacement)
         {
             //https://learn.microsoft.com/en-us/dotnet/standard/base-types/substitutions-in-regular-expressions
-            if (replacement != null && replacement.Contains("$"))
-            {
-                return replacement.Replace("$", "$$");
-            }
+            if (replacement != null && replacement.Contains("$")) return replacement.Replace("$", "$$");
 
             return replacement;
         }

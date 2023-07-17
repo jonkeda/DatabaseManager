@@ -1,37 +1,32 @@
-﻿using SqlAnalyser.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+using SqlAnalyser.Model;
 
 namespace DatabaseConverter.Core
 {
     public class ScriptTokenExtracter
     {
-        public Statement Statement { get; set; }
-
-        private List<TokenInfo> tokens = new List<TokenInfo>();
+        private readonly List<TokenInfo> tokens = new List<TokenInfo>();
 
         public ScriptTokenExtracter(Statement statement)
         {
-            this.Statement = statement;
+            Statement = statement;
         }
+
+        public Statement Statement { get; set; }
 
         public IEnumerable<TokenInfo> Extract()
         {
-            this.tokens.Clear();
+            tokens.Clear();
 
-            this.ExtractTokens(this.Statement);
+            ExtractTokens(Statement);
 
-            return this.tokens;
+            return tokens;
         }
 
         private void ExtractTokens(dynamic obj, bool isFirst = true)
         {
-            if(obj == null)
-            {
-                return;
-            }
+            if (obj == null) return;
 
             Type type = obj.GetType();
 
@@ -39,36 +34,27 @@ namespace DatabaseConverter.Core
             {
                 var properties = type.GetProperties();
 
-                foreach (PropertyInfo property in properties)
+                foreach (var property in properties)
                 {
-                    if (property.Name == nameof(TokenInfo.Parent))
-                    {
-                        continue;
-                    }                   
+                    if (property.Name == nameof(TokenInfo.Parent)) continue;
 
-                    dynamic value = property.GetValue(obj);
+                    var value = property.GetValue(obj);
 
-                    if (value == null)
-                    {
-                        continue;
-                    }
+                    if (value == null) continue;
 
                     if (value is TokenInfo)
                     {
-                        if (!value.Equals(obj))
-                        {
-                            this.ExtractTokens(value, false);
-                        }
+                        if (!value.Equals(obj)) this.ExtractTokens(value, false);
                     }
-                    else if (value.GetType().IsClass && property.PropertyType.IsGenericType && !(property.DeclaringType == typeof(CommonScript) && property.Name == nameof(CommonScript.Functions)))
+                    else if (value.GetType().IsClass && property.PropertyType.IsGenericType &&
+                             !(property.DeclaringType == typeof(CommonScript) &&
+                               property.Name == nameof(CommonScript.Functions)))
                     {
-                        foreach (var v in value)
-                        {
-                            this.ExtractTokens(v, false);
-                        }
+                        foreach (var v in value) this.ExtractTokens(v, false);
                     }
                     else if (value is Statement || value is StatementItem || value is SelectTopInfo
-                    || value is TableInfo || value is ColumnInfo || value is ConstraintInfo || value is ForeignKeyInfo )
+                             || value is TableInfo || value is ColumnInfo || value is ConstraintInfo ||
+                             value is ForeignKeyInfo)
                     {
                         this.ExtractTokens(value, false);
                     }
@@ -77,7 +63,7 @@ namespace DatabaseConverter.Core
 
             if (obj is TokenInfo token)
             {
-                this.AddToken(token);
+                AddToken(token);
 
                 readProperties();
 
@@ -89,12 +75,9 @@ namespace DatabaseConverter.Core
 
         private void AddToken(TokenInfo token)
         {
-            if (token == null)
-            {
-                return;
-            }
+            if (token == null) return;
 
-            this.tokens.Add(token);
+            tokens.Add(token);
         }
     }
 }

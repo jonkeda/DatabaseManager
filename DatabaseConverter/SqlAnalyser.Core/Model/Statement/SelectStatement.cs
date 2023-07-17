@@ -4,7 +4,7 @@ namespace SqlAnalyser.Model
 {
     public class SelectStatement : Statement
     {
-        public List<ColumnName> Columns { get; set; } = new List<ColumnName>();    
+        public List<ColumnName> Columns { get; set; } = new List<ColumnName>();
         public List<TokenInfo> Intos { get; set; }
         public TableName TableName { get; set; }
         public TokenInfo Where { get; set; }
@@ -18,9 +18,9 @@ namespace SqlAnalyser.Model
         public SelectTopInfo TopInfo { get; set; }
         public SelectLimitInfo LimitInfo { get; set; }
 
-        public bool HasFromItems => this.FromItems != null && this.FromItems.Count > 0;
+        public bool HasFromItems => FromItems != null && FromItems.Count > 0;
 
-        public bool NoTableName => this.TableName == null && !this.HasFromItems;
+        public bool NoTableName => TableName == null && !HasFromItems;
     }
 
     public class SelectTopInfo
@@ -39,23 +39,22 @@ namespace SqlAnalyser.Model
     {
         private TokenInfo _alias;
         public TableName TableName { get; set; }
-        public TokenInfo Alias 
-        {
-            get { return _alias; }
-            set 
-            {
-                this._alias = value;
 
-                if(value!=null)
-                {
-                    this._alias.Type = TokenType.TableAlias;
-                }
-            }        
+        public TokenInfo Alias
+        {
+            get => _alias;
+            set
+            {
+                _alias = value;
+
+                if (value != null) _alias.Type = TokenType.TableAlias;
+            }
         }
+
         public SelectStatement SubSelectStatement { get; set; }
         public List<JoinItem> JoinItems { get; set; } = new List<JoinItem>();
 
-        public bool HasJoinItems => this.JoinItems != null && this.JoinItems.Count > 0;
+        public bool HasJoinItems => JoinItems != null && JoinItems.Count > 0;
     }
 
     public class JoinItem

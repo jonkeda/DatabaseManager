@@ -87,11 +87,11 @@
 	</mapping>
 	<mapping>
 		<source type="real" />
-		<target type="real"/>
+		<target type="real" />
 	</mapping>
 	<mapping>
 		<source type="rowversion" />
-		<target type="bytea" length="8"/>
+		<target type="bytea" length="8" />
 	</mapping>
 	<mapping>
 		<source type="smalldatetime" />
@@ -115,7 +115,7 @@
 	</mapping>
 	<mapping>
 		<source type="text" />
-		<target type="text"/>
+		<target type="text" />
 	</mapping>
 	<mapping>
 		<source type="time" />
@@ -123,11 +123,11 @@
 	</mapping>
 	<mapping>
 		<source type="timestamp" />
-		<target type="bytea"/>
+		<target type="bytea" />
 	</mapping>
 	<mapping>
 		<source type="tinyint" />
-		<target type="smallint"/>
+		<target type="smallint" />
 		<special name="isIdentity" type="integer"></special>
 	</mapping>
 	<mapping>

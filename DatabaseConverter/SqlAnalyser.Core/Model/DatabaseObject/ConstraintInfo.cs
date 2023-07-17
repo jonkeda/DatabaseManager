@@ -7,35 +7,34 @@ namespace SqlAnalyser.Model
         private ForeignKeyInfo _fk;
         private NameToken _name;
         public ConstraintType Type { get; set; } = ConstraintType.None;
+
         public NameToken Name
         {
-            get { return this._name; }
+            get => _name;
             set
             {
-                this._name = value;
+                _name = value;
 
-                if (value != null)
-                {
-                    this._name.Type = TokenType.ConstraintName;
-                }
+                if (value != null) _name.Type = TokenType.ConstraintName;
             }
         }
+
         public List<ColumnName> ColumnNames { get; set; }
+
         public ForeignKeyInfo ForeignKey
         {
-            get { return this._fk; }
+            get => _fk;
             set
             {
-                if (value != null)
-                {
-                    this.Type = ConstraintType.ForeignKey;
-                }
+                if (value != null) Type = ConstraintType.ForeignKey;
 
-                this._fk = value;
+                _fk = value;
             }
         }
+
         public TokenInfo Definition { get; set; }
     }
+
     public enum ConstraintType
     {
         None,

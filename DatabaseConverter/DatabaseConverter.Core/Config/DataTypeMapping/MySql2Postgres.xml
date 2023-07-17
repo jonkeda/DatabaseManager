@@ -113,7 +113,7 @@
 	</mapping>
 	<mapping>
 		<source type="set" />
-		<target type="character varying" length="1000"/>
+		<target type="character varying" length="1000" />
 	</mapping>
 	<mapping>
 		<source type="smallint" />
@@ -149,7 +149,7 @@
 	</mapping>
 	<mapping>
 		<source type="varchar" />
-		<target type="character varying"/>
+		<target type="character varying" />
 	</mapping>
 	<mapping>
 		<source type="year" />

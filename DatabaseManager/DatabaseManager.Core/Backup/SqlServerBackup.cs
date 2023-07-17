@@ -1,14 +1,16 @@
-﻿using DatabaseInterpreter.Core;
+﻿using System;
+using System.IO;
+using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseManager.Model;
-using System;
-using System.IO;
 
 namespace DatabaseManager.Core
 {
     public class SqlServerBackup : DbBackup
     {
-        public SqlServerBackup() : base() { }
+        public SqlServerBackup()
+        {
+        }
 
         public SqlServerBackup(BackupSetting setting, ConnectionInfo connectionInfo) : base(setting, connectionInfo)
         {
@@ -16,21 +18,18 @@ namespace DatabaseManager.Core
 
         public override string Backup()
         {
-            if(this.Setting==null)
-            {
-                throw new ArgumentException($"There is no backup setting for SqlServer.");
-            }                
+            if (Setting == null) throw new ArgumentException("There is no backup setting for SqlServer.");
 
-            string fileNameWithoutExt = this.ConnectionInfo.Database + "_" + DateTime.Now.ToString("yyyyMMddHHmmss");
-            string fileName = fileNameWithoutExt + ".bak";
+            var fileNameWithoutExt = ConnectionInfo.Database + "_" + DateTime.Now.ToString("yyyyMMddHHmmss");
+            var fileName = fileNameWithoutExt + ".bak";
 
-            string saveFolder = this.CheckSaveFolder();
+            var saveFolder = CheckSaveFolder();
 
-            string saveFilePath = Path.Combine(saveFolder, fileName);
+            var saveFilePath = Path.Combine(saveFolder, fileName);
 
-            SqlServerInterpreter interpreter = new SqlServerInterpreter(this.ConnectionInfo, new DbInterpreterOption());
+            var interpreter = new SqlServerInterpreter(ConnectionInfo, new DbInterpreterOption());
 
-            string sql = $@"use master; backup database {this.ConnectionInfo.Database} to disk='{saveFilePath}';";
+            var sql = $@"use master; backup database {ConnectionInfo.Database} to disk='{saveFilePath}';";
 
             interpreter.ExecuteNonQueryAsync(sql);
 

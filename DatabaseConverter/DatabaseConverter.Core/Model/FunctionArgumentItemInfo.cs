@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace DatabaseConverter.Model
 {
     public class FunctionArgumentItemInfo
     {
+        public List<FunctionArgumentItemDetailInfo> Details = new List<FunctionArgumentItemDetailInfo>();
         public int Index { get; set; }
         public string Content { get; set; }
-
-        public List<FunctionArgumentItemDetailInfo> Details = new List<FunctionArgumentItemDetailInfo>();
     }
 
     public class FunctionArgumentItemDetailInfo
@@ -19,8 +16,8 @@ namespace DatabaseConverter.Model
     }
 
     public enum FunctionArgumentItemDetailType
-    { 
-        Text,      
+    {
+        Text,
         Whitespace
     }
 }

@@ -5,7 +5,7 @@
 
     var databaseDropDownItems = new List<SelectListItem>();
 
-    databaseDropDownItems.AddRange(databaseTypes.Select(item => new SelectListItem() { Text = item, Value = item }));
+    databaseDropDownItems.AddRange(databaseTypes.Select(item => new SelectListItem { Text = item, Value = item }));
 }
 
 <style>
@@ -90,7 +90,7 @@
             </div>
         </div>
         <div class="actionPanel">
-            <input type="button" value="Translate" class="actionButton" onclick="post()" />
+            <input type="button" value="Translate" class="actionButton" onclick="post()"/>
         </div>
         <div class="contentPanel">
             <div>

@@ -366,7 +366,7 @@ namespace SqlAnalyser.Core
                         {
                             if (!isForColumn) definition = $" FOREIGN KEY ({string.Join(",", fki.ColumnNames)})";
 
-                            definition += $" REFERENCES {fki.RefTableName}({string.Join(",", fki.RefColumNames)})";
+                            definition += $" REFERENCES {fki.RefTableName}({string.Join(",", fki.RefColumnNames)})";
 
                             if (fki.UpdateCascade) definition += " UPDATE CASCADE";
 

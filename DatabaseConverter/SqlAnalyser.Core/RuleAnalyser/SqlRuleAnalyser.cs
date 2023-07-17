@@ -121,7 +121,7 @@ namespace SqlAnalyser.Core
 
                 if (isFunction && !Option.ExtractFunctionChildren) continue;
 
-                if (child is ParserRuleContext) ExtractFunctions(script, child as ParserRuleContext);
+                if (child is ParserRuleContext context) ExtractFunctions(script, context);
             }
         }
 

@@ -8,12 +8,12 @@ namespace DatabaseManager.Core
 {
     public class DbCompare
     {
-        private readonly SchemaInfo sourceShemaInfo;
+        private readonly SchemaInfo sourceSchemaInfo;
         private readonly SchemaInfo targetSchemaInfo;
 
-        public DbCompare(SchemaInfo sourceShemaInfo, SchemaInfo targetSchemaInfo)
+        public DbCompare(SchemaInfo sourceSchemaInfo, SchemaInfo targetSchemaInfo)
         {
-            this.sourceShemaInfo = sourceShemaInfo;
+            this.sourceSchemaInfo = sourceSchemaInfo;
             this.targetSchemaInfo = targetSchemaInfo;
         }
 
@@ -22,7 +22,7 @@ namespace DatabaseManager.Core
             var differences = new List<DbDifference>();
 
             differences.AddRange(CompareDatabaseObjects(nameof(UserDefinedType), DatabaseObjectType.Type,
-                sourceShemaInfo.UserDefinedTypes, targetSchemaInfo.UserDefinedTypes));
+                sourceSchemaInfo.UserDefinedTypes, targetSchemaInfo.UserDefinedTypes));
 
             #region Table
 
@@ -31,7 +31,7 @@ namespace DatabaseManager.Core
                 var difference = new DbDifference
                     { Type = nameof(Table), DatabaseObjectType = DatabaseObjectType.Table };
 
-                var source = sourceShemaInfo.Tables.FirstOrDefault(item => IsNameEquals(item.Name, target.Name));
+                var source = sourceSchemaInfo.Tables.FirstOrDefault(item => IsNameEquals(item.Name, target.Name));
 
                 if (source == null)
                 {
@@ -54,7 +54,7 @@ namespace DatabaseManager.Core
                     {
                         #region Column
 
-                        var sourceColumns = sourceShemaInfo.TableColumns.Where(item =>
+                        var sourceColumns = sourceSchemaInfo.TableColumns.Where(item =>
                             item.Schema == source.Schema && item.TableName == source.Name);
                         var targetColumns = targetSchemaInfo.TableColumns.Where(item =>
                             item.Schema == target.Schema && item.TableName == source.Name);
@@ -68,7 +68,7 @@ namespace DatabaseManager.Core
 
                         #region Trigger
 
-                        var sourceTriggers = sourceShemaInfo.TableTriggers.Where(item =>
+                        var sourceTriggers = sourceSchemaInfo.TableTriggers.Where(item =>
                             item.Schema == source.Schema && item.TableName == source.Name);
                         var targetTriggers = targetSchemaInfo.TableTriggers.Where(item =>
                             item.Schema == target.Schema && item.TableName == source.Name);
@@ -84,7 +84,7 @@ namespace DatabaseManager.Core
 
                         #region Index
 
-                        var sourceIndexes = sourceShemaInfo.TableIndexes.Where(item =>
+                        var sourceIndexes = sourceSchemaInfo.TableIndexes.Where(item =>
                             item.Schema == source.Schema && item.TableName == source.Name);
                         var targetIndexes = targetSchemaInfo.TableIndexes.Where(item =>
                             item.Schema == target.Schema && item.TableName == source.Name);
@@ -98,7 +98,7 @@ namespace DatabaseManager.Core
 
                         #region Primary Key
 
-                        var sourcePrimaryKeys = sourceShemaInfo.TablePrimaryKeys.Where(item =>
+                        var sourcePrimaryKeys = sourceSchemaInfo.TablePrimaryKeys.Where(item =>
                             item.Schema == source.Schema && item.TableName == source.Name);
                         var targetPrimaryKeys = targetSchemaInfo.TablePrimaryKeys.Where(item =>
                             item.Schema == target.Schema && item.TableName == source.Name);
@@ -112,7 +112,7 @@ namespace DatabaseManager.Core
 
                         #region Foreign Key
 
-                        var sourceForeignKeys = sourceShemaInfo.TableForeignKeys.Where(item =>
+                        var sourceForeignKeys = sourceSchemaInfo.TableForeignKeys.Where(item =>
                             item.Schema == source.Schema && item.TableName == source.Name);
                         var targetForeignKeys = targetSchemaInfo.TableForeignKeys.Where(item =>
                             item.Schema == target.Schema && item.TableName == source.Name);
@@ -126,7 +126,7 @@ namespace DatabaseManager.Core
 
                         #region Constraint
 
-                        var sourceConstraints = sourceShemaInfo.TableConstraints.Where(item =>
+                        var sourceConstraints = sourceSchemaInfo.TableConstraints.Where(item =>
                             item.Schema == source.Schema && item.TableName == source.Name);
                         var targetConstraints = targetSchemaInfo.TableConstraints.Where(item =>
                             item.Schema == target.Schema && item.TableName == source.Name);
@@ -146,7 +146,7 @@ namespace DatabaseManager.Core
                 }
             }
 
-            foreach (var source in sourceShemaInfo.Tables)
+            foreach (var source in sourceSchemaInfo.Tables)
                 if (!targetSchemaInfo.Tables.Any(item => IsNameEquals(item.Name, source.Name)))
                 {
                     var difference = new DbDifference
@@ -159,12 +159,12 @@ namespace DatabaseManager.Core
 
             #endregion
 
-            differences.AddRange(CompareDatabaseObjects(nameof(View), DatabaseObjectType.View, sourceShemaInfo.Views,
+            differences.AddRange(CompareDatabaseObjects(nameof(View), DatabaseObjectType.View, sourceSchemaInfo.Views,
                 targetSchemaInfo.Views));
             differences.AddRange(CompareDatabaseObjects(nameof(Function), DatabaseObjectType.Function,
-                sourceShemaInfo.Functions, targetSchemaInfo.Functions));
+                sourceSchemaInfo.Functions, targetSchemaInfo.Functions));
             differences.AddRange(CompareDatabaseObjects(nameof(Procedure), DatabaseObjectType.Procedure,
-                sourceShemaInfo.Procedures, targetSchemaInfo.Procedures));
+                sourceSchemaInfo.Procedures, targetSchemaInfo.Procedures));
 
             return differences;
         }

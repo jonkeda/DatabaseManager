@@ -19,8 +19,8 @@ namespace DatabaseConverter.Core
         {
             (DatabaseType sourceDbType, DatabaseType targetDbType) dbTypeMap = (sourceDatabaseType, targetDatabaseType);
 
-            if (_dataTypeMappings != null && _dataTypeMappings.ContainsKey(dbTypeMap))
-                return _dataTypeMappings[dbTypeMap];
+            if (_dataTypeMappings != null && _dataTypeMappings.TryGetValue(dbTypeMap, out var typeMappings))
+                return typeMappings;
 
             var dataTypeMappingFilePath = Path.Combine(ConfigRootFolder,
                 $"DataTypeMapping/{sourceDatabaseType}2{targetDatabaseType}.xml");

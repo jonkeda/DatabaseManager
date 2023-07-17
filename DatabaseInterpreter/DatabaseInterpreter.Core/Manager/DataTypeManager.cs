@@ -15,8 +15,8 @@ namespace DatabaseInterpreter.Core
 
         public static IEnumerable<DataTypeSpecification> GetDataTypeSpecifications(DatabaseType databaseType)
         {
-            if (_dataTypeSpecifications != null && _dataTypeSpecifications.ContainsKey(databaseType))
-                return _dataTypeSpecifications[databaseType];
+            if (_dataTypeSpecifications != null && _dataTypeSpecifications.TryGetValue(databaseType, out var specifications))
+                return specifications;
 
             var filePath = Path.Combine(ConfigRootFolder, $"DataTypeSpecification/{databaseType}.xml");
 
@@ -62,7 +62,7 @@ namespace DatabaseInterpreter.Core
 
         public static DataTypeSpecification ParseArgument(DataTypeSpecification dataTypeSpecification)
         {
-            if (string.IsNullOrEmpty(dataTypeSpecification.Args) || dataTypeSpecification.Arugments.Count > 0)
+            if (string.IsNullOrEmpty(dataTypeSpecification.Args) || dataTypeSpecification.Arguments.Count > 0)
                 return dataTypeSpecification;
 
             if (!string.IsNullOrEmpty(dataTypeSpecification.Range))
@@ -91,7 +91,7 @@ namespace DatabaseInterpreter.Core
                         argument.Range = range;
                     }
 
-                    dataTypeSpecification.Arugments.Add(argument);
+                    dataTypeSpecification.Arguments.Add(argument);
 
                     i++;
                 }
@@ -104,8 +104,8 @@ namespace DatabaseInterpreter.Core
         {
             var range = default(ArgumentRange?);
 
-            if (dataTypeSpecification.Arugments.Any(item => item.Name.ToLower() == argumentName.ToLower()))
-                return dataTypeSpecification.Arugments
+            if (dataTypeSpecification.Arguments.Any(item => item.Name.ToLower() == argumentName.ToLower()))
+                return dataTypeSpecification.Arguments
                     .FirstOrDefault(item => item.Name.ToLower() == argumentName.ToLower()).Range;
 
             return range;

@@ -316,7 +316,7 @@ namespace SqlAnalyser.Core
         private void MakeupRoutineName(TokenInfo token)
         {
             var symbol = token.Symbol;
-            var index = symbol.IndexOf("(");
+            var index = symbol.IndexOf("(", StringComparison.Ordinal);
 
             var name = index == -1 ? symbol : symbol.Substring(0, index);
 

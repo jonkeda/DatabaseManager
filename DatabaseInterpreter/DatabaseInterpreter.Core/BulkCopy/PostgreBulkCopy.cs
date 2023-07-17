@@ -12,7 +12,7 @@ namespace DatabaseInterpreter.Core
 {
     public class PostgreBulkCopy : IDisposable
     {
-        private static readonly Dictionary<string, NpgsqlDbType> dataTypeMappings = new Dictionary<string, NpgsqlDbType>
+        private static readonly Dictionary<string, NpgsqlDbType> DataTypeMappings = new Dictionary<string, NpgsqlDbType>
         {
             { "smallint", NpgsqlDbType.Smallint },
             { "integer", NpgsqlDbType.Integer },
@@ -26,38 +26,38 @@ namespace DatabaseInterpreter.Core
             { "character varying", NpgsqlDbType.Varchar }
         };
 
-        private NpgsqlConnection _connection;
+        private NpgsqlConnection connection;
 
-        private string _destinationTableName;
+        private string destinationTableName;
 
-        private readonly bool _ownsTheConnection;
+        private readonly bool ownsTheConnection;
 
         public PostgreBulkCopy(string connectionString) : this(new NpgsqlConnection(connectionString))
         {
-            _ownsTheConnection = true;
+            ownsTheConnection = true;
         }
 
         public PostgreBulkCopy(NpgsqlConnection connection) : this(connection, null)
         {
         }
 
-        public PostgreBulkCopy(NpgsqlConnection connection, NpgsqlTransaction transation = null)
+        public PostgreBulkCopy(NpgsqlConnection connection, NpgsqlTransaction transaction = null)
         {
-            _connection = connection;
-            _externalTransaction = transation;
+            this.connection = connection;
+            ExternalTransaction = transaction;
         }
 
-        private NpgsqlTransaction _externalTransaction { get; }
+        private NpgsqlTransaction ExternalTransaction { get; }
 
         public string DestinationTableName
         {
-            get => _destinationTableName;
+            get => destinationTableName;
             set
             {
                 if (value == null || value.Length == 0)
                     throw new ArgumentException("Destination table name cannot be null or empty string");
 
-                _destinationTableName = value;
+                destinationTableName = value;
             }
         }
 
@@ -69,30 +69,30 @@ namespace DatabaseInterpreter.Core
 
         public void Dispose()
         {
-            if (_connection != null)
+            if (connection != null)
             {
-                if (_ownsTheConnection) _connection.Dispose();
+                if (ownsTheConnection) connection.Dispose();
 
-                _connection = null;
+                connection = null;
             }
         }
 
         private void ValidateConnection()
         {
-            if (_connection == null) throw new Exception("Postgres Database Connection is required");
+            if (connection == null) throw new Exception("Postgres Database Connection is required");
 
-            if (_externalTransaction != null && _externalTransaction.Connection != _connection)
+            if (ExternalTransaction != null && ExternalTransaction.Connection != connection)
                 throw new Exception("Postgres Transaction mismatch with Oracle Database Connection");
         }
 
         private async Task OpenConnectionAsync()
         {
-            if (_ownsTheConnection && _connection.State != ConnectionState.Open) await _connection.OpenAsync();
+            if (ownsTheConnection && connection.State != ConnectionState.Open) await connection.OpenAsync();
         }
 
         public async Task<ulong> WriteToServerAsync(DataTable table)
         {
-            if (table == null) throw new ArgumentNullException("table");
+            if (table == null) throw new ArgumentNullException(nameof(table));
 
             return await CopyData(table);
         }
@@ -106,11 +106,11 @@ namespace DatabaseInterpreter.Core
             ValidateConnection();
             await OpenConnectionAsync();
 
-            _connection.TypeMapper.UseNetTopologySuite();
+            connection.TypeMapper.UseNetTopologySuite();
 
             var commandText = $"COPY {DestinationTableName}({columnList}) FROM STDIN (FORMAT BINARY)";
 
-            using (var writer = _connection.BeginBinaryImport(commandText))
+            using (var writer = connection.BeginBinaryImport(commandText))
             {
                 writer.Timeout = TimeSpan.FromSeconds(BulkCopyTimeout);
 
@@ -148,16 +148,16 @@ namespace DatabaseInterpreter.Core
 
         private string GetValueList(DataTable data)
         {
-            const string Delimiter = ", ";
+            const string delimiter = ", ";
 
             var sb = new StringBuilder();
             for (var i = 1; i <= data.Columns.Count; i++)
             {
-                sb.Append(string.Format(":{0}", i));
-                sb.Append(Delimiter);
+                sb.Append($":{i}");
+                sb.Append(delimiter);
             }
 
-            sb.Length -= Delimiter.Length;
+            sb.Length -= delimiter.Length;
 
             var valueList = sb.ToString();
             return valueList;
@@ -280,14 +280,12 @@ namespace DatabaseInterpreter.Core
 
         private string FindTableColumnType(string columnName)
         {
-            if (TableColumns != null) return TableColumns.FirstOrDefault(item => item.Name == columnName)?.DataType;
-
-            return null;
+            return TableColumns?.FirstOrDefault(item => item.Name == columnName)?.DataType;
         }
 
         private NpgsqlDbType? GetMappedDataType(string dataType)
         {
-            if (dataType != null && dataTypeMappings.ContainsKey(dataType)) return dataTypeMappings[dataType];
+            if (dataType != null && DataTypeMappings.TryGetValue(dataType, out var type)) return type;
 
             return default;
         }

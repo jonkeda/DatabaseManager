@@ -155,7 +155,7 @@ public partial class UC_DataViewer : UserControl, IDbObjContentDisplayer
 
     private void btnFilter_Click(object sender, EventArgs e)
     {
-        if (OnDataFilter != null) OnDataFilter(this);
+        OnDataFilter?.Invoke(this);
     }
 
     public void FilterData(QueryConditionBuilder conditionBuilder)

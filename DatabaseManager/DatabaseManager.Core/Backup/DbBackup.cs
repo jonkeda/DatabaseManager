@@ -10,11 +10,11 @@ namespace DatabaseManager.Core
     {
         public string DefaultBackupFolderName = "Backup";
 
-        public DbBackup()
+        protected DbBackup()
         {
         }
 
-        public DbBackup(BackupSetting setting, ConnectionInfo connectionInfo)
+        protected DbBackup(BackupSetting setting, ConnectionInfo connectionInfo)
         {
             Setting = setting;
             ConnectionInfo = connectionInfo;
@@ -62,7 +62,7 @@ namespace DatabaseManager.Core
                 return new MySqlBackup();
             if (databaseType == DatabaseType.Postgres) return new PostgresBackup();
 
-            throw new NotImplementedException($"Not implemente for backup {databaseType}.");
+            throw new NotImplementedException($"Not implemented for backup {databaseType}.");
         }
     }
 }

@@ -330,7 +330,7 @@ namespace DatabaseInterpreter.Core
         private async Task MakeupTableChildrenNames(IEnumerable<TableColumnChild> columnChildren,
             SchemaInfoFilter filter = null)
         {
-            if (columnChildren == null || columnChildren.Count() == 0) return;
+            if (columnChildren == null || !columnChildren.Any()) return;
 
             var tablesSql = GetSqlForTableViews(DatabaseObjectType.Table, filter, true);
 
@@ -757,7 +757,7 @@ namespace DatabaseInterpreter.Core
         {
             var columnDetails = new List<List<string>>();
 
-            var firstIndex = definition.IndexOf("(");
+            var firstIndex = definition.IndexOf("(", StringComparison.Ordinal);
             var lastIndex = definition.LastIndexOf(")", definition.Length - 1);
 
             var innerContent = definition.Substring(firstIndex + 1, lastIndex - firstIndex - 1);
@@ -902,7 +902,7 @@ namespace DatabaseInterpreter.Core
 
             if (item.Contains("("))
             {
-                var index = item.IndexOf("(");
+                var index = item.IndexOf("(", StringComparison.Ordinal);
 
                 columNames = item.Substring(index + 1).Trim().TrimEnd(')').Split(',').Select(item1 => item1.Trim())
                     .ToList();
@@ -923,7 +923,7 @@ namespace DatabaseInterpreter.Core
 
             if (item.Contains("("))
             {
-                var index = item.IndexOf("(");
+                var index = item.IndexOf("(", StringComparison.Ordinal);
 
                 return item.Substring(index + 1);
             }

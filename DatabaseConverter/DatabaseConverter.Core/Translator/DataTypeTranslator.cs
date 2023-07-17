@@ -253,7 +253,7 @@ namespace DatabaseConverter.Core
                         var targetMappingArgs = targetMapping.Args;
 
                         var i = 0;
-                        foreach (var arg in targetDataTypeSpec.Arugments)
+                        foreach (var arg in targetDataTypeSpec.Arguments)
                         {
                             if (arg.Name.ToLower() == "scale")
                             {
@@ -293,7 +293,7 @@ namespace DatabaseConverter.Core
             }
         }
 
-        private DataTypeSpecification GetDataTypeSpecification(
+        private static DataTypeSpecification GetDataTypeSpecification(
             IEnumerable<DataTypeSpecification> dataTypeSpecifications, string dataType)
         {
             var regex = new Regex(@"([(][^(^)]+[)])", RegexOptions.IgnoreCase);
@@ -308,7 +308,7 @@ namespace DatabaseConverter.Core
             return dataTypeSpecifications.FirstOrDefault(item => item.Name.ToLower() == dataType.ToLower().Trim());
         }
 
-        private bool IsSpecialMaxLengthMatched(DataTypeMappingSpecial special, DataTypeInfo dataTypeInfo)
+        private static bool IsSpecialMaxLengthMatched(DataTypeMappingSpecial special, DataTypeInfo dataTypeInfo)
         {
             var value = special.Value;
 
@@ -324,14 +324,14 @@ namespace DatabaseConverter.Core
                 {
                     var result = exp.Evaluate();
 
-                    return result != null && result.GetType() == typeof(bool) && (bool)result;
+                    return result != null && result is bool && (bool)result;
                 }
             }
 
             return false;
         }
 
-        private bool IsSpecialPrecisionOrScaleMatched(DataTypeMappingSpecial special, DataTypeInfo dataTypeInfo)
+        private static bool IsSpecialPrecisionOrScaleMatched(DataTypeMappingSpecial special, DataTypeInfo dataTypeInfo)
         {
             var names = special.Name.Split(',');
             var values = special.Value.Split(',');
@@ -358,41 +358,33 @@ namespace DatabaseConverter.Core
             return false;
         }
 
-        private bool IsSpecialPrecisionAndScaleMatched(DataTypeMappingSpecial special, DataTypeInfo dataTypeInfo)
+        private static bool IsSpecialPrecisionAndScaleMatched(DataTypeMappingSpecial special, DataTypeInfo dataTypeInfo)
         {
             var precision = special.Precison;
             var scale = special.Scale;
 
-
-            if (precision == "isNullOrZero" && IsNullOrZero(dataTypeInfo.Precision)
-                                            && scale == "isNullOrZero" && IsNullOrZero(dataTypeInfo.Scale))
-                return true;
-
-            return false;
+            return precision == "isNullOrZero" && IsNullOrZero(dataTypeInfo.Precision)
+                                               && scale == "isNullOrZero" && IsNullOrZero(dataTypeInfo.Scale);
         }
 
-        private bool IsNullOrZero(long? value)
+        private static bool IsNullOrZero(long? value)
         {
             return value == null || value == 0;
         }
 
-        private bool IsValueEqual(string value1, long? value2)
+        private static bool IsValueEqual(string value1, long? value2)
         {
             var v2 = value2?.ToString();
             if (value1 == v2)
                 return true;
-            if (value1 == "0" && (v2 is null || v2 == "")) return true;
-
-            return false;
+            return value1 == "0" && (v2 is null || v2 == "");
         }
 
-        private bool IsSpecialExpressionMatched(DataTypeMappingSpecial special, string dataType)
+        private static bool IsSpecialExpressionMatched(DataTypeMappingSpecial special, string dataType)
         {
             var value = special.Value;
 
-            if (Regex.IsMatch(dataType, value, RegexOptions.IgnoreCase)) return true;
-
-            return false;
+            return Regex.IsMatch(dataType, value, RegexOptions.IgnoreCase);
         }
     }
 }

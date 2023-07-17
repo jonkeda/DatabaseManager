@@ -60,19 +60,16 @@ namespace DatabaseConverter.Core
 
             var mappings = DateUnitMappingManager.GetDateUnitMappings();
 
-            if (mappings != null)
+            var mapping = mappings?.FirstOrDefault(item =>
+                item.Items.Any(t => IsDateUnitMatched(sourceDbType, t, trimedUnit)));
+
+            if (mapping != null)
             {
-                var mapping = mappings.FirstOrDefault(item =>
-                    item.Items.Any(t => IsDateUnitMatched(sourceDbType, t, trimedUnit)));
+                var target = mapping.Items.FirstOrDefault(item => item.DbType == targetDbType.ToString());
 
-                if (mapping != null)
-                {
-                    var target = mapping.Items.FirstOrDefault(item => item.DbType == targetDbType.ToString());
-
-                    if (target == null || !target.Formal)
-                        return mapping.Name;
-                    return target.Unit;
-                }
+                if (target == null || !target.Formal)
+                    return mapping.Name;
+                return target.Unit;
             }
 
             return unit;

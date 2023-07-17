@@ -323,6 +323,6 @@ public partial class frmTableCopy : Form, IObserver<FeedbackInfo>
 
     private void Feedback(FeedbackInfo info)
     {
-        if (OnFeedback != null) OnFeedback(info);
+        OnFeedback?.Invoke(info);
     }
 }

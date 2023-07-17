@@ -613,7 +613,7 @@ public partial class UC_QueryEditor : UserControl
         }
         else
         {
-            var firstIndexOfComment = lineFirstCharIndex + lineBefore.IndexOf(commentString);
+            var firstIndexOfComment = lineFirstCharIndex + lineBefore.IndexOf(commentString, StringComparison.Ordinal);
 
             token.StartIndex = firstIndexOfComment;
             token.StopIndex = lineFirstCharIndex + Editor.Lines[lineIndex].Length - 1;
@@ -794,7 +794,7 @@ public partial class UC_QueryEditor : UserControl
             message = "";
         }
 
-        if (OnQueryEditorInfoMessage != null) OnQueryEditorInfoMessage(message);
+        OnQueryEditorInfoMessage?.Invoke(message);
     }
 
     private void lvWords_DoubleClick(object sender, EventArgs e)
@@ -825,8 +825,9 @@ public partial class UC_QueryEditor : UserControl
         else
         {
             if (!intellisenseSetuped)
-                if (SetupIntellisenseRequired != null)
-                    SetupIntellisenseRequired(this, null);
+            {
+                SetupIntellisenseRequired?.Invoke(this, null);
+            }
         }
     }
 
@@ -881,7 +882,7 @@ public partial class UC_QueryEditor : UserControl
 
     private void tsmiUpdateIntellisense_Click(object sender, EventArgs e)
     {
-        if (SetupIntellisenseRequired != null) SetupIntellisenseRequired(this, null);
+        SetupIntellisenseRequired?.Invoke(this, null);
     }
 
     private void txtEditor_MouseClick(object sender, MouseEventArgs e)

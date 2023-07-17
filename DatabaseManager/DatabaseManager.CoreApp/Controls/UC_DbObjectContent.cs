@@ -136,7 +136,7 @@ public partial class UC_DbObjectContent : UserControl
 
     private void DataFilter(object sender)
     {
-        if (OnDataFilter != null) OnDataFilter(sender);
+        OnDataFilter?.Invoke(sender);
     }
 
     private T AddControlToTabPage<T>(TabPage tabPage) where T : UserControl
@@ -151,8 +151,8 @@ public partial class UC_DbObjectContent : UserControl
     private T GetUcControl<T>(TabPage tabPage) where T : UserControl
     {
         foreach (Control control in tabPage.Controls)
-            if (control is T)
-                return control as T;
+            if (control is T userControl)
+                return userControl;
 
         return null;
     }
@@ -357,9 +357,7 @@ public partial class UC_DbObjectContent : UserControl
 
         var tabPage = tabControl1.SelectedTab;
 
-        if (tabPage == null) return;
-
-        var displayInfo = tabPage.Tag as DatabaseObjectDisplayInfo;
+        var displayInfo = tabPage?.Tag as DatabaseObjectDisplayInfo;
 
         if (displayInfo == null) return;
 
@@ -424,14 +422,14 @@ public partial class UC_DbObjectContent : UserControl
     {
         var control = GetUcControlInterface(tabPage);
 
-        if (control != null) control.Save(new ContentSaveInfo { FilePath = filePath });
+        control?.Save(new ContentSaveInfo { FilePath = filePath });
     }
 
     private IDbObjContentDisplayer GetUcControlInterface(TabPage tabPage)
     {
         foreach (Control control in tabPage.Controls)
-            if (control is IDbObjContentDisplayer)
-                return control as IDbObjContentDisplayer;
+            if (control is IDbObjContentDisplayer displayer)
+                return displayer;
 
         return null;
     }
@@ -515,9 +513,7 @@ public partial class UC_DbObjectContent : UserControl
 
         var tabPage = tabControl1.SelectedTab;
 
-        if (tabPage == null) return;
-
-        var data = tabPage.Tag as DatabaseObjectDisplayInfo;
+        var data = tabPage?.Tag as DatabaseObjectDisplayInfo;
 
         if (data == null || data.DisplayType != DatabaseObjectDisplayType.Script) return;
 
@@ -535,6 +531,6 @@ public partial class UC_DbObjectContent : UserControl
 
     private void Feedback(FeedbackInfo info)
     {
-        if (OnFeedback != null) OnFeedback(info);
+        OnFeedback?.Invoke(info);
     }
 }

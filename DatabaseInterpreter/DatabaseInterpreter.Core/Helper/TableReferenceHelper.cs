@@ -127,7 +127,7 @@ namespace DatabaseInterpreter.Core
             var childForeignTableNames = tableForeignKeys
                 .Where(item => foreignTableNames.Contains(item.ReferencedTableName)).Select(item => item.TableName);
 
-            if (childForeignTableNames.Count() > 0)
+            if (childForeignTableNames.Any())
             {
                 var childNames = foreignTableNames
                     .SelectMany(item => GetForeignTables(item, tableForeignKeys, sortedTableNames)).ToList();

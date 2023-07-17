@@ -48,7 +48,7 @@ public partial class UC_FileConnectionInfo : UserControl
         {
             txtFilePath.Text = openFileDialog1.FileName;
 
-            if (OnFileSelect != null) OnFileSelect(sender, e);
+            OnFileSelect?.Invoke(sender, e);
         }
     }
 
@@ -93,7 +93,7 @@ public partial class UC_FileConnectionInfo : UserControl
 
                 MessageBox.Show("Success.");
 
-                if (OnTestConnect != null) OnTestConnect();
+                OnTestConnect?.Invoke();
 
                 return true;
             }

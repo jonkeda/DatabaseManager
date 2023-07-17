@@ -1129,13 +1129,10 @@ namespace SqlAnalyser.Core
 
             if (where != null) statement.Where = ParseCondition(where.expression());
 
-            if (orderby != null)
-            {
-                var orderbyElements = orderby.order_by_elements();
+            var orderbyElements = orderby?.order_by_elements();
 
-                if (orderbyElements != null && orderbyElements.Length > 0)
-                    statement.OrderBy = orderbyElements.Select(item => CreateToken(item, TokenType.OrderBy)).ToList();
-            }
+            if (orderbyElements != null && orderbyElements.Length > 0)
+                statement.OrderBy = orderbyElements.Select(item => CreateToken(item, TokenType.OrderBy)).ToList();
 
             if (groupby != null)
             {
@@ -1806,7 +1803,7 @@ namespace SqlAnalyser.Core
             fki.ColumnNames.AddRange(columns.Select(item => new ColumnName(item)));
 
             fki.RefTableName = refTable.RefTableName;
-            fki.RefColumNames = refTable.RefColumNames;
+            fki.RefColumnNames = refTable.RefColumnNames;
 
             return fki;
         }
@@ -1819,7 +1816,7 @@ namespace SqlAnalyser.Core
             var refColumns = node.paren_column_list().column_list().column_name();
 
             fki.RefTableName = new TableName(refTableName);
-            fki.RefColumNames.AddRange(refColumns.Select(item => new ColumnName(item)));
+            fki.RefColumnNames.AddRange(refColumns.Select(item => new ColumnName(item)));
 
             return fki;
         }
@@ -1925,12 +1922,9 @@ namespace SqlAnalyser.Core
 
                     var sle = FindSelectListEelementsContext(vname);
 
-                    if (sle != null)
-                    {
-                        var alias = sle.column_alias()?.identifier();
+                    var alias = sle?.column_alias()?.identifier();
 
-                        if (alias != null) columnName.Alias = new TokenInfo(alias);
-                    }
+                    if (alias != null) columnName.Alias = new TokenInfo(alias);
                 }
                 else if (node is Select_list_elementsContext ele)
                 {
@@ -1987,8 +1981,8 @@ namespace SqlAnalyser.Core
             {
                 if (node.Parent != null && node.Parent is Select_list_elementsContext sle)
                     return sle;
-                if (node.Parent != null && node.Parent is ParserRuleContext)
-                    return FindSelectListEelementsContext(node.Parent as ParserRuleContext);
+                if (node.Parent != null && node.Parent is ParserRuleContext parent)
+                    return FindSelectListEelementsContext(parent);
             }
 
             return null;
@@ -1996,18 +1990,16 @@ namespace SqlAnalyser.Core
 
         protected override TokenInfo ParseTableAlias(ParserRuleContext node)
         {
-            if (node != null)
-                if (node is Table_aliasContext alias)
-                    return new TokenInfo(alias.identifier()) { Type = TokenType.TableAlias };
+            if (node is Table_aliasContext alias)
+                return new TokenInfo(alias.identifier()) { Type = TokenType.TableAlias };
 
             return null;
         }
 
         protected override TokenInfo ParseColumnAlias(ParserRuleContext node)
         {
-            if (node != null)
-                if (node is Column_aliasContext alias)
-                    return new TokenInfo(alias.identifier()) { Type = TokenType.ColumnAlias };
+            if (node is Column_aliasContext alias)
+                return new TokenInfo(alias.identifier()) { Type = TokenType.ColumnAlias };
 
             return null;
         }
@@ -2038,8 +2030,8 @@ namespace SqlAnalyser.Core
         {
             if (node is Standard_functionContext) return true;
 
-            if (node is General_element_partContext &&
-                (node as General_element_partContext).children.Any(item => item is Function_argumentContext))
+            if (node is General_element_partContext context &&
+                context.children.Any(item => item is Function_argumentContext))
             {
                 return true;
             }
@@ -2058,10 +2050,9 @@ namespace SqlAnalyser.Core
             {
                 var parent = node.Parent?.Parent?.Parent;
 
-                if (parent != null)
-                    if (parent is Variable_nameContext v)
-                        if (!(n.Start.StartIndex == v.Start.StartIndex && n.Stop.StopIndex == v.Stop.StopIndex))
-                            return true;
+                if (parent is Variable_nameContext v)
+                    if (!(n.Start.StartIndex == v.Start.StartIndex && n.Stop.StopIndex == v.Stop.StopIndex))
+                        return true;
             }
 
             return false;

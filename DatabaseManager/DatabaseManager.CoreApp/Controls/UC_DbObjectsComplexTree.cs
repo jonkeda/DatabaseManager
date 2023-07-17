@@ -477,7 +477,7 @@ public partial class UC_DbObjectsComplexTree : UserControl, IObserver<FeedbackIn
         var text = dbInterpreter.ParseColumn(table, column).Replace(dbInterpreter.QuotationLeftChar.ToString(), "")
             .Replace(dbInterpreter.QuotationRightChar.ToString(), "");
 
-        var index = text.IndexOf(column.Name);
+        var index = text.IndexOf(column.Name, StringComparison.Ordinal);
 
         var displayText = text.Substring(index + column.Name.Length);
 
@@ -520,20 +520,16 @@ public partial class UC_DbObjectsComplexTree : UserControl, IObserver<FeedbackIn
 
         var tag = node.Tag;
 
-        if (tag is Database)
+        if (tag is Database database)
         {
-            var database = tag as Database;
-
             AddDatabaseFakeNodes(node, database);
         }
-        else if (tag is Table)
+        else if (tag is Table table1)
         {
-            var table = tag as Table;
-            AddTableFakeNodes(node, table);
+            AddTableFakeNodes(node, table1);
         }
-        else if (tag is View)
+        else if (tag is View view)
         {
-            var view = tag as View;
             AddViewFakeNodes(node, view);
         }
         else if (tag == null)
@@ -555,15 +551,15 @@ public partial class UC_DbObjectsComplexTree : UserControl, IObserver<FeedbackIn
                     ShowChildrenCount(node);
                 }
             }
-            else if (parentNode.Tag is Table)
+            else if (parentNode.Tag is Table nodeTag)
             {
                 var databaseObjectType = GetDatabaseObjectTypeByFolderNames(name);
 
-                await AddTableObjectNodes(node, parentNode.Tag as Table, databaseObjectType);
+                await AddTableObjectNodes(node, nodeTag, databaseObjectType);
             }
-            else if (parentNode.Tag is View)
+            else if (parentNode.Tag is View parentNodeTag)
             {
-                var table = ObjectHelper.CloneObject<Table>(parentNode.Tag as View);
+                var table = ObjectHelper.CloneObject<Table>(parentNodeTag);
 
                 var databaseObjectType = GetDatabaseObjectTypeByFolderNames(name);
 
@@ -643,18 +639,16 @@ public partial class UC_DbObjectsComplexTree : UserControl, IObserver<FeedbackIn
     {
         var tag = node.Tag;
 
-        if (tag is Database)
+        if (tag is Database database)
         {
-            var database = tag as Database;
-
             var frmGenerateScripts = new frmGenerateScripts(DatabaseType, GetConnectionInfo(database.Name));
             frmGenerateScripts.ShowDialog();
         }
-        else if (tag is DatabaseObject)
+        else if (tag is DatabaseObject databaseObject)
         {
             var databaseName = GetDatabaseNode(node).Name;
 
-            await GenerateObjectScript(databaseName, tag as DatabaseObject, scriptAction);
+            await GenerateObjectScript(databaseName, databaseObject, scriptAction);
         }
     }
 
@@ -733,7 +727,7 @@ public partial class UC_DbObjectsComplexTree : UserControl, IObserver<FeedbackIn
 
     private void Feedback(FeedbackInfo info)
     {
-        if (OnFeedback != null) OnFeedback(info);
+        OnFeedback?.Invoke(info);
     }
 
     private void Feedback(string message)
@@ -994,12 +988,10 @@ public partial class UC_DbObjectsComplexTree : UserControl, IObserver<FeedbackIn
 
         var connectionInfo = GetConnectionInfo((GetDatabaseNode(node).Tag as Database).Name);
 
-        if (tag is DatabaseObject)
+        if (tag is DatabaseObject dbObject)
         {
             var translateManager = new TranslateManager();
             translateManager.Subscribe(this);
-
-            var dbObject = tag as DatabaseObject;
 
             try
             {
@@ -1084,7 +1076,7 @@ public partial class UC_DbObjectsComplexTree : UserControl, IObserver<FeedbackIn
 
     private void ShowContent(DatabaseObjectDisplayInfo info)
     {
-        if (OnShowContent != null) OnShowContent(info);
+        OnShowContent?.Invoke(info);
     }
 
     private void ShowContent(DatabaseObjectDisplayType displayType, bool isNew = true)
@@ -1294,9 +1286,9 @@ public partial class UC_DbObjectsComplexTree : UserControl, IObserver<FeedbackIn
         var tag = node.Tag;
         Database database = null;
 
-        if (tag is Database)
+        if (tag is Database tag1)
         {
-            database = tag as Database;
+            database = tag1;
 
             var tableDependency = new frmTableDependency(DatabaseType, GetConnectionInfo(database.Name), null);
 

@@ -40,12 +40,12 @@ public partial class UC_DbObjectsNavigator : UserControl
 
     private void ShowContent(DatabaseObjectDisplayInfo content)
     {
-        if (OnShowContent != null) OnShowContent(content);
+        OnShowContent?.Invoke(content);
     }
 
     private void Feedback(FeedbackInfo info)
     {
-        if (OnFeedback != null) OnFeedback(info);
+        OnFeedback?.Invoke(info);
     }
 
     public void LoadDbTypes()
@@ -186,9 +186,9 @@ public partial class UC_DbObjectsNavigator : UserControl
         AccountProfileInfo accountProfileInfo = null;
         FileConnectionProfileInfo fileConnectionProfileInfo = null;
 
-        if (selectedItem is AccountProfileInfo)
+        if (selectedItem is AccountProfileInfo info)
         {
-            accountProfileInfo = selectedItem as AccountProfileInfo;
+            accountProfileInfo = info;
 
             if (!accountProfileInfo.IntegratedSecurity && string.IsNullOrEmpty(accountProfileInfo.Password))
             {
@@ -208,9 +208,9 @@ public partial class UC_DbObjectsNavigator : UserControl
 
             ObjectHelper.CopyProperties(accountProfileInfo, connectionInfo);
         }
-        else if (selectedItem is FileConnectionProfileInfo)
+        else if (selectedItem is FileConnectionProfileInfo item)
         {
-            fileConnectionProfileInfo = selectedItem as FileConnectionProfileInfo;
+            fileConnectionProfileInfo = item;
 
             if (fileConnectionProfileInfo.HasPassword && string.IsNullOrEmpty(fileConnectionProfileInfo.Password))
             {

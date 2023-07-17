@@ -541,11 +541,11 @@ namespace DatabaseInterpreter.Core
             if (filter != null)
             {
                 sb.Append(GetFilterSchemaCondition(filter, "event_object_schema"));
-                sb.Append(GetFilterNamesCondition(filter, filter?.TableNames, "event_object_table"));
+                sb.Append(GetFilterNamesCondition(filter, filter.TableNames, "event_object_table"));
 
                 if (filter.TableTriggerNames != null && filter.TableTriggerNames.Any())
                 {
-                    var strNames = StringHelper.GetSingleQuotedString(filter?.TableTriggerNames);
+                    var strNames = StringHelper.GetSingleQuotedString(filter.TableTriggerNames);
                     sb.Append($"AND trigger_name IN ({strNames})");
                 }
             }
@@ -1205,7 +1205,7 @@ namespace DatabaseInterpreter.Core
 
             var dataType = column.DataType;
 
-            if (dataType != null && dataType.IndexOf("(") < 0)
+            if (dataType != null && dataType.IndexOf("(", StringComparison.Ordinal) < 0)
             {
                 var dataTypeSpec = GetDataTypeSpecification(dataType.ToLower());
 

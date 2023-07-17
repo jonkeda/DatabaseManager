@@ -29,8 +29,7 @@ namespace DatabaseManager.Core
 
         protected void Feedback(string message)
         {
-            if (OnFeedback != null)
-                OnFeedback(new FeedbackInfo { InfoType = FeedbackInfoType.Info, Message = message, Owner = this });
+            OnFeedback?.Invoke(new FeedbackInfo { InfoType = FeedbackInfoType.Info, Message = message, Owner = this });
         }
 
         #region Diagnose Table

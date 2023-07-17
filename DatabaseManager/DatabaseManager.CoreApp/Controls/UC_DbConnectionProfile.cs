@@ -97,7 +97,7 @@ public partial class UC_DbConnectionProfile : UserControl
             {
                 SetConnectionPasswordFromDataStore(connectionInfo);
 
-                if (OnSelectedChanged != null) OnSelectedChanged(this, connectionInfo);
+                OnSelectedChanged?.Invoke(this, connectionInfo);
             }
         }
         else
@@ -114,7 +114,7 @@ public partial class UC_DbConnectionProfile : UserControl
 
                 SetFileConnectionPasswordFromDataStore(connectionInfo);
 
-                if (OnSelectedChanged != null) OnSelectedChanged(this, connectionInfo);
+                OnSelectedChanged?.Invoke(this, connectionInfo);
             }
         }
     }
@@ -256,7 +256,7 @@ public partial class UC_DbConnectionProfile : UserControl
                     !string.IsNullOrEmpty(connectionInfo.Password))
                     profileInfo.Password = connectionInfo.Password;
 
-            if (OnSelectedChanged != null) OnSelectedChanged(this, connectionInfo);
+            OnSelectedChanged?.Invoke(this, connectionInfo);
 
             return true;
         }
@@ -282,7 +282,7 @@ public partial class UC_DbConnectionProfile : UserControl
                 if (string.IsNullOrEmpty(profileInfo.Password) && !string.IsNullOrEmpty(connectionInfo.Password))
                     profileInfo.Password = connectionInfo.Password;
 
-            if (OnSelectedChanged != null) OnSelectedChanged(this, connectionInfo);
+            OnSelectedChanged?.Invoke(this, connectionInfo);
 
             return true;
         }

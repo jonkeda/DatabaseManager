@@ -1154,8 +1154,8 @@ namespace SqlAnalyser.Core
 
                 SimpleExprSubQueryContext subquery = null;
 
-                var children = condition is ExprNotContext
-                    ? (condition as ExprNotContext).expr().children
+                var children = condition is ExprNotContext context
+                    ? context.expr().children
                     : condition.children;
 
                 foreach (var child in children)
@@ -1553,7 +1553,7 @@ namespace SqlAnalyser.Core
                                 var fki = ParseReferences(refc);
 
                                 constraintInfo.ForeignKey.RefTableName = fki.RefTableName;
-                                constraintInfo.ForeignKey.RefColumNames = fki.RefColumNames;
+                                constraintInfo.ForeignKey.RefColumnNames = fki.RefColumnNames;
                             }
                         }
 
@@ -1576,7 +1576,7 @@ namespace SqlAnalyser.Core
             var fki = new ForeignKeyInfo();
 
             fki.RefTableName = new TableName(node.tableRef());
-            fki.RefColumNames.AddRange(node.identifierListWithParentheses().identifierList().identifier()
+            fki.RefColumnNames.AddRange(node.identifierListWithParentheses().identifierList().identifier()
                 .Select(item => new ColumnName(item)));
 
             return fki;
@@ -1742,18 +1742,16 @@ namespace SqlAnalyser.Core
 
         protected override TokenInfo ParseTableAlias(ParserRuleContext node)
         {
-            if (node != null)
-                if (node is TableAliasContext alias)
-                    return new TokenInfo(alias.identifier()) { Type = TokenType.TableAlias };
+            if (node is TableAliasContext alias)
+                return new TokenInfo(alias.identifier()) { Type = TokenType.TableAlias };
 
             return null;
         }
 
         protected override TokenInfo ParseColumnAlias(ParserRuleContext node)
         {
-            if (node != null)
-                if (node is SelectAliasContext alias)
-                    return new TokenInfo(alias.identifier()) { Type = TokenType.ColumnAlias };
+            if (node is SelectAliasContext alias)
+                return new TokenInfo(alias.identifier()) { Type = TokenType.ColumnAlias };
 
             return null;
         }

@@ -24,12 +24,12 @@ namespace SqlAnalyser.Core
         }
 
         public abstract ScriptBuildResult GenerateRoutineScripts(RoutineScript script);
-        public abstract ScriptBuildResult GenearteViewScripts(ViewScript script);
-        public abstract ScriptBuildResult GenearteTriggerScripts(TriggerScript script);
+        public abstract ScriptBuildResult GenerateViewScripts(ViewScript script);
+        public abstract ScriptBuildResult GenerateTriggerScripts(TriggerScript script);
 
         private StatementScriptBuilder GetStatementBuilder()
         {
-            StatementScriptBuilder builder = null;
+            StatementScriptBuilder builder;
 
             if (DatabaseType == DatabaseType.SqlServer)
                 builder = new TSqlStatementScriptBuilder();
@@ -67,9 +67,9 @@ namespace SqlAnalyser.Core
             if (script is RoutineScript routineScript)
                 result = GenerateRoutineScripts(routineScript);
             else if (script is ViewScript viewScript)
-                result = GenearteViewScripts(viewScript);
+                result = GenerateViewScripts(viewScript);
             else if (script is TriggerScript triggerScript)
-                result = GenearteTriggerScripts(triggerScript);
+                result = GenerateTriggerScripts(triggerScript);
             else if (script is CommonScript commonScript)
                 result = GenerateCommonScripts(commonScript);
             else
@@ -79,7 +79,7 @@ namespace SqlAnalyser.Core
                 foreach (var kp in statementBuilder.Replacements)
                     result.Script = AnalyserHelper.ReplaceSymbol(result.Script, kp.Key, kp.Value);
 
-            if (statementBuilder != null) statementBuilder.Dispose();
+            statementBuilder?.Dispose();
 
             return result;
         }
@@ -106,7 +106,7 @@ namespace SqlAnalyser.Core
 
             result.Script = sb.ToString().Trim();
 
-            if (statementBuilder != null) statementBuilder.Dispose();
+            statementBuilder?.Dispose();
 
             return result;
         }

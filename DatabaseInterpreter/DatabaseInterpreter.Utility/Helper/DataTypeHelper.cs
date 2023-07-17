@@ -78,7 +78,7 @@ namespace DatabaseInterpreter.Utility
         {
             var dataTypeInfo = new DataTypeInfo();
 
-            var index = dataType.IndexOf("(");
+            var index = dataType.IndexOf("(", StringComparison.Ordinal);
 
             if (index > 0)
             {

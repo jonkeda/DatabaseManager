@@ -5,7 +5,7 @@ namespace DatabaseInterpreter.Core
 {
     public class PostgresConnectionBuilder : IConnectionBuilder
     {
-        public string BuildConntionString(ConnectionInfo connectionInfo)
+        public string BuildConnectionString(ConnectionInfo connectionInfo)
         {
             var server = connectionInfo.Server;
             var port = connectionInfo.Port;

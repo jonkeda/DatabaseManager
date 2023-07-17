@@ -136,7 +136,7 @@ public partial class UC_DbAccountInfo : UserControl
 
                 MessageBox.Show("Success.");
 
-                if (OnTestConnect != null) OnTestConnect();
+                OnTestConnect?.Invoke();
 
                 return true;
             }

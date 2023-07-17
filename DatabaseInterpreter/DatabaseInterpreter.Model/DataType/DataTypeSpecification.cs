@@ -15,7 +15,7 @@ namespace DatabaseInterpreter.Model
         public string MapTo { get; set; }
         public bool IndexForbidden { get; set; }
         public bool AllowIdentity { get; set; }
-        public List<DataTypeArgument> Arugments { get; set; } = new List<DataTypeArgument>();
+        public List<DataTypeArgument> Arguments { get; set; } = new List<DataTypeArgument>();
     }
 
     public struct DataTypeArgument

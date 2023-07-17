@@ -22,7 +22,7 @@ namespace DatabaseInterpreter.Core
         public DbConnector(IDbProvider dbProvider, IConnectionBuilder connectionBuilder, ConnectionInfo connectionInfo)
         {
             _dbProvider = dbProvider;
-            _connectionString = connectionBuilder.BuildConntionString(connectionInfo);
+            _connectionString = connectionBuilder.BuildConnectionString(connectionInfo);
         }
 
         public DbConnection CreateConnection()

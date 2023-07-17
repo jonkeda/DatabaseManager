@@ -28,7 +28,7 @@ namespace DatabaseInterpreter.Core
 
         public static List<TableColumn> ResortTableColumns(IEnumerable<Table> tables, List<TableColumn> columns)
         {
-            if (tables.Count() == 0) return columns;
+            if (!tables.Any()) return columns;
 
             var sortedColumns = new List<TableColumn>();
 

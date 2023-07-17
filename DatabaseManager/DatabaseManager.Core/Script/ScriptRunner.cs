@@ -247,7 +247,7 @@ namespace DatabaseManager.Core
                     }
                 }
 
-                transaction.Commit();
+                await transaction.CommitAsync();
             }
         }
 
@@ -259,30 +259,29 @@ namespace DatabaseManager.Core
             Feedback(this, errMsg, FeedbackInfoType.Error, true, true);
         }
 
-        public void Cancle()
+        public void Cancel()
         {
             CancelRequested = true;
 
             Rollback();
 
-            if (CancellationTokenSource != null) CancellationTokenSource.Cancel();
+            CancellationTokenSource?.Cancel();
         }
 
         private void Rollback(Exception ex = null)
         {
-            if (transaction != null && transaction.Connection != null &&
-                transaction.Connection.State == ConnectionState.Open)
+            if (transaction is { Connection: { State: ConnectionState.Open } })
                 try
                 {
                     CancelRequested = true;
 
-                    var hasRollbacked = false;
+                    var hasRolledBack = false;
 
-                    if (ex != null && ex is DbCommandException dbe) hasRollbacked = dbe.HasRollbackedTransaction;
+                    if (ex != null && ex is DbCommandException dbe) hasRolledBack = dbe.HasRollbackedTransaction;
 
-                    if (!hasRollbacked) transaction.Rollback();
+                    if (!hasRolledBack) transaction.Rollback();
                 }
-                catch (Exception e)
+                catch 
                 {
                     //throw;
                 }
@@ -356,7 +355,7 @@ namespace DatabaseManager.Core
 
             FeedbackHelper.Feedback(suppressError ? null : observer, info, enableLog);
 
-            if (OnFeedback != null) OnFeedback(info);
+            OnFeedback?.Invoke(info);
         }
     }
 }

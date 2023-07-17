@@ -153,7 +153,7 @@ public partial class UC_Pagination : UserControl
 
     private void btnRefresh_Click(object sender, EventArgs e)
     {
-        if (OnPageNumberChanged != null) OnPageNumberChanged(pageNum);
+        OnPageNumberChanged?.Invoke(pageNum);
     }
 
     private void cboPageNum_SelectedValueChanged(object sender, EventArgs e)

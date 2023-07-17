@@ -175,7 +175,7 @@ public partial class UC_TableConstraints : UserControl
 
     private void tsmiGenerateChangeScripts_Click(object sender, EventArgs e)
     {
-        if (OnGenerateChangeScripts != null) OnGenerateChangeScripts();
+        OnGenerateChangeScripts?.Invoke();
     }
 
     private void dgvConstraints_CellContentClick(object sender, DataGridViewCellEventArgs e)
@@ -189,13 +189,12 @@ public partial class UC_TableConstraints : UserControl
 
             var designerInfo = row.Tag as TableConstraintDesignerInfo;
 
-            if (OnColumnSelect != null)
-                OnColumnSelect(DatabaseObjectType.Constraint,
-                    designerInfo?.ColumnName == null
-                        ? Enumerable.Empty<SimpleColumn>()
-                        : new SimpleColumn[] { new() { ColumnName = designerInfo.ColumnName } },
-                    false, true
-                );
+            OnColumnSelect?.Invoke(DatabaseObjectType.Constraint,
+                designerInfo?.ColumnName == null
+                    ? Enumerable.Empty<SimpleColumn>()
+                    : new SimpleColumn[] { new() { ColumnName = designerInfo.ColumnName } },
+                false, true
+            );
         }
     }
 

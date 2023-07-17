@@ -70,15 +70,13 @@ namespace SqlAnalyser.Core
 
             result.BodyStartIndex = sb.Length;
 
-            Action<IEnumerable<Statement>> appendStatements = statements =>
+            void AppendStatements(IEnumerable<Statement> statements)
             {
                 foreach (var statement in statements)
                 {
                     if (statement is WhileStatement @while)
                     {
-                        var fetchCursorStatement =
-                            @while.Statements.FirstOrDefault(item => item is FetchCursorStatement) as
-                                FetchCursorStatement;
+                        var fetchCursorStatement = @while.Statements.FirstOrDefault(item => item is FetchCursorStatement) as FetchCursorStatement;
 
                         if (fetchCursorStatement != null && !statements.Any(item => item is FetchCursorStatement))
                         {
@@ -96,7 +94,7 @@ namespace SqlAnalyser.Core
 
                     sb.AppendLine(BuildStatement(statement));
                 }
-            };
+            }
 
             var exceptionStatement =
                 (ExceptionStatement)script.Statements.FirstOrDefault(item => item is ExceptionStatement);
@@ -104,7 +102,7 @@ namespace SqlAnalyser.Core
             if (exceptionStatement != null)
             {
                 sb.AppendLine("BEGIN TRY");
-                appendStatements(script.Statements.Where(item => !(item is ExceptionStatement)));
+                AppendStatements(script.Statements.Where(item => !(item is ExceptionStatement)));
                 sb.AppendLine("END TRY");
 
                 sb.AppendLine("BEGIN CATCH");
@@ -115,7 +113,7 @@ namespace SqlAnalyser.Core
                         $"IF {exceptionItem.Name} = ERROR_PROCEDURE() OR {exceptionItem.Name} = ERROR_NUMBER()");
                     sb.AppendLine("BEGIN");
 
-                    appendStatements(exceptionItem.Statements);
+                    AppendStatements(exceptionItem.Statements);
 
                     sb.AppendLine("END");
                 }
@@ -124,7 +122,7 @@ namespace SqlAnalyser.Core
             }
             else
             {
-                appendStatements(script.Statements);
+                AppendStatements(script.Statements);
             }
 
             result.BodyStopIndex = sb.Length - 1;
@@ -136,7 +134,7 @@ namespace SqlAnalyser.Core
             return result;
         }
 
-        public override ScriptBuildResult GenearteViewScripts(ViewScript script)
+        public override ScriptBuildResult GenerateViewScripts(ViewScript script)
         {
             var result = new ScriptBuildResult();
 
@@ -155,7 +153,7 @@ namespace SqlAnalyser.Core
             return result;
         }
 
-        public override ScriptBuildResult GenearteTriggerScripts(TriggerScript script)
+        public override ScriptBuildResult GenerateTriggerScripts(TriggerScript script)
         {
             var result = new ScriptBuildResult();
 

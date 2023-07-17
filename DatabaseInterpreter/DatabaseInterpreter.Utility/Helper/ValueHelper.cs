@@ -88,12 +88,12 @@ namespace DatabaseInterpreter.Utility
 
                 if (!isBeginAndEndWith) return false;
 
-                var firstIndex = value.IndexOf("'");
+                var firstIndex = value.IndexOf("'", StringComparison.Ordinal);
                 var lastIndex = value.LastIndexOf("'");
 
                 var innerContent = value.Substring(firstIndex + 1, lastIndex - firstIndex - 1);
 
-                if (innerContent.IndexOf("'") >= 0)
+                if (innerContent.IndexOf("'", StringComparison.Ordinal) >= 0)
                 {
                     var count1 = innerContent.Count(item => item == '\'');
                     var count2 = Regex.Matches(innerContent, "''").Count;

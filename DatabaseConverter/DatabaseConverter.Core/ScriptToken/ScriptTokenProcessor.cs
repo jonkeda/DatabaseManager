@@ -122,8 +122,8 @@ namespace DatabaseConverter.Core
 
                     token.Symbol = TargetDbInterpreter.ParseDataType(column);
 
-                    if (statement is DeclareVariableStatement && DataTypeHelper.IsCharType(column.DataType))
-                        charTokenSymbols.Add((statement as DeclareVariableStatement).Name.Symbol);
+                    if (statement is DeclareVariableStatement variableStatement && DataTypeHelper.IsCharType(column.DataType))
+                        charTokenSymbols.Add(variableStatement.Name.Symbol);
                 }
             };
 
@@ -139,10 +139,12 @@ namespace DatabaseConverter.Core
 
                 if (routineScript.ReturnDataType != null)
                     changeDataType(null, routineScript.ReturnDataType);
-                else if (routineScript.ReturnTable != null)
-                    if (routineScript.ReturnTable.Name != null &&
+                else
+                {
+                    if (routineScript.ReturnTable?.Name != null &&
                         routineScript.ReturnTable.Name.Type == TokenType.VariableName)
                         changeParaVarName(routineScript.ReturnTable.Name);
+                }
             }
 
             ProcessFunctions();
@@ -393,9 +395,9 @@ namespace DatabaseConverter.Core
                     string oldAliasSymbol = null;
                     NameToken nt = null;
 
-                    if (child is NameToken)
+                    if (child is NameToken nameToken)
                     {
-                        nt = child as NameToken;
+                        nt = nameToken;
                         oldAliasSymbol = nt.Alias?.Symbol;
                     }
 
@@ -435,11 +437,9 @@ namespace DatabaseConverter.Core
 
         private void ChangeNameTokenAlias(TokenInfo token)
         {
-            if (token is NameToken)
+            if (token is NameToken nameToken)
             {
-                var t = token as NameToken;
-
-                ChangeAliasQuotationChar(t);
+                ChangeAliasQuotationChar(nameToken);
             }
         }
 
@@ -587,14 +587,14 @@ namespace DatabaseConverter.Core
 
             if (ValueHelper.IsStringValue(token.Symbol) && token.Children.Count == 0)
             {
-                if (token is ColumnName && (token as ColumnName).Alias != null)
+                if (token is ColumnName name && name.Alias != null)
                     return true;
                 return false;
             }
 
             if (token.Type == TokenType.ColumnName && token.IsConst)
             {
-                if (token is ColumnName && (token as ColumnName).Alias != null) return true;
+                if (token is ColumnName name && name.Alias != null) return true;
 
                 return false;
             }
@@ -856,7 +856,7 @@ namespace DatabaseConverter.Core
                 {
                     RestoreValue(item);
 
-                    if (item.Children != null) item.Children.ForEach(t => RestoreValue(t));
+                    item.Children?.ForEach(t => RestoreValue(t));
                 }
             });
 
@@ -940,7 +940,7 @@ namespace DatabaseConverter.Core
 
         private string ReplaceRoutineQuotationChar(string symbol)
         {
-            var index = symbol.IndexOf("(");
+            var index = symbol.IndexOf("(", StringComparison.Ordinal);
 
             if (index > 0)
             {

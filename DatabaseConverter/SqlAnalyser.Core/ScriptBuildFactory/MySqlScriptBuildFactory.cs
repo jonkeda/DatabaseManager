@@ -176,7 +176,7 @@ namespace SqlAnalyser.Core
             return result;
         }
 
-        public override ScriptBuildResult GenearteViewScripts(ViewScript script)
+        public override ScriptBuildResult GenerateViewScripts(ViewScript script)
         {
             var result = new ScriptBuildResult();
 
@@ -195,7 +195,7 @@ namespace SqlAnalyser.Core
             return result;
         }
 
-        public override ScriptBuildResult GenearteTriggerScripts(TriggerScript script)
+        public override ScriptBuildResult GenerateTriggerScripts(TriggerScript script)
         {
             var result = new ScriptBuildResult();
 

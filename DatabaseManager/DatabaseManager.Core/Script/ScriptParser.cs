@@ -96,13 +96,13 @@ namespace DatabaseManager.Core
 
                 var prefix = upperScript.Substring(0, asIndex);
 
-                if (prefix.IndexOf(" VIEW ") > 0)
+                if (prefix.IndexOf(" VIEW ", StringComparison.Ordinal) > 0)
                     return ScriptType.View;
-                if (prefix.IndexOf(" FUNCTION ") > 0)
+                if (prefix.IndexOf(" FUNCTION ", StringComparison.Ordinal) > 0)
                     return ScriptType.Function;
-                if (prefix.IndexOf(" PROCEDURE ") > 0 || prefix.IndexOf(" PROC ") > 0)
+                if (prefix.IndexOf(" PROCEDURE ", StringComparison.Ordinal) > 0 || prefix.IndexOf(" PROC ", StringComparison.Ordinal) > 0)
                     return ScriptType.Procedure;
-                if (prefix.IndexOf(" TRIGGER ") > 0) return ScriptType.Trigger;
+                if (prefix.IndexOf(" TRIGGER ", StringComparison.Ordinal) > 0) return ScriptType.Trigger;
             }
             else if (scriptParser.IsSelect())
             {

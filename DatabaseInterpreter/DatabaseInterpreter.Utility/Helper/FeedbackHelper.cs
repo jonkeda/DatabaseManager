@@ -37,7 +37,7 @@ namespace DatabaseInterpreter.Utility
 
         public static void Feedback(IObserver<FeedbackInfo> observer, FeedbackInfo info, bool enableLog = true)
         {
-            if (observer != null) observer.OnNext(info);
+            observer?.OnNext(info);
 
             Feedback(info, enableLog);
         }

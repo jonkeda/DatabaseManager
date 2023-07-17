@@ -151,7 +151,7 @@ namespace DatabaseInterpreter.Core
             var databaseSchemas = new List<DatabaseSchema>
                 { new DatabaseSchema { Schema = tablesapce, Name = tablesapce } };
 
-            return await Task.Run(() => { return databaseSchemas; });
+            return await Task.Run(() => databaseSchemas);
         }
 
         public override async Task<List<DatabaseSchema>> GetDatabaseSchemasAsync(DbConnection dbConnection)
@@ -541,11 +541,11 @@ namespace DatabaseInterpreter.Core
 
             if (filter != null)
             {
-                sb.Append(GetFilterNamesCondition(filter, filter?.TableNames, "TABLE_NAME"));
+                sb.Append(GetFilterNamesCondition(filter, filter.TableNames, "TABLE_NAME"));
 
                 if (filter.TableTriggerNames != null && filter.TableTriggerNames.Any())
                 {
-                    var strNames = StringHelper.GetSingleQuotedString(filter?.TableTriggerNames);
+                    var strNames = StringHelper.GetSingleQuotedString(filter.TableTriggerNames);
                     sb.Append($"AND TRIGGER_NAME IN ({strNames})");
                 }
             }
@@ -801,22 +801,22 @@ namespace DatabaseInterpreter.Core
             if (filter?.DatabaseObjectType == DatabaseObjectType.Procedure)
             {
                 typeName = "PROCEDURE";
-                filterNames = filter?.ProcedureNames;
+                filterNames = filter.ProcedureNames;
             }
             else if (filter?.DatabaseObjectType == DatabaseObjectType.Function)
             {
                 typeName = "FUNCTION";
-                filterNames = filter?.FunctionNames;
+                filterNames = filter.FunctionNames;
             }
             else if (filter?.DatabaseObjectType == DatabaseObjectType.View)
             {
                 typeName = "VIEW";
-                filterNames = filter?.ViewNames;
+                filterNames = filter.ViewNames;
             }
             else if (filter?.DatabaseObjectType == DatabaseObjectType.Table)
             {
                 typeName = "TABLE";
-                filterNames = filter?.TableNames;
+                filterNames = filter.TableNames;
             }
 
             if (typeName != null) sb.Append($"AND d.{typeColumn} ='{typeName}'");
@@ -1100,7 +1100,7 @@ namespace DatabaseInterpreter.Core
 
             var dataType = column.DataType;
 
-            if (dataType.IndexOf("(") < 0)
+            if (dataType.IndexOf("(", StringComparison.Ordinal) < 0)
             {
                 var dataTypeSpec = GetDataTypeSpecification(dataType.ToLower());
 

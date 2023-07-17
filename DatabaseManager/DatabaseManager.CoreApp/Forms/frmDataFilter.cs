@@ -52,18 +52,17 @@ public partial class frmDataFilter : Form
     private void tvColumns_ItemDrag(object sender, ItemDragEventArgs e)
     {
         var node = e.Item as TreeNode;
-        if (node != null)
-            if (node.Tag is DataGridViewColumn)
-            {
-                tvColumns.SelectedNode = node;
-                DoDragDrop(e.Item, DragDropEffects.Copy);
-            }
+        if (node?.Tag is DataGridViewColumn)
+        {
+            tvColumns.SelectedNode = node;
+            DoDragDrop(e.Item, DragDropEffects.Copy);
+        }
     }
 
     private void tvColumns_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
     {
-        if (e.Node == tvColumns.SelectedNode && e.Node.Tag is DataGridViewColumn)
-            AddField(e.Node.Tag as DataGridViewColumn);
+        if (e.Node == tvColumns.SelectedNode && e.Node.Tag is DataGridViewColumn tag)
+            AddField(tag);
     }
 
     private void AddField(DataGridViewColumn column, QueryConditionItem condition = null)
@@ -138,12 +137,11 @@ public partial class frmDataFilter : Form
     private void dgvFilter_DragEnter(object sender, DragEventArgs e)
     {
         var node = e.Data.GetData(typeof(TreeNode)) as TreeNode;
-        if (node != null)
-            if (node.Tag is DataGridViewColumn)
-            {
-                e.Effect = DragDropEffects.Copy;
-                return;
-            }
+        if (node?.Tag is DataGridViewColumn)
+        {
+            e.Effect = DragDropEffects.Copy;
+            return;
+        }
 
         var row = e.Data.GetData(typeof(DataGridViewRow)) as DataGridViewRow;
         if (row != null)

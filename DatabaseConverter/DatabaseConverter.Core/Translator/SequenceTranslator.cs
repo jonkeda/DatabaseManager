@@ -60,7 +60,7 @@ namespace DatabaseConverter.Core
         public string HandleSequenceValue(string value)
         {
             var nextValueFlag = "";
-            var sequencePart = "";
+            string sequencePart;
 
             if (sourceDbType == DatabaseType.SqlServer)
             {
@@ -79,22 +79,22 @@ namespace DatabaseConverter.Core
             sequencePart = StringHelper
                 .GetBalanceParenthesisTrimedValue(value.ReplaceOrdinalIgnoreCase(nextValueFlag, "").Trim()).Trim('\'');
 
-            string schema = null, seqenceName = null;
+            string schema = null, sequenceName;
 
             if (sequencePart.Contains("."))
             {
                 var items = sequencePart.Split('.');
-                schema = GetTrimedName(items[0]);
-                seqenceName = GetTrimedName(items[1]);
+                schema = GetTrimmedName(items[0]);
+                sequenceName = GetTrimmedName(items[1]);
             }
             else
             {
-                seqenceName = GetTrimedName(sequencePart);
+                sequenceName = GetTrimmedName(sequencePart);
             }
 
             var mappedSchema = GetMappedSchema(schema);
 
-            return ConvertSequenceValue(targetDbInterpreter, mappedSchema, seqenceName);
+            return ConvertSequenceValue(targetDbInterpreter, mappedSchema, sequenceName);
         }
 
         public static string ConvertSequenceValue(DbInterpreter targetDbInterpreter, string schema, string sequenceName)
@@ -116,7 +116,7 @@ namespace DatabaseConverter.Core
 
         private string GetMappedSchema(string schema)
         {
-            var mappedSchema = SchemaInfoHelper.GetMappedSchema(GetTrimedName(schema), Option.SchemaMappings);
+            var mappedSchema = SchemaInfoHelper.GetMappedSchema(GetTrimmedName(schema), Option.SchemaMappings);
 
             if (mappedSchema == null) mappedSchema = targetDbInterpreter.DefaultSchema;
 

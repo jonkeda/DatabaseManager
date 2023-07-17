@@ -454,11 +454,11 @@ namespace DatabaseInterpreter.Core
 
             if (filter != null)
             {
-                sb.Append(GetFilterNamesCondition(filter, filter?.TableNames, "EVENT_OBJECT_TABLE"));
+                sb.Append(GetFilterNamesCondition(filter, filter.TableNames, "EVENT_OBJECT_TABLE"));
 
                 if (filter.TableTriggerNames != null && filter.TableTriggerNames.Any())
                 {
-                    var strNames = StringHelper.GetSingleQuotedString(filter?.TableTriggerNames);
+                    var strNames = StringHelper.GetSingleQuotedString(filter.TableTriggerNames);
                     sb.Append($"AND TRIGGER_NAME IN ({strNames})");
                 }
             }
@@ -934,7 +934,7 @@ namespace DatabaseInterpreter.Core
         {
             var dataType = column.DataType;
 
-            if (dataType.IndexOf("(") < 0)
+            if (dataType.IndexOf("(", StringComparison.Ordinal) < 0)
             {
                 var dataLength = GetColumnDataLength(column);
 

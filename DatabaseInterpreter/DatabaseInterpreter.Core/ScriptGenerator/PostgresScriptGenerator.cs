@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using DatabaseInterpreter.Model;
 
 namespace DatabaseInterpreter.Core
@@ -116,11 +115,6 @@ namespace DatabaseInterpreter.Core
         #endregion
 
         #region Data Script
-
-        public override async Task<string> GenerateDataScriptsAsync(SchemaInfo schemaInfo)
-        {
-            return await base.GenerateDataScriptsAsync(schemaInfo);
-        }
 
         protected override bool NeedInsertParameter(TableColumn column, object value)
         {
@@ -393,7 +387,6 @@ MAXVALUE {(long)sequence.MaxValue}
 
             var sb = new ScriptBuilder();
 
-            var tableName = table.Name;
             var quotedTableName = GetQuotedFullTableName(table);
 
             #region Create Table

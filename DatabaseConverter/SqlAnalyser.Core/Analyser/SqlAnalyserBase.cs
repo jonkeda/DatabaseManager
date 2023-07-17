@@ -6,7 +6,7 @@ namespace SqlAnalyser.Core
 {
     public abstract class SqlAnalyserBase
     {
-        public SqlAnalyserBase(string content)
+        protected SqlAnalyserBase(string content)
         {
             Content = content;
         }

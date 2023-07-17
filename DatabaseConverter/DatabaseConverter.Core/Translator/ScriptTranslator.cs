@@ -105,20 +105,20 @@ namespace DatabaseConverter.Core
                 }
 
                 var originalDefinition = dbObj.Definition;
-                AnalyseResult anlyseResult = null;
+                AnalyseResult analyseResult;
 
                 var sqlAnalyser = GetSqlAnalyser(sourceDbInterpreter.DatabaseType, originalDefinition);
 
                 if (!isPartial)
-                    anlyseResult = sqlAnalyser.Analyse<T>();
+                    analyseResult = sqlAnalyser.Analyse<T>();
                 else
-                    anlyseResult = sqlAnalyser.AnalyseCommon();
+                    analyseResult = sqlAnalyser.AnalyseCommon();
 
-                var script = anlyseResult.Script;
+                var script = analyseResult.Script;
 
                 if (script == null)
                 {
-                    translateResult.Error = anlyseResult.Error;
+                    translateResult.Error = analyseResult.Error;
                     translateResult.Data = dbObj.Definition;
 
                     return translateResult;
@@ -126,7 +126,7 @@ namespace DatabaseConverter.Core
 
                 var replaced = false;
 
-                if (anlyseResult.HasError)
+                if (analyseResult.HasError)
                 {
                     #region Special handle for view
 
@@ -183,15 +183,15 @@ namespace DatabaseConverter.Core
                     #endregion
                 }
 
-                if (!anlyseResult.HasError && !tokenProcessed)
+                if (!analyseResult.HasError && !tokenProcessed)
                 {
-                    if (string.IsNullOrEmpty(dbObj.Name) && !string.IsNullOrEmpty(anlyseResult.Script?.Name?.Symbol))
+                    if (string.IsNullOrEmpty(dbObj.Name) && !string.IsNullOrEmpty(analyseResult.Script?.Name?.Symbol))
                     {
-                        if (AutoMakeupSchemaName) dbObj.Schema = anlyseResult.Script.Schema;
+                        if (AutoMakeupSchemaName) dbObj.Schema = analyseResult.Script.Schema;
 
-                        TranslateHelper.RestoreTokenValue(originalDefinition, anlyseResult.Script.Name);
+                        TranslateHelper.RestoreTokenValue(originalDefinition, analyseResult.Script.Name);
 
-                        dbObj.Name = anlyseResult.Script.Name.Symbol;
+                        dbObj.Name = analyseResult.Script.Name.Symbol;
                     }
 
                     ProcessTokens(dbObj, script);
@@ -222,7 +222,7 @@ namespace DatabaseConverter.Core
                                     PostgresTranslateHelper.MergeDefinition(dbObj.Definition,
                                         scriptDbObject.Definition);
                             else
-                                anlyseResult = new AnalyseResult { Error = res.Error as SqlSyntaxError };
+                                analyseResult = new AnalyseResult { Error = res.Error as SqlSyntaxError };
                         }
 
                 dbObj.Definition =
@@ -230,15 +230,15 @@ namespace DatabaseConverter.Core
 
                 if (isPartial) return translateResult;
 
-                translateResult.Error = replaced ? null : anlyseResult.Error;
+                translateResult.Error = replaced ? null : analyseResult.Error;
                 translateResult.Data = dbObj.Definition;
 
                 FeedbackInfo(
-                    $"End translate {type.Name}: \"{dbObj.Name}\", translate result: {(anlyseResult.HasError ? "Error" : "OK")}.");
+                    $"End translate {type.Name}: \"{dbObj.Name}\", translate result: {(analyseResult.HasError ? "Error" : "OK")}.");
 
-                if (!replaced && anlyseResult.HasError)
+                if (!replaced && analyseResult.HasError)
                 {
-                    var errMsg = ParseSqlSyntaxError(anlyseResult.Error, originalDefinition).ToString();
+                    var errMsg = ParseSqlSyntaxError(analyseResult.Error, originalDefinition).ToString();
 
                     FeedbackError(errMsg, ContinueWhenErrorOccurs);
 
@@ -328,8 +328,6 @@ namespace DatabaseConverter.Core
                 if (anotherDefinition != null)
                     dbObj.Definition = anotherDefinition + Environment.NewLine + dbObj.Definition;
             }
-
-            ;
         }
 
         private SqlSyntaxError ParseSqlSyntaxError(SqlSyntaxError error, string definition)

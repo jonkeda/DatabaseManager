@@ -590,7 +590,7 @@ public partial class frmWktViewer : Form
 
     private void DisposeGraphics(Graphics g)
     {
-        if (g != null) g.Dispose();
+        g?.Dispose();
     }
 
     private void rbGeography_CheckedChanged(object sender, EventArgs e)

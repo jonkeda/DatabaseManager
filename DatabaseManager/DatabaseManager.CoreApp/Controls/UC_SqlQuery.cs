@@ -244,7 +244,7 @@ public partial class UC_SqlQuery : UserControl, IDbObjContentDisplayer, IObserve
             {
                 if (!info.IgnoreError)
                     if (scriptRunner != null && scriptRunner.IsBusy)
-                        scriptRunner.Cancle();
+                        scriptRunner.Cancel();
 
                 AppendMessage(info.Message, true);
             }
@@ -286,7 +286,7 @@ public partial class UC_SqlQuery : UserControl, IDbObjContentDisplayer, IObserve
 
     internal void DisposeResources()
     {
-        if (queryEditor != null) queryEditor.DisposeResources();
+        queryEditor?.DisposeResources();
     }
 
     #region IObserver<FeedbackInfo>

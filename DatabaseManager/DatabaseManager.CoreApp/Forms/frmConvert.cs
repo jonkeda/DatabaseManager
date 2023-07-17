@@ -396,7 +396,7 @@ public partial class frmConvert : Form, IObserver<FeedbackInfo>
             if (dbConverter != null && dbConverter.IsBusy)
                 if (ConfirmCancel())
                 {
-                    if (dbConverter != null) dbConverter.Cancle();
+                    dbConverter?.Cancle();
 
                     SetExecuteButtonEnabled(true);
                 }

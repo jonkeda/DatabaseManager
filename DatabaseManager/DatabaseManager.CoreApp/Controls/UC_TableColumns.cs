@@ -488,7 +488,7 @@ public partial class UC_TableColumns : UserControl
 
     private void tsmiGenerateChangeScripts_Click(object sender, EventArgs e)
     {
-        if (OnGenerateChangeScripts != null) OnGenerateChangeScripts();
+        OnGenerateChangeScripts?.Invoke();
     }
 
     private void dgvColumns_CellEnter(object sender, DataGridViewCellEventArgs e)

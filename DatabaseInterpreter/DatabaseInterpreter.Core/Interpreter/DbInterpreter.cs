@@ -282,7 +282,7 @@ namespace DatabaseInterpreter.Core
 
                     objects = (await dbConnection.QueryAsync<T>(sql)).ToList();
 
-                    var isAllOrdersIsZero = !objects.Any(item => item.Order != 0);
+                    var isAllOrdersIsZero = objects.All(item => item.Order == 0);
 
                     if (isAllOrdersIsZero)
                     {
@@ -295,7 +295,7 @@ namespace DatabaseInterpreter.Core
                 {
                     FeedbackError(ExceptionHelper.GetExceptionDetails(ex));
 
-                    if (Option.ThrowExceptionWhenErrorOccurs) throw ex;
+                    if (Option.ThrowExceptionWhenErrorOccurs) throw;
                 }
 
             FeedbackInfo($"Got {objects.Count} {StringHelper.GetFriendlyTypeName(typeof(T).Name).ToLower()}(s).");
@@ -308,8 +308,6 @@ namespace DatabaseInterpreter.Core
             if (filter == null) filter = new SchemaInfoFilter();
 
             FeedbackInfo("Getting schema info...");
-
-            var dbObjectType = filter.DatabaseObjectType;
 
             var schemaInfo = new SchemaInfo();
 
@@ -439,7 +437,7 @@ namespace DatabaseInterpreter.Core
                 {
                     FeedbackError(ExceptionHelper.GetExceptionDetails(ex));
 
-                    if (Option.ThrowExceptionWhenErrorOccurs) throw ex;
+                    if (Option.ThrowExceptionWhenErrorOccurs) throw;
                 }
 
             FeedbackInfo($"Got {objects.Count} {StringHelper.GetFriendlyTypeName(typeof(T).Name).ToLower()}(s).");
@@ -548,7 +546,7 @@ namespace DatabaseInterpreter.Core
                 }
                 finally
                 {
-                    if (disposeConnection && isClosed && dbConnection != null &&
+                    if (disposeConnection && isClosed &&
                         dbConnection.State != ConnectionState.Closed) dbConnection.Close();
                 }
             };
@@ -992,7 +990,7 @@ namespace DatabaseInterpreter.Core
                 {
                     serverVersion = GetDbVersion(connection);
                 }
-                catch (Exception ex)
+                catch
                 {
                     return false;
                 }

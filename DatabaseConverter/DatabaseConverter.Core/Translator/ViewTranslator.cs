@@ -79,7 +79,7 @@ namespace DatabaseConverter.Core
                     }
                     else
                     {
-                        var asIndex = definition.ToLower().IndexOf("as");
+                        var asIndex = definition.ToLower().IndexOf("as", StringComparison.Ordinal);
                         definition = createAsClause + definition.Substring(asIndex + 2);
                     }
 

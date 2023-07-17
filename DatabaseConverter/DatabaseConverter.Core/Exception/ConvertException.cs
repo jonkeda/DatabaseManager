@@ -5,7 +5,7 @@ namespace DatabaseConverter.Core
 {
     public abstract class ConvertException : Exception
     {
-        public ConvertException(Exception ex)
+        protected ConvertException(Exception ex)
         {
             BaseException = ex;
         }

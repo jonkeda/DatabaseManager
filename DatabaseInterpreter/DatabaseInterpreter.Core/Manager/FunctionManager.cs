@@ -13,8 +13,8 @@ namespace DatabaseInterpreter.Core
 
         public static List<FunctionSpecification> GetFunctionSpecifications(DatabaseType dbType)
         {
-            if (_functionSpecifications != null && _functionSpecifications.ContainsKey(dbType))
-                return _functionSpecifications[dbType];
+            if (_functionSpecifications != null && _functionSpecifications.TryGetValue(dbType, out var specifications))
+                return specifications;
 
             var filePath = Path.Combine(ConfigRootFolder, $"FunctionSpecification/{dbType}.xml");
 

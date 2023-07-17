@@ -28,9 +28,8 @@ namespace DatabaseConverter.Core
         public virtual string ParseDefinition(string definition)
         {
             var tokens = GetTokens(definition);
-            var changed = false;
 
-            definition = HandleDefinition(definition, tokens, out changed);
+            definition = HandleDefinition(definition, tokens, out var changed);
 
             if (changed) tokens = GetTokens(definition);
 
@@ -100,8 +99,8 @@ namespace DatabaseConverter.Core
 
         private string GetFunctionExpression(TSQLToken token, string definition)
         {
-            int startIndex = startIndex = token.BeginPosition;
-            int functionEndIndex = functionEndIndex = FindFunctionEndIndex(startIndex + token.Text.Length, definition);
+            int startIndex = token.BeginPosition;
+            int functionEndIndex = FindFunctionEndIndex(startIndex + token.Text.Length, definition);
 
             string functionExpression = null;
 
@@ -189,11 +188,7 @@ namespace DatabaseConverter.Core
                                 continue;
                             }
 
-                            var textWithBrackets = text.ToLower() + "()";
-
-                            var useBrackets = false;
-
-                            var targetFunctionInfo = GetMappingFunctionInfo(text, null, out useBrackets);
+                            var targetFunctionInfo = GetMappingFunctionInfo(text, null, out var useBrackets);
 
                             if (targetFunctionInfo.Name.ToLower() != text.ToLower())
                             {

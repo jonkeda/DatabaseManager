@@ -52,8 +52,8 @@ namespace DatabaseInterpreter.Core
 
         public static string GetMappedTableName(string tableName, Dictionary<string, string> tableNameMappings)
         {
-            if (tableNameMappings != null && tableNameMappings.ContainsKey(tableName))
-                return tableNameMappings[tableName];
+            if (tableNameMappings != null && tableNameMappings.TryGetValue(tableName, out var name))
+                return name;
 
             return tableName;
         }
@@ -72,8 +72,6 @@ namespace DatabaseInterpreter.Core
 
         public static void ForceRenameMySqlPrimaryKey(SchemaInfo schemaInfo)
         {
-            var keyNames = new List<string>();
-
             schemaInfo.TablePrimaryKeys.ForEach(item =>
             {
                 if (item.Name == "PRIMARY") item.Name = "PK_" + item.TableName;
@@ -141,30 +139,24 @@ namespace DatabaseInterpreter.Core
 
                 foreach (var obj in sourceDbObjects)
                 {
-                    var existed = false;
+                    bool existed;
 
-                    if (obj is TableForeignKey)
+                    if (obj is TableForeignKey tfk)
                     {
-                        var tfk = obj as TableForeignKey;
-
                         existed = (targetDbObjects as List<TableForeignKey>).Any(item =>
                             item.TableName.ToLower() == tfk.TableName && item.ReferencedTableName.ToLower() ==
                                                                       tfk.ReferencedTableName.ToLower()
                                                                       && IsForeignKeyColumnsEquals(item.Columns,
                                                                           tfk.Columns));
                     }
-                    else if (obj is TableColumnChild)
+                    else if (obj is TableColumnChild tk)
                     {
-                        var tk = obj as TableColumnChild;
-
                         existed = targetDbObjects.Cast<TableColumnChild>().Any(item =>
                             item.TableName.ToLower() == tk.TableName &&
                             item.ColumnName.ToLower() == tk.ColumnName.ToLower());
                     }
-                    else if (obj is TableChild)
+                    else if (obj is TableChild tc)
                     {
-                        var tc = obj as TableChild;
-
                         existed = targetDbObjects.Cast<TableChild>().Any(item =>
                             item.TableName.ToLower() == tc.TableName && item.Name?.ToLower() == tc.Name?.ToLower());
                     }
@@ -553,19 +545,19 @@ namespace DatabaseInterpreter.Core
         {
             var schemaInfo = new SchemaInfo();
 
-            if (dbObject is Table)
-                schemaInfo.Tables.Add(dbObject as Table);
-            else if (dbObject is View)
-                schemaInfo.Views.Add(dbObject as View);
-            else if (dbObject is Function)
-                schemaInfo.Functions.Add(dbObject as Function);
-            else if (dbObject is Procedure)
-                schemaInfo.Procedures.Add(dbObject as Procedure);
-            else if (dbObject is TableTrigger)
-                schemaInfo.TableTriggers.Add(dbObject as TableTrigger);
-            else if (dbObject is Sequence)
-                schemaInfo.Sequences.Add(dbObject as Sequence);
-            else if (dbObject is UserDefinedType) schemaInfo.UserDefinedTypes.Add(dbObject as UserDefinedType);
+            if (dbObject is Table table)
+                schemaInfo.Tables.Add(table);
+            else if (dbObject is View view)
+                schemaInfo.Views.Add(view);
+            else if (dbObject is Function function)
+                schemaInfo.Functions.Add(function);
+            else if (dbObject is Procedure procedure)
+                schemaInfo.Procedures.Add(procedure);
+            else if (dbObject is TableTrigger trigger)
+                schemaInfo.TableTriggers.Add(trigger);
+            else if (dbObject is Sequence sequence)
+                schemaInfo.Sequences.Add(sequence);
+            else if (dbObject is UserDefinedType type) schemaInfo.UserDefinedTypes.Add(type);
 
             return schemaInfo;
         }

@@ -84,6 +84,6 @@ public partial class frmFindBox : Form
 
     private void frmFindBox_FormClosed(object sender, FormClosedEventArgs e)
     {
-        if (OnEndFind != null) OnEndFind();
+        OnEndFind?.Invoke();
     }
 }

@@ -859,7 +859,7 @@ namespace DatabaseConverter.Core
 
             Rollback();
 
-            if (CancellationTokenSource != null) CancellationTokenSource.Cancel();
+            CancellationTokenSource?.Cancel();
         }
 
         private (Table Table, List<TableColumn> Columns) GetTargetTableColumns(SchemaInfo targetSchemaInfo,
@@ -932,7 +932,7 @@ namespace DatabaseConverter.Core
 
             FeedbackHelper.Feedback(observer, info, enableLog);
 
-            if (OnFeedback != null) OnFeedback(info);
+            OnFeedback?.Invoke(info);
         }
     }
 }

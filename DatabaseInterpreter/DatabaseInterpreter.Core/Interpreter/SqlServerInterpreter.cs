@@ -464,12 +464,11 @@ namespace DatabaseInterpreter.Core
             sb.Append(GetFilterSchemaCondition(filter, "object_schema_name(t.object_id)"));
             sb.Append(GetFilterNamesCondition(filter, filter?.TableNames, "object_name(t.parent_id)"));
 
-            if (filter != null)
-                if (filter.TableTriggerNames != null && filter.TableTriggerNames.Any())
-                {
-                    var strNames = StringHelper.GetSingleQuotedString(filter.TableTriggerNames);
-                    sb.Append($"AND t.name IN ({strNames})");
-                }
+            if (filter?.TableTriggerNames != null && filter.TableTriggerNames.Any())
+            {
+                var strNames = StringHelper.GetSingleQuotedString(filter.TableTriggerNames);
+                sb.Append($"AND t.name IN ({strNames})");
+            }
 
             sb.Append("ORDER BY t.name");
 

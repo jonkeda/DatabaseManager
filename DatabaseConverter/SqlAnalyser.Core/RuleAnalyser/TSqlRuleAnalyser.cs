@@ -564,9 +564,9 @@ namespace SqlAnalyser.Core
                     setItem.Name = ParseColumnName(columnName);
                 else
                     foreach (var child in ele.children)
-                        if (child is TerminalNodeImpl && child.GetText().StartsWith("@"))
+                        if (child is TerminalNodeImpl impl && child.GetText().StartsWith("@"))
                         {
-                            setItem.Name = new TokenInfo(child as TerminalNodeImpl) { Type = TokenType.VariableName };
+                            setItem.Name = new TokenInfo(impl) { Type = TokenType.VariableName };
                             break;
                         }
 
@@ -1445,9 +1445,9 @@ namespace SqlAnalyser.Core
                         if (parameter != null)
                         {
                             foreach (var child in g.children)
-                                if (child is TerminalNodeImpl && child.GetText().StartsWith("@"))
+                                if (child is TerminalNodeImpl impl && child.GetText().StartsWith("@"))
                                 {
-                                    parameter.Name = new TokenInfo(child as TerminalNodeImpl)
+                                    parameter.Name = new TokenInfo(impl)
                                         { Type = TokenType.VariableName };
                                     break;
                                 }
@@ -1736,7 +1736,7 @@ namespace SqlAnalyser.Core
                             var fki = ParseForeignKey(fk);
 
                             constraintInfo.ForeignKey.RefTableName = fki.RefTableName;
-                            constraintInfo.ForeignKey.RefColumNames = fki.RefColumNames;
+                            constraintInfo.ForeignKey.RefColumnNames = fki.RefColumnNames;
                         }
                     }
 
@@ -1778,7 +1778,7 @@ namespace SqlAnalyser.Core
                             {
                                 columnInfo.IsIdentity = true;
 
-                                var index = text.IndexOf("(");
+                                var index = text.IndexOf("(", StringComparison.Ordinal);
 
                                 if (index > 0)
                                 {
@@ -1836,7 +1836,7 @@ namespace SqlAnalyser.Core
             var refColumnNames = node.column_name_list()._col;
 
             fki.RefTableName = new TableName(refTableName);
-            fki.RefColumNames.AddRange(refColumnNames.Select(item => new ColumnName(item)));
+            fki.RefColumnNames.AddRange(refColumnNames.Select(item => new ColumnName(item)));
 
             var isUpdate = false;
             var isDelete = false;
@@ -2129,18 +2129,16 @@ namespace SqlAnalyser.Core
 
         protected override TokenInfo ParseTableAlias(ParserRuleContext node)
         {
-            if (node != null)
-                if (node is Table_aliasContext alias)
-                    return new TokenInfo(alias) { Type = TokenType.TableAlias };
+            if (node is Table_aliasContext alias)
+                return new TokenInfo(alias) { Type = TokenType.TableAlias };
 
             return null;
         }
 
         protected override TokenInfo ParseColumnAlias(ParserRuleContext node)
         {
-            if (node != null)
-                if (node is Column_aliasContext alias)
-                    return new TokenInfo(alias) { Type = TokenType.ColumnAlias };
+            if (node is Column_aliasContext alias)
+                return new TokenInfo(alias) { Type = TokenType.ColumnAlias };
 
             return null;
         }
@@ -2160,9 +2158,9 @@ namespace SqlAnalyser.Core
                     else
                         tokens.AddRange(GetNodeVariables(child as ParserRuleContext));
                 }
-                else if (child is ParserRuleContext)
+                else if (child is ParserRuleContext context)
                 {
-                    tokens.AddRange(GetNodeVariables(child as ParserRuleContext));
+                    tokens.AddRange(GetNodeVariables(context));
                 }
             }
 

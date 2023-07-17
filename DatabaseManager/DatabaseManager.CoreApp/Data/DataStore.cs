@@ -16,7 +16,7 @@ public class DataStore
 
     public static SchemaInfo GetSchemaInfo(DatabaseType databaseType)
     {
-        if (_dictSchemaInfo != null && _dictSchemaInfo.ContainsKey(databaseType)) return _dictSchemaInfo[databaseType];
+        if (_dictSchemaInfo != null && _dictSchemaInfo.TryGetValue(databaseType, out var info)) return info;
 
         return null;
     }
@@ -37,9 +37,7 @@ public class DataStore
 
     public static AccountProfileInfo GetAccountProfileInfo(string id)
     {
-        if (_accountProfileInfos != null) return _accountProfileInfos.FirstOrDefault(item => item.Id == id);
-
-        return null;
+        return _accountProfileInfos?.FirstOrDefault(item => item.Id == id);
     }
 
     public static void SetAccountProfileInfo(AccountProfileInfo accountProfileInfo)
@@ -60,9 +58,7 @@ public class DataStore
 
     public static FileConnectionProfileInfo GetFileConnectionProfileInfo(string id)
     {
-        if (_fileProfileInfos != null) return _fileProfileInfos.FirstOrDefault(item => item.Id == id);
-
-        return null;
+        return _fileProfileInfos?.FirstOrDefault(item => item.Id == id);
     }
 
     public static void SetFileConnectionProfileInfo(FileConnectionProfileInfo fileConnectionProfileInfo)

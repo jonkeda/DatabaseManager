@@ -733,7 +733,7 @@ namespace SqlAnalyser.Core
                                 var fki = ParseForeignKey(fk);
 
                                 constraintInfo.ForeignKey.RefTableName = fki.RefTableName;
-                                constraintInfo.ForeignKey.RefColumNames = fki.RefColumNames;
+                                constraintInfo.ForeignKey.RefColumnNames = fki.RefColumnNames;
                             }
                         }
 
@@ -756,7 +756,7 @@ namespace SqlAnalyser.Core
             var refColumnNames = node.column_name();
 
             fki.RefTableName = new TableName(refTableName);
-            fki.RefColumNames.AddRange(refColumnNames.Select(item => new ColumnName(item)));
+            fki.RefColumnNames.AddRange(refColumnNames.Select(item => new ColumnName(item)));
 
             var isUpdate = false;
             var isDelete = false;
@@ -819,15 +819,14 @@ namespace SqlAnalyser.Core
 
         private TokenInfo ParseCondition(ParserRuleContext node)
         {
-            if (node != null)
-                if (node is ExprContext expr)
-                {
-                    var token = CreateToken(node, TokenType.SearchCondition);
+            if (node is ExprContext expr)
+            {
+                var token = CreateToken(node, TokenType.SearchCondition);
 
-                    AddChildTableAndColumnNameToken(expr, token);
+                AddChildTableAndColumnNameToken(expr, token);
 
-                    return token;
-                }
+                return token;
+            }
 
             return null;
         }
@@ -913,18 +912,16 @@ namespace SqlAnalyser.Core
 
         protected override TokenInfo ParseTableAlias(ParserRuleContext node)
         {
-            if (node != null)
-                if (node is Table_aliasContext alias)
-                    return new TokenInfo(alias) { Type = TokenType.TableAlias };
+            if (node is Table_aliasContext alias)
+                return new TokenInfo(alias) { Type = TokenType.TableAlias };
 
             return null;
         }
 
         protected override TokenInfo ParseColumnAlias(ParserRuleContext node)
         {
-            if (node != null)
-                if (node is Column_aliasContext alias)
-                    return new TokenInfo(alias) { Type = TokenType.ColumnAlias };
+            if (node is Column_aliasContext alias)
+                return new TokenInfo(alias) { Type = TokenType.ColumnAlias };
 
             return null;
         }

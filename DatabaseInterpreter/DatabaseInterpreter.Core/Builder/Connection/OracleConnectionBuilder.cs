@@ -5,7 +5,7 @@ namespace DatabaseInterpreter.Core
 {
     public class OracleConnectionBuilder : IConnectionBuilder
     {
-        public string BuildConntionString(ConnectionInfo connectionInfo)
+        public string BuildConnectionString(ConnectionInfo connectionInfo)
         {
             var server = connectionInfo.Server;
             var serviceName = OracleInterpreter.DEFAULT_SERVICE_NAME;

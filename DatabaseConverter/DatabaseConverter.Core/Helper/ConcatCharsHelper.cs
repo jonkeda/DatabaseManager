@@ -117,7 +117,7 @@ namespace DatabaseConverter.Core
 
                         if (isAssignClause)
                         {
-                            var equalMarkIndex = result.IndexOf("=");
+                            var equalMarkIndex = result.IndexOf("=", StringComparison.Ordinal);
 
                             strAssign = result.Substring(0, equalMarkIndex + 1);
                             parseContent = result.Substring(equalMarkIndex + 1);
@@ -204,8 +204,8 @@ namespace DatabaseConverter.Core
 
                 if (!content.Contains("(")) return symbol;
 
-                var equalMarkIndex = content.IndexOf("=");
-                var parenthesisIndex = content.IndexOf("(");
+                var equalMarkIndex = content.IndexOf("=", StringComparison.Ordinal);
+                var parenthesisIndex = content.IndexOf("(", StringComparison.Ordinal);
 
                 var assignName = "";
                 var functionName = "";
@@ -229,11 +229,11 @@ namespace DatabaseConverter.Core
 
                 if (spec != null)
                 {
-                    var formular = new FunctionFormula(content);
+                    var formula = new FunctionFormula(content);
 
-                    if (formular != null)
+                    if (formula != null)
                     {
-                        var args = formular.GetArgs(spec.Delimiter ?? ",");
+                        var args = formula.GetArgs(spec.Delimiter ?? ",");
 
                         var results = new List<string>();
 
@@ -453,7 +453,7 @@ namespace DatabaseConverter.Core
 
             if (!string.IsNullOrEmpty(specification.Args))
             {
-                var index = value.IndexOf("(");
+                var index = value.IndexOf("(", StringComparison.Ordinal);
 
                 var content = StringHelper.GetBalanceParenthesisTrimedValue(value.Substring(index));
 

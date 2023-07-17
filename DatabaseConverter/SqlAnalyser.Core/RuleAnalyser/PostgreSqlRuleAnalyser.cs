@@ -747,7 +747,7 @@ namespace SqlAnalyser.Core
                     {
                         checkForeginKey(constraintInfo);
 
-                        constraintInfo.ForeignKey.RefColumNames.AddRange(ocl.columnlist().columnElem()
+                        constraintInfo.ForeignKey.RefColumnNames.AddRange(ocl.columnlist().columnElem()
                             .Select(item => new ColumnName(item)));
                     }
                 }
@@ -1197,9 +1197,8 @@ namespace SqlAnalyser.Core
 
         protected override TokenInfo ParseTableAlias(ParserRuleContext node)
         {
-            if (node != null)
-                if (node is Alias_clauseContext alias)
-                    return new TokenInfo(alias.colid()) { Type = TokenType.TableAlias };
+            if (node is Alias_clauseContext alias)
+                return new TokenInfo(alias.colid()) { Type = TokenType.TableAlias };
 
             return null;
         }

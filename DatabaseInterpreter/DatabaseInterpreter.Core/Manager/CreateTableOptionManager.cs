@@ -14,8 +14,8 @@ namespace DatabaseInterpreter.Core
 
         public static CreateTableOption GetCreateTableOption(DatabaseType databaseType)
         {
-            if (dictCreateTableOption != null && dictCreateTableOption.ContainsKey(databaseType))
-                return dictCreateTableOption[databaseType];
+            if (dictCreateTableOption != null && dictCreateTableOption.TryGetValue(databaseType, out var tableOption))
+                return tableOption;
 
             var filePath = Path.Combine(ConfigRootFolder, $"Option/CreateTableOption/{databaseType}.xml");
 
@@ -23,9 +23,10 @@ namespace DatabaseInterpreter.Core
 
             var root = XDocument.Load(filePath).Root;
 
-            var option = new CreateTableOption();
-
-            option.Items = root.Elements("item").Select(item => item.Value).ToList();
+            var option = new CreateTableOption
+            {
+                Items = root.Elements("item").Select(item => item.Value).ToList()
+            };
 
             if (dictCreateTableOption == null)
                 dictCreateTableOption = new Dictionary<DatabaseType, CreateTableOption>();

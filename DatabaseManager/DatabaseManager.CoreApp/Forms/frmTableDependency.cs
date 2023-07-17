@@ -168,7 +168,7 @@ public partial class frmTableDependency : Form
 
         var node = tvDbObjects.SelectedNode;
 
-        if (node != null) node.EnsureVisible();
+        node?.EnsureVisible();
     }
 
     private void tsmiCollapseAll_Click(object sender, EventArgs e)
@@ -230,7 +230,7 @@ public partial class frmTableDependency : Form
     {
         var selectedNode = tvDbObjects.SelectedNode;
 
-        if (selectedNode != null) selectedNode.ExpandAll();
+        selectedNode?.ExpandAll();
     }
 
     private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)

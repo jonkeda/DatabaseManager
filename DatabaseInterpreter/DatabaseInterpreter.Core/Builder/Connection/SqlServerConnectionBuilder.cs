@@ -5,7 +5,7 @@ namespace DatabaseInterpreter.Core
 {
     public class SqlServerConnectionBuilder : IConnectionBuilder
     {
-        public string BuildConntionString(ConnectionInfo connectionInfo)
+        public string BuildConnectionString(ConnectionInfo connectionInfo)
         {
             var sb = new StringBuilder(
                 $"Data Source={connectionInfo.Server};Initial Catalog={connectionInfo.Database};TrustServerCertificate=true;");

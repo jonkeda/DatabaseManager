@@ -112,7 +112,7 @@ public partial class UC_TableIndexes : UserControl
                 }
             }
 
-        if (primaryRowIndex >= 0 && columnDesingerInfos.Count() == 0)
+        if (primaryRowIndex >= 0 && !columnDesingerInfos.Any())
         {
             dgvIndexes.Rows.RemoveAt(primaryRowIndex);
         }
@@ -279,13 +279,12 @@ public partial class UC_TableIndexes : UserControl
             {
                 var indexDesignerInfo = row.Tag as TableIndexDesignerInfo;
 
-                if (OnColumnSelect != null)
-                    OnColumnSelect(DatabaseObjectType.Index,
-                        indexDesignerInfo?.Columns == null
-                            ? Enumerable.Empty<IndexColumn>()
-                            : indexDesignerInfo?.Columns,
-                        type == IndexType.Primary.ToString()
-                    );
+                OnColumnSelect?.Invoke(DatabaseObjectType.Index,
+                    indexDesignerInfo?.Columns == null
+                        ? Enumerable.Empty<IndexColumn>()
+                        : indexDesignerInfo?.Columns,
+                    type == IndexType.Primary.ToString()
+                );
             }
         }
     }
@@ -385,7 +384,7 @@ public partial class UC_TableIndexes : UserControl
 
     private void tsmiGenerateChangeScripts_Click(object sender, EventArgs e)
     {
-        if (OnGenerateChangeScripts != null) OnGenerateChangeScripts();
+        OnGenerateChangeScripts?.Invoke();
     }
 
     private void dgvIndexes_CellLeave(object sender, DataGridViewCellEventArgs e)

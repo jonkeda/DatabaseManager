@@ -204,8 +204,9 @@ public partial class UC_TableForeignKeys : UserControl
             var referenceTableName = DataGridViewHelper.GetCellStringValue(row, colReferenceTable.Name);
 
             if (!string.IsNullOrEmpty(keyName) && !string.IsNullOrEmpty(referenceTableName))
-                if (OnColumnMappingSelect != null)
-                    OnColumnMappingSelect(table.Schema, table.Name, (row.Tag as TableForeignKeyDesignerInfo)?.Columns);
+            {
+                OnColumnMappingSelect?.Invoke(table.Schema, table.Name, (row.Tag as TableForeignKeyDesignerInfo)?.Columns);
+            }
         }
     }
 
@@ -299,7 +300,7 @@ public partial class UC_TableForeignKeys : UserControl
 
     private void tsmiGenerateChangeScripts_Click(object sender, EventArgs e)
     {
-        if (OnGenerateChangeScripts != null) OnGenerateChangeScripts();
+        OnGenerateChangeScripts?.Invoke();
     }
 }
 

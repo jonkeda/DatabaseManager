@@ -186,10 +186,9 @@ namespace DatabaseInterpreter.Core
         {
             var sb = new ScriptBuilder();
 
-            var tableName = table.Name;
             var quotedTableName = GetQuotedFullTableName(table);
 
-            var option = GetCreateTableOption();
+            var tableOption = GetCreateTableOption();
 
             #region Create Table
 
@@ -300,7 +299,7 @@ namespace DatabaseInterpreter.Core
             var tableScript =
                 $@"CREATE TABLE{existsClause} {quotedTableName}(
 {string.Join("," + Environment.NewLine, columnItems)}{primaryKeyConstraint}{(foreginKeyConstraint.Length > 0 ? Environment.NewLine : "")}{foreginKeyConstraint.ToString().Trim()}
-){option};";
+){tableOption};";
 
             sb.AppendLine(new CreateDbObjectScript<Table>(tableScript));
 

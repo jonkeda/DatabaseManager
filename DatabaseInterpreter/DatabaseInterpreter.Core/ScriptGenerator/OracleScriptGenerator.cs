@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 
@@ -19,8 +18,6 @@ namespace DatabaseInterpreter.Core
         public override ScriptBuilder GenerateSchemaScripts(SchemaInfo schemaInfo)
         {
             var sb = new ScriptBuilder();
-
-            var dbSchema = GetDbSchema();
 
             #region User Defined Type
 
@@ -110,11 +107,6 @@ namespace DatabaseInterpreter.Core
         #endregion
 
         #region Data Script
-
-        public override async Task<string> GenerateDataScriptsAsync(SchemaInfo schemaInfo)
-        {
-            return await base.GenerateDataScriptsAsync(schemaInfo);
-        }
 
         protected override string GetBatchInsertPrefix()
         {

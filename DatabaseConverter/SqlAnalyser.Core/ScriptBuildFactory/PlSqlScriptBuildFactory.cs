@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using DatabaseInterpreter.Model;
@@ -88,7 +89,7 @@ namespace SqlAnalyser.Core
                     var defaultValue = parameter.DefaultValue == null ? "" : $" DEFAULT {parameter.DefaultValue}";
                     var strParameterType = "";
 
-                    var parenthesesIndex = dataType.IndexOf("(");
+                    var parenthesesIndex = dataType.IndexOf("(", StringComparison.Ordinal);
 
                     if (parenthesesIndex > 0) dataType = dataType.Substring(0, parenthesesIndex);
 
@@ -167,7 +168,7 @@ namespace SqlAnalyser.Core
             return result;
         }
 
-        public override ScriptBuildResult GenearteViewScripts(ViewScript script)
+        public override ScriptBuildResult GenerateViewScripts(ViewScript script)
         {
             var result = new ScriptBuildResult();
 
@@ -186,7 +187,7 @@ namespace SqlAnalyser.Core
             return result;
         }
 
-        public override ScriptBuildResult GenearteTriggerScripts(TriggerScript script)
+        public override ScriptBuildResult GenerateTriggerScripts(TriggerScript script)
         {
             var result = new ScriptBuildResult();
 

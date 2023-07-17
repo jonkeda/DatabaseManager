@@ -63,9 +63,7 @@ namespace DatabaseConverter.Core
 
                 if (sourceFuncSpec == null) continue;
 
-                var useBrackets = false;
-
-                var targetFunctionInfo = GetMappingFunctionInfo(name, formula.Body, out useBrackets);
+                var targetFunctionInfo = GetMappingFunctionInfo(name, formula.Body, out var useBrackets);
 
                 if (!string.IsNullOrEmpty(targetFunctionInfo.Name))
                     if (targetFunctionInfo.Name.ToUpper().Trim() != name.ToUpper().Trim())
@@ -164,10 +162,8 @@ namespace DatabaseConverter.Core
                         value = ReplaceValue(value, oldExp, newExp);
                     }
 
-                Dictionary<string, string> dictDataType = null;
-
                 var newExpression = ParseFormula(sourceFuncSpecs, targetFuncSpecs, formula, targetFunctionInfo,
-                    out dictDataType, RoutineType);
+                    out var dictDataType, RoutineType);
 
                 if (newExpression != formula.Expression) value = ReplaceValue(value, formula.Expression, newExpression);
             }
@@ -186,15 +182,14 @@ namespace DatabaseConverter.Core
 
             var trimChars = TranslateHelper.GetTrimChars(dbInterpreter).ToArray();
 
-            Func<string, bool> isValidFunction = name =>
+            bool IsValidFunction(string name)
             {
-                return functionSpecifications.Any(item =>
-                    item.Name.ToUpper() == name.Trim().Trim(trimChars).ToUpper());
-            };
+                return functionSpecifications.Any(item => item.Name.ToUpper() == name.Trim().Trim(trimChars).ToUpper());
+            }
 
-            if (value.IndexOf("(") < 0)
+            if (value.IndexOf("(", StringComparison.Ordinal) < 0)
             {
-                if (isValidFunction(value)) functions.Add(new FunctionFormula(value, value));
+                if (IsValidFunction(value)) functions.Add(new FunctionFormula(value, value));
             }
             else
             {
@@ -223,7 +218,7 @@ namespace DatabaseConverter.Core
 
                         var name = TranslateHelper.ExtractNameFromParenthesis(symbol);
 
-                        if (isValidFunction(name))
+                        if (IsValidFunction(name))
                         {
                             TranslateHelper.RestoreTokenValue(sql, token);
 

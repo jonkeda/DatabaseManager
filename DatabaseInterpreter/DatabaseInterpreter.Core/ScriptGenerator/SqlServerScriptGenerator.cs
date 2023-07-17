@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 
@@ -127,11 +126,6 @@ namespace DatabaseInterpreter.Core
         #endregion
 
         #region Data Script
-
-        public override Task<string> GenerateDataScriptsAsync(SchemaInfo schemaInfo)
-        {
-            return base.GenerateDataScriptsAsync(schemaInfo);
-        }
 
         protected override string GetBytesConvertHexString(object value, string dataType)
         {
@@ -346,7 +340,7 @@ REFERENCES {GetQuotedDbObjectNameWithSchema(foreignKey.ReferencedSchema, foreign
 
             var hasBigDataType = columns.Any(item => IsBigDataType(item));
 
-            var option = GetCreateTableOption();
+            var tableOption = GetCreateTableOption();
 
             #region Create Table
 
@@ -360,7 +354,7 @@ SET QUOTED_IDENTIFIER ON
 {(dbInterpreter.NotCreateIfExists ? existsClause : "")}
 CREATE TABLE {quotedTableName}(
 {string.Join("," + Environment.NewLine, columns.Select(item => dbInterpreter.ParseColumn(table, item)))}
-) {option}{(hasBigDataType ? " TEXTIMAGE_ON [PRIMARY]" : "")}" + ";";
+) {tableOption}{(hasBigDataType ? " TEXTIMAGE_ON [PRIMARY]" : "")}" + ";";
 
             sb.AppendLine(new CreateDbObjectScript<Table>(tableScript));
 

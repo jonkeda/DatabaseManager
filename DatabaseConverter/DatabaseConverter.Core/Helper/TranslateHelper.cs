@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -57,7 +58,7 @@ namespace DatabaseConverter.Core
         {
             if (value != null)
             {
-                var index = value.IndexOf("(");
+                var index = value.IndexOf("(", StringComparison.Ordinal);
 
                 if (index > 0) return value.Substring(0, index).Trim();
             }
@@ -212,7 +213,7 @@ namespace DatabaseConverter.Core
 
             foreach (var line in lines)
             {
-                var index = line.IndexOf(sourceDbInterpreter.CommentString);
+                var index = line.IndexOf(sourceDbInterpreter.CommentString, StringComparison.Ordinal);
                 var handled = false;
 
                 if (index >= 0)

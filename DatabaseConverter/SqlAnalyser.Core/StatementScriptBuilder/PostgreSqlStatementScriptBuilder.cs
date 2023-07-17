@@ -567,7 +567,7 @@ namespace SqlAnalyser.Core
                 else if (type == PreparedStatementType.Execute)
                 {
                     var pre = SpecialStatements.FirstOrDefault(item =>
-                            item is PreparedStatement && (item as PreparedStatement).Id.Symbol == prepared.Id.Symbol) as
+                            item is PreparedStatement preparedStatement && preparedStatement.Id.Symbol == prepared.Id.Symbol) as
                         PreparedStatement;
 
                     var variables = prepared.ExecuteVariables.Count > 0
@@ -731,16 +731,13 @@ namespace SqlAnalyser.Core
                 var declareVariable =
                     DeclareVariableStatements.FirstOrDefault(item => item.Name.Symbol?.Trim() == name.Trim());
 
-                if (declareVariable != null)
-                {
-                    var dataType = declareVariable.DataType?.Symbol?.ToUpper();
+                var dataType = declareVariable?.DataType?.Symbol?.ToUpper();
 
-                    if (dataType != null)
-                    {
-                        if (dataType == "DATE")
-                            value = $"{value}::DATE";
-                        else if (dataType.Contains("TIMESTAMP")) value = $"{value}::TIMESTAMP";
-                    }
+                if (dataType != null)
+                {
+                    if (dataType == "DATE")
+                        value = $"{value}::DATE";
+                    else if (dataType.Contains("TIMESTAMP")) value = $"{value}::TIMESTAMP";
                 }
             }
 

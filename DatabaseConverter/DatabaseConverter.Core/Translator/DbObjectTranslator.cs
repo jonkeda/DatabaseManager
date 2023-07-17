@@ -297,9 +297,15 @@ namespace DatabaseConverter.Core
                     return string.Empty;
                 };
 
-                Func<string, string> getTrimedContent = content => { return content.Trim('\''); };
+                string GetTrimedContent(string content)
+                {
+                    return content.Trim('\'');
+                }
 
-                Func<string, bool> isQuoted = content => { return content.StartsWith("\'"); };
+                bool IsQuoted(string content)
+                {
+                    return content.StartsWith("\'");
+                }
 
                 var defaults = GetFunctionDefaults(targetFunctionInfo);
                 var targetFunctionName = targetFunctionInfo.Name;
@@ -326,10 +332,10 @@ namespace DatabaseConverter.Core
                             sbArgs.Append(targetFuncSpec.Delimiter == "," ? "," : $" {targetFuncSpec.Delimiter} ");
 
                         var content = tai.Content;
-                        var trimedContent = getTrimedContent(content);
+                        var trimedContent = GetTrimedContent(content);
 
                         var sourceItem =
-                            sourceArgItems.FirstOrDefault(item => getTrimedContent(item.Content) == trimedContent);
+                            sourceArgItems.FirstOrDefault(item => GetTrimedContent(item.Content) == trimedContent);
 
                         if (sourceItem != null)
                         {
@@ -337,7 +343,7 @@ namespace DatabaseConverter.Core
 
                             if (!string.IsNullOrEmpty(value))
                             {
-                                if (isQuoted(sourceItem.Content) && !isQuoted(content)) value = getTrimedContent(value);
+                                if (IsQuoted(sourceItem.Content) && !IsQuoted(content)) value = GetTrimedContent(value);
 
                                 if (content.StartsWith("\'")) sbArgs.Append('\'');
 
@@ -353,10 +359,10 @@ namespace DatabaseConverter.Core
                             }
                         }
                         else if (sourceArgItems.Any(item =>
-                                     item.Details.Any(t => getTrimedContent(t.Content) == trimedContent)))
+                                     item.Details.Any(t => GetTrimedContent(t.Content) == trimedContent)))
                         {
                             var sd = sourceArgItems.FirstOrDefault(item =>
-                                item.Details.Any(t => getTrimedContent(t.Content) == trimedContent));
+                                item.Details.Any(t => GetTrimedContent(t.Content) == trimedContent));
 
                             var details = sd.Details;
 
@@ -372,7 +378,7 @@ namespace DatabaseConverter.Core
                                     foreach (var detail in details)
                                         if (detail.Type != FunctionArgumentItemDetailType.Whitespace)
                                         {
-                                            if (getTrimedContent(detail.Content) == trimedContent)
+                                            if (GetTrimedContent(detail.Content) == trimedContent)
                                             {
                                                 sbArgs.Append(args[i]);
                                                 break;
@@ -392,16 +398,16 @@ namespace DatabaseConverter.Core
                             foreach (var detail in tai.Details)
                             {
                                 var dc = detail.Content;
-                                var trimedDc = getTrimedContent(dc);
+                                var trimedDc = GetTrimedContent(dc);
 
                                 var si = sourceArgItems.FirstOrDefault(item =>
-                                    getTrimedContent(item.Content) == trimedDc);
+                                    GetTrimedContent(item.Content) == trimedDc);
 
                                 if (si != null)
                                 {
                                     var value = getSourceArg(si, detail.Content);
 
-                                    if (isQuoted(si.Content) && !isQuoted(dc)) value = getTrimedContent(value);
+                                    if (IsQuoted(si.Content) && !IsQuoted(dc)) value = GetTrimedContent(value);
 
                                     if (dc.StartsWith("\'")) sbArgs.Append('\'');
 
@@ -419,9 +425,9 @@ namespace DatabaseConverter.Core
                         {
                             sbArgs.Append(content);
                         }
-                        else if (defaults.ContainsKey(content))
+                        else if (defaults.TryGetValue(content, out var @default))
                         {
-                            sbArgs.Append(defaults[content]);
+                            sbArgs.Append(@default);
                         }
                         else
                         {
@@ -488,7 +494,7 @@ namespace DatabaseConverter.Core
 
         private string GetFunctionDictionaryValue(Dictionary<string, string> values, string arg)
         {
-            if (values.ContainsKey(arg)) return values[arg];
+            if (values.TryGetValue(arg, out var value)) return value;
 
             return null;
         }
@@ -596,9 +602,7 @@ namespace DatabaseConverter.Core
                 useBrackets = true;
             }
 
-            var targetFunctionName = name;
-
-            var functionInfo = new MappingFunctionInfo { Name = name };
+      var functionInfo = new MappingFunctionInfo { Name = name };
 
             var funcMappings = functionMappings.FirstOrDefault(item =>
                 item.Any(t =>
@@ -608,31 +612,28 @@ namespace DatabaseConverter.Core
                 )
             );
 
-            if (funcMappings != null)
+            var mapping = funcMappings?.FirstOrDefault(item =>
+                (item.Direction == FunctionMappingDirection.IN || item.Direction == FunctionMappingDirection.INOUT)
+                && item.DbType == targetDbInterpreter.DatabaseType.ToString());
+
+            if (mapping != null)
             {
-                var mapping = funcMappings.FirstOrDefault(item =>
-                    (item.Direction == FunctionMappingDirection.IN || item.Direction == FunctionMappingDirection.INOUT)
-                    && item.DbType == targetDbInterpreter.DatabaseType.ToString());
+                var matched = true;
 
-                if (mapping != null)
+                if (!string.IsNullOrEmpty(args) && !string.IsNullOrEmpty(mapping.Args))
+                    if (mapping.IsFixedArgs && args.Trim().ToLower() != mapping.Args.Trim().ToLower())
+                        matched = false;
+
+                if (matched)
                 {
-                    var matched = true;
-
-                    if (!string.IsNullOrEmpty(args) && !string.IsNullOrEmpty(mapping.Args))
-                        if (mapping.IsFixedArgs && args.Trim().ToLower() != mapping.Args.Trim().ToLower())
-                            matched = false;
-
-                    if (matched)
-                    {
-                        functionInfo.Name = mapping.Function.Split(',')?.FirstOrDefault();
-                        functionInfo.Args = mapping.Args;
-                        functionInfo.IsFixedArgs = mapping.IsFixedArgs;
-                        functionInfo.Expression = mapping.Expression;
-                        functionInfo.Defaults = mapping.Defaults;
-                        functionInfo.Translator = mapping.Translator;
-                        functionInfo.Specials = mapping.Specials;
-                        functionInfo.Replacements = mapping.Replacements;
-                    }
+                    functionInfo.Name = mapping.Function.Split(',')?.FirstOrDefault();
+                    functionInfo.Args = mapping.Args;
+                    functionInfo.IsFixedArgs = mapping.IsFixedArgs;
+                    functionInfo.Expression = mapping.Expression;
+                    functionInfo.Defaults = mapping.Defaults;
+                    functionInfo.Translator = mapping.Translator;
+                    functionInfo.Specials = mapping.Specials;
+                    functionInfo.Replacements = mapping.Replacements;
                 }
             }
 
@@ -650,7 +651,7 @@ namespace DatabaseConverter.Core
             return formattedSql;
         }
 
-        protected string GetTrimedName(string name)
+        protected string GetTrimmedName(string name)
         {
             return name?.Trim(sourceDbInterpreter.QuotationLeftChar, sourceDbInterpreter.QuotationRightChar,
                 targetDbInterpreter.QuotationLeftChar, targetDbInterpreter.QuotationRightChar, '"');

@@ -417,7 +417,7 @@ namespace DatabaseConverter.Core
                             if (Option.SchemaMappings.Any())
                             {
                                 var mappedSchema = Option.SchemaMappings
-                                    .FirstOrDefault(item => GetTrimedName(item.SourceSchema) == GetTrimedName(schema))
+                                    .FirstOrDefault(item => GetTrimmedName(item.SourceSchema) == GetTrimmedName(schema))
                                     ?.TargetSchema;
 
                                 if (!string.IsNullOrEmpty(mappedSchema))
@@ -494,7 +494,7 @@ namespace DatabaseConverter.Core
                 var items = column.ComputeExp.SplitByString(sourceDbInterpreter.STR_CONCAT_CHARS);
 
                 var charColumns = columns.Where(c => items.Any(item =>
-                        GetTrimedName(c.Name) == GetTrimedName(item.Trim('(', ')')) &&
+                        GetTrimmedName(c.Name) == GetTrimmedName(item.Trim('(', ')')) &&
                         DataTypeHelper.IsCharType(c.DataType)))
                     .Select(c => c.Name);
 
@@ -525,7 +525,7 @@ namespace DatabaseConverter.Core
             {
                 var trimedItem = item.Trim('(', ')', ' ');
 
-                var col = columns.FirstOrDefault(c => GetTrimedName(c.Name) == GetTrimedName(trimedItem));
+                var col = columns.FirstOrDefault(c => GetTrimmedName(c.Name) == GetTrimmedName(trimedItem));
 
                 if (col != null && !DataTypeHelper.IsCharType(col.DataType))
                 {
@@ -578,7 +578,7 @@ namespace DatabaseConverter.Core
 
                     if (!setToNull && (targetDbType == DatabaseType.MySql || targetDbType == DatabaseType.Oracle))
                     {
-                        if (customFunctions == null || customFunctions.Count() == 0)
+                        if (customFunctions == null || !customFunctions.Any())
                             customFunctions = await sourceDbInterpreter.GetFunctionsAsync();
 
                         if (customFunctions != null)

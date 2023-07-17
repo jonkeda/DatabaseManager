@@ -466,7 +466,7 @@ namespace SqlAnalyser.Core
                 else if (type == PreparedStatementType.Execute)
                 {
                     var pre = SpecialStatements.FirstOrDefault(item =>
-                            item is PreparedStatement && (item as PreparedStatement).Id.Symbol == prepared.Id.Symbol) as
+                            item is PreparedStatement preparedStatement && preparedStatement.Id.Symbol == prepared.Id.Symbol) as
                         PreparedStatement;
 
                     var variables = prepared.ExecuteVariables.Count > 0
@@ -600,7 +600,7 @@ namespace SqlAnalyser.Core
         private void MakeupRoutineName(TokenInfo token)
         {
             var symbol = token.Symbol;
-            var index = symbol.IndexOf("(");
+            var index = symbol.IndexOf("(", StringComparison.Ordinal);
 
             var name = index == -1 ? symbol : symbol.Substring(0, index);
 

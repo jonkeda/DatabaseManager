@@ -524,7 +524,7 @@ public partial class UC_TableDesigner : UserControl, IDbObjContentDisplayer, IOb
 
     private void Feedback(FeedbackInfo info)
     {
-        if (OnFeedback != null) OnFeedback(info);
+        OnFeedback?.Invoke(info);
     }
 
     #region IObserver<FeedbackInfo>

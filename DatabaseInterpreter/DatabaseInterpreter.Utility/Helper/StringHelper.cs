@@ -151,7 +151,7 @@ namespace DatabaseInterpreter.Utility
                 return false;
             }
 
-            return parenthesises.Count() == 0 ? true : false;
+            return !parenthesises.Any() ? true : false;
         }
     }
 }

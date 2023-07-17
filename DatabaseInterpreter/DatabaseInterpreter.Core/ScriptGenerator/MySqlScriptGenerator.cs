@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 
@@ -100,11 +99,6 @@ namespace DatabaseInterpreter.Core
         #endregion
 
         #region Data Script
-
-        public override Task<string> GenerateDataScriptsAsync(SchemaInfo schemaInfo)
-        {
-            return base.GenerateDataScriptsAsync(schemaInfo);
-        }
 
         protected override string GetBytesConvertHexString(object value, string dataType)
         {

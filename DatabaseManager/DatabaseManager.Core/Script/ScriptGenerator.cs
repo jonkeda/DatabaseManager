@@ -47,9 +47,11 @@ namespace DatabaseManager.Core
                 }
             }
 
-            var filter = new SchemaInfoFilter { DatabaseObjectType = databaseObjectType, ColumnType = columnType };
-
-            filter.Schema = dbObject.Schema;
+            var filter = new SchemaInfoFilter
+            {
+                DatabaseObjectType = databaseObjectType, ColumnType = columnType,
+                Schema = dbObject.Schema
+            };
 
             if (columnType == ColumnType.ViewColumn)
                 filter.TableNames = new[] { dbObject.Name };

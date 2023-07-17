@@ -177,19 +177,16 @@ public class DataGridViewHelper
 
             var dc = table.Columns.Cast<DataColumn>().FirstOrDefault(item => item.ColumnName == column.Name);
 
-            if (dc != null)
+            var property = dc?.ExtendedProperties[nameof(DataTypeInfo)];
+
+            if (property is DataTypeInfo dti)
             {
-                var property = dc.ExtendedProperties[nameof(DataTypeInfo)];
+                var dataType = dti.DataType;
 
-                if (property is DataTypeInfo dti)
-                {
-                    var dataType = dti.DataType;
+                var isGeography = dataType.ToLower().Contains("geography");
 
-                    var isGeography = dataType.ToLower().Contains("geography");
-
-                    var viewer = new frmWktViewer(isGeography, value);
-                    viewer.Show();
-                }
+                var viewer = new frmWktViewer(isGeography, value);
+                viewer.Show();
             }
         }
     }

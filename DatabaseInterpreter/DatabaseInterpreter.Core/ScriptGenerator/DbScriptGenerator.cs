@@ -663,21 +663,21 @@ namespace DatabaseInterpreter.Core
                         if (value is SqlGeography sgg1) srid = sgg1.STSrid.Value;
                         else if (value is SqlGeometry sgm1) srid = sgm1.STSrid.Value;
                         else if (value is PgGeom.Geometry g) srid = g.SRID;
-/*
-                        if (this.databaseType == DatabaseType.MySql)
-                        {
-                            strValue = $"ST_GeomFromText('{this.GetCorrectGeometryText(value, dataType)}',{srid})";
-                        }
-                        else if (this.databaseType == DatabaseType.Oracle)
-                        {
-                            strValue = this.GetOracleGeometryInsertValue(column, value, srid);
-                        }
-*/
+                        /*
+                                                if (this.databaseType == DatabaseType.MySql)
+                                                {
+                                                    strValue = $"ST_GeomFromText('{this.GetCorrectGeometryText(value, dataType)}',{srid})";
+                                                }
+                                                else if (this.databaseType == DatabaseType.Oracle)
+                                                {
+                                                    strValue = this.GetOracleGeometryInsertValue(column, value, srid);
+                                                }
+                        */
                         else
-                    {
-                        needQuotated = true;
-                        strValue = value.ToString();
-                    }
+                        {
+                            needQuotated = true;
+                            strValue = value.ToString();
+                        }
 
                         break;
                     case nameof(SqlHierarchyId):
@@ -692,12 +692,12 @@ namespace DatabaseInterpreter.Core
 
                         break;
 
-/*                    case nameof(SdoGeometry):
-                    case nameof(StGeometry):
-                        strValue = this.GetOracleGeometryInsertValue(column, value);
+                    /*                    case nameof(SdoGeometry):
+                                        case nameof(StGeometry):
+                                            strValue = this.GetOracleGeometryInsertValue(column, value);
 
-                        break;
-*/
+                                            break;
+                    */
                     default:
                         if (string.IsNullOrEmpty(strValue)) strValue = value.ToString();
                         break;
@@ -1000,7 +1000,7 @@ namespace DatabaseInterpreter.Core
 
             var sb = new StringBuilder();
 
-            Action<string> appendValue = value =>
+            void AppendValue(string value)
             {
                 if (!string.IsNullOrEmpty(value))
                 {
@@ -1008,14 +1008,14 @@ namespace DatabaseInterpreter.Core
 
                     sb.Append(value);
                 }
-            };
+            }
 
             foreach (var item in option.Items)
                 if (!string.IsNullOrEmpty(item))
                 {
                     var items = item.Split(CreateTableOptionManager.OptionValueItemsSeperator);
 
-                    foreach (var subItem in items) appendValue(subItem);
+                    foreach (var subItem in items) AppendValue(subItem);
                 }
 
             return sb.ToString();

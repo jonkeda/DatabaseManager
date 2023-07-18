@@ -943,7 +943,7 @@ namespace DatabaseInterpreter.Core
                                 if (dataType == "uniqueidentifier")
                                 {
                                     newColumnType = typeof(Guid);
-                                    newValue = ValueHelper.ConvertGuidBytesToString(value as byte[], DatabaseType,
+                                    newValue = ConvertGuidBytesToString(value as byte[], DatabaseType,
                                         tableColumn.DataType, tableColumn.MaxLength, true);
                                 }
 
@@ -1064,6 +1064,32 @@ namespace DatabaseInterpreter.Core
             var dtChanged = DataTableHelper.GetChangedDataTable(dataTable, changedColumns, changedValues);
 
             return dtChanged;
+        }
+
+        private static string ConvertGuidBytesToString(byte[] value, DatabaseType databaseType, string dataType,
+            long? length, bool bytesAsString)
+        {
+            string strValue = null;
+
+            if (value != null && value.Length == 16)
+            {
+                if (databaseType == DatabaseType.SqlServer
+                    && string.Equals(dataType, "uniqueidentifier", StringComparison.OrdinalIgnoreCase))
+                    strValue = new Guid(value).ToString();
+
+                else if (databaseType == DatabaseType.MySql
+                         && dataType == "char"
+                         && length == 36)
+                    strValue = new Guid(value).ToString();
+
+                else if (bytesAsString
+                         && databaseType == DatabaseType.Oracle
+                         && dataType.ToLower() == "raw"
+                         && length == 16)
+                    strValue = StringHelper.GuidToRaw(new Guid(value).ToString());
+            }
+
+            return strValue;
         }
 
         private async Task<SqlBulkCopy> GetBulkCopy(DbConnection connection, BulkCopyInfo bulkCopyInfo)

@@ -11,7 +11,7 @@ namespace DatabaseInterpreter.Utility
         {
             if (value == null) return true;
 
-            if (value.GetType() == typeof(DBNull)) return true;
+            if (value is DBNull) return true;
 
             if (emptyAsNull && value.ToString().Length == 0) return true;
             return false;
@@ -27,31 +27,7 @@ namespace DatabaseInterpreter.Utility
             return value?.Replace("'", "''");
         }
 
-        public static string ConvertGuidBytesToString(byte[] value, DatabaseType databaseType, string dataType,
-            long? length, bool bytesAsString)
-        {
-            string strValue = null;
-
-            if (value != null && value.Length == 16)
-            {
-                if (databaseType == DatabaseType.SqlServer 
-                    && string.Equals(dataType, "uniqueidentifier", StringComparison.OrdinalIgnoreCase ) )
-                    strValue = new Guid(value).ToString();
-
-                else if (databaseType == DatabaseType.MySql 
-                         && dataType == "char" 
-                         && length == 36)
-                    strValue = new Guid(value).ToString();
-
-                else if (bytesAsString 
-                         && databaseType == DatabaseType.Oracle 
-                         && dataType.ToLower() == "raw" 
-                         && length == 16) 
-                    strValue = StringHelper.GuidToRaw(new Guid(value).ToString());
-            }
-
-            return strValue;
-        }
+      
 
         public static string BytesToHexString(byte[] value)
         {

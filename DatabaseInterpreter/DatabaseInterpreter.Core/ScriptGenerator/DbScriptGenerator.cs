@@ -511,7 +511,7 @@ namespace DatabaseInterpreter.Core
                 {
                     if (((byte[])value).Length == 16) //GUID
                     {
-                        var str = ValueHelper.ConvertGuidBytesToString((byte[])value, databaseType, column.DataType,
+                        var str = ConvertGuidBytesToString((byte[])value, databaseType, column.DataType,
                             column.MaxLength, bytesAsString);
 
                         if (!string.IsNullOrEmpty(str))
@@ -718,6 +718,32 @@ namespace DatabaseInterpreter.Core
             }
 
             return null;
+        }
+
+        public static string ConvertGuidBytesToString(byte[] value, DatabaseType databaseType, string dataType,
+            long? length, bool bytesAsString)
+        {
+            string strValue = null;
+
+            if (value != null && value.Length == 16)
+            {
+                if (databaseType == DatabaseType.SqlServer
+                    && string.Equals(dataType, "uniqueidentifier", StringComparison.OrdinalIgnoreCase))
+                    strValue = new Guid(value).ToString();
+
+                else if (databaseType == DatabaseType.MySql
+                         && dataType == "char"
+                         && length == 36)
+                    strValue = new Guid(value).ToString();
+
+                else if (bytesAsString
+                         && databaseType == DatabaseType.Oracle
+                         && dataType.ToLower() == "raw"
+                         && length == 16)
+                    strValue = StringHelper.GuidToRaw(new Guid(value).ToString());
+            }
+
+            return strValue;
         }
 
         /*  private string GetOracleGeometryInsertValue(TableColumn column, object value, int? srid = null)

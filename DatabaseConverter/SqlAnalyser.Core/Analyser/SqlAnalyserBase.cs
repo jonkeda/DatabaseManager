@@ -23,7 +23,7 @@ namespace SqlAnalyser.Core
 
         public AnalyseResult Analyse<T>() where T : DatabaseObject
         {
-            AnalyseResult result = null;
+            AnalyseResult result;
 
             if (RuleAnalyser.Option.IsCommonScript)
             {

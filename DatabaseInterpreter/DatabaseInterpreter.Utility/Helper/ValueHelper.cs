@@ -34,12 +34,20 @@ namespace DatabaseInterpreter.Utility
 
             if (value != null && value.Length == 16)
             {
-                if (databaseType == DatabaseType.SqlServer && dataType.ToLower() == "uniqueidentifier")
+                if (databaseType == DatabaseType.SqlServer 
+                    && string.Equals(dataType, "uniqueidentifier", StringComparison.OrdinalIgnoreCase ) )
                     strValue = new Guid(value).ToString();
-                else if (databaseType == DatabaseType.MySql && dataType == "char" && length == 36)
+
+                else if (databaseType == DatabaseType.MySql 
+                         && dataType == "char" 
+                         && length == 36)
                     strValue = new Guid(value).ToString();
-                else if (bytesAsString && databaseType == DatabaseType.Oracle && dataType.ToLower() == "raw" &&
-                         length == 16) strValue = StringHelper.GuidToRaw(new Guid(value).ToString());
+
+                else if (bytesAsString 
+                         && databaseType == DatabaseType.Oracle 
+                         && dataType.ToLower() == "raw" 
+                         && length == 16) 
+                    strValue = StringHelper.GuidToRaw(new Guid(value).ToString());
             }
 
             return strValue;

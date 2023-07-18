@@ -15,7 +15,7 @@ namespace DatabaseInterpreter.Utility
 
         public static bool IsStartWithSingleQuotationChar(string value)
         {
-            return value.StartsWith("'") || value.ToUpper().StartsWith("N'");
+            return value.StartsWith("'") || value.StartsWith("N'", StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsEndWithSingleQuotationChar(string value)

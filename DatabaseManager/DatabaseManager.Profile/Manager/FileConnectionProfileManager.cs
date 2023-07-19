@@ -102,7 +102,7 @@ namespace DatabaseManager.Profile
                 {
                     await connection.OpenAsync();
 
-                    var trans = await connection.BeginTransactionAsync();
+                    var trans = connection.BeginTransaction();
 
                     string id = null;
 

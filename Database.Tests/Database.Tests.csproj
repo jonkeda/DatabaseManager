@@ -23,8 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DatabaseInterpreter\DatabaseInterpreter.Model\DatabaseInterpreter.Model.csproj" />
-    <ProjectReference Include="..\DatabaseInterpreter\DatabaseInterpreter.Utility\DatabaseInterpreter.Utility.csproj" />
+    <ProjectReference Include="..\Database\Database.csproj" />
   </ItemGroup>
 
 </Project>

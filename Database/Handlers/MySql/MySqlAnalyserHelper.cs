@@ -5,7 +5,7 @@ using SqlAnalyser.Model;
 
 namespace SqlAnalyser.Core
 {
-    public class MySqlAnalyserHelper
+    public static class MySqlAnalyserHelper
     {
         public static void RearrangeStatements(List<Statement> statements)
         {

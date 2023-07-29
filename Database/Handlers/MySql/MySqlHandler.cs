@@ -8,7 +8,8 @@ namespace Databases.Handlers.MySql
         MySqlScriptBuildFactory, 
         MySqlStatementScriptBuilder,
         MySqlAnalyser,
-        MySqlBackup>
+        MySqlBackup,
+        MySqlDiagnosis>
     {
         public MySqlHandler() : base(DatabaseType.MySql)
         {
@@ -18,6 +19,11 @@ namespace Databases.Handlers.MySql
         public override SqlAnalyserBase GetSqlAnalyser(string content)
         {
             return new MySqlAnalyser(content);
-        }        
+        }
+
+        public override DbDiagnosis CreateDbDiagnosis(ConnectionInfo connectionInfo)
+        {
+            return new MySqlDiagnosis(connectionInfo);
+        }
     }
 }

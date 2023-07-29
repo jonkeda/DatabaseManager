@@ -9,6 +9,7 @@ using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using DatabaseManager.Model;
+using Databases.Handlers;
 using SqlAnalyser.Model;
 
 namespace DatabaseManager.Core
@@ -193,17 +194,7 @@ namespace DatabaseManager.Core
 
         public static DbDiagnosis GetInstance(DatabaseType databaseType, ConnectionInfo connectionInfo)
         {
-            if (databaseType == DatabaseType.SqlServer)
-                return new SqlServerDiagnosis(connectionInfo);
-            if (databaseType == DatabaseType.MySql)
-                return new MySqlDiagnosis(connectionInfo);
-            if (databaseType == DatabaseType.Oracle)
-                return new OracleDiagnosis(connectionInfo);
-            if (databaseType == DatabaseType.Postgres)
-                return new PostgresDiagnosis(connectionInfo);
-            if (databaseType == DatabaseType.Sqlite) return new SqliteDiagnosis(connectionInfo);
-
-            throw new NotImplementedException($"Not implemente diagnosis for {databaseType}.");
+            return SqlHandler.GetHandler(databaseType).CreateDbDiagnosis(connectionInfo);
         }
 
         protected virtual string GetTableColumnWithEmptyValueSql(DbInterpreter interpreter, TableColumn column,

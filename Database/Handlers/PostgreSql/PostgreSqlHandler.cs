@@ -8,7 +8,8 @@ namespace Databases.Handlers.TSql
         PostgreSqlScriptBuildFactory, 
         PostgreSqlStatementScriptBuilder,
         PostgreSqlAnalyser,
-        PostgresBackup>
+        PostgresBackup, 
+        PostgresDiagnosis>
     {
         public PostgreSqlHandler() : base(DatabaseType.Postgres)
         {
@@ -19,6 +20,12 @@ namespace Databases.Handlers.TSql
         public override SqlAnalyserBase GetSqlAnalyser(string content)
         {
             return new PostgreSqlAnalyser(content);
+        }
+
+
+        public override DbDiagnosis CreateDbDiagnosis(ConnectionInfo connectionInfo)
+        {
+            return new PostgresDiagnosis(connectionInfo);
         }
 
     }

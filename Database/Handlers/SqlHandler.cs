@@ -27,6 +27,7 @@ namespace Databases.Handlers
         public abstract StatementScriptBuilder CreateStatementScriptBuilder();
         public abstract SqlAnalyserBase GetSqlAnalyser(string content);
         public abstract DbBackup CreateDbBackup();
+        public abstract DbDiagnosis CreateDbDiagnosis(ConnectionInfo connectionInfo);
 
         private static readonly SqlHandlerDictionary Handlers = new SqlHandlerDictionary();
 
@@ -57,12 +58,13 @@ namespace Databases.Handlers
 
     }
 
-    public abstract class SqlHandler<TBF, TSF, TA, TBU>
+    public abstract class SqlHandler<TBF, TSF, TA, TBU, TD>
         : SqlHandler
         where TBF : ScriptBuildFactory, new()
         where TSF : StatementScriptBuilder, new()
         where TA : SqlAnalyserBase
         where TBU : DbBackup, new()
+        where TD : DbDiagnosis
     {
         protected SqlHandler(DatabaseType databaseType) : base(databaseType)
         {

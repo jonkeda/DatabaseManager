@@ -8,17 +8,22 @@ namespace Databases.Handlers.Sqlite
         SqliteScriptBuildFactory, 
         SqliteStatementScriptBuilder,
         SqliteAnalyser,
-        SqliteBackup>
+        SqliteBackup,
+        SqliteDiagnosis>
     {
         public SqliteHandler() : base(DatabaseType.Sqlite)
         {
 
         }
 
-
         public override SqlAnalyserBase GetSqlAnalyser(string content)
         {
             return new SqliteAnalyser(content);
+        }
+
+        public override DbDiagnosis CreateDbDiagnosis(ConnectionInfo connectionInfo)
+        {
+            return new SqliteDiagnosis(connectionInfo);
         }
 
     }

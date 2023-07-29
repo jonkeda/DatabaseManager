@@ -8,7 +8,8 @@ namespace Databases.Handlers.TSql
         TSqlScriptBuildFactory, 
         TSqlStatementScriptBuilder, 
         TSqlAnalyser,
-        SqlServerBackup>
+        SqlServerBackup, 
+        SqlServerDiagnosis>
     {
         public TSqlHandler() : base(DatabaseType.SqlServer)
         {
@@ -21,5 +22,9 @@ namespace Databases.Handlers.TSql
             return new TSqlAnalyser(content);
         }
 
+        public override DbDiagnosis CreateDbDiagnosis(ConnectionInfo connectionInfo)
+        {
+            return new SqlServerDiagnosis(connectionInfo);
+        }
     }
 }

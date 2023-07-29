@@ -8,7 +8,8 @@ namespace Databases.Handlers.PlSql
         PlSqlScriptBuildFactory, 
         PlSqlStatementScriptBuilder, 
         PlSqlAnalyser,
-        OracleBackup>
+        OracleBackup, 
+        OracleDiagnosis>
     {
         public PlSqlHandler() : base(DatabaseType.Oracle)
         {
@@ -18,6 +19,12 @@ namespace Databases.Handlers.PlSql
         public override SqlAnalyserBase GetSqlAnalyser(string content)
         {
             return new PlSqlAnalyser(content);
+        }
+
+
+        public override DbDiagnosis CreateDbDiagnosis(ConnectionInfo connectionInfo)
+        {
+            return new OracleDiagnosis(connectionInfo);
         }
 
     }

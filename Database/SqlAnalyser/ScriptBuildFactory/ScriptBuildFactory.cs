@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using DatabaseInterpreter.Model;
+using Databases.Handlers;
 using SqlAnalyser.Core.Model;
 using SqlAnalyser.Model;
 
@@ -29,20 +30,7 @@ namespace SqlAnalyser.Core
 
         private StatementScriptBuilder GetStatementBuilder()
         {
-            StatementScriptBuilder builder;
-
-            if (DatabaseType == DatabaseType.SqlServer)
-                builder = new TSqlStatementScriptBuilder();
-            else if (DatabaseType == DatabaseType.MySql)
-                builder = new MySqlStatementScriptBuilder();
-            else if (DatabaseType == DatabaseType.Oracle)
-                builder = new PlSqlStatementScriptBuilder();
-            else if (DatabaseType == DatabaseType.Postgres)
-                builder = new PostgreSqlStatementScriptBuilder();
-            else if (DatabaseType == DatabaseType.Sqlite)
-                builder = new SqliteStatementScriptBuilder();
-            else
-                throw new NotSupportedException($"Not support build statement for: {DatabaseType}");
+            StatementScriptBuilder builder = SqlHandler.GetHandler(DatabaseType).CreateStatementScriptBuilder();
 
             builder.Option = ScriptBuilderOption;
 

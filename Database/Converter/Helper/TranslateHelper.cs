@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Databases.Handlers;
 using DatabaseConverter.Core.Model;
 using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
@@ -172,36 +173,12 @@ namespace DatabaseConverter.Core
 
         public static SqlAnalyserBase GetSqlAnalyser(DatabaseType databaseType, string content)
         {
-            SqlAnalyserBase sqlAnalyser = null;
-
-            if (databaseType == DatabaseType.SqlServer)
-                sqlAnalyser = new TSqlAnalyser(content);
-            else if (databaseType == DatabaseType.MySql)
-                sqlAnalyser = new MySqlAnalyser(content);
-            else if (databaseType == DatabaseType.Oracle)
-                sqlAnalyser = new PlSqlAnalyser(content);
-            else if (databaseType == DatabaseType.Postgres)
-                sqlAnalyser = new PostgreSqlAnalyser(content);
-            else if (databaseType == DatabaseType.Sqlite) sqlAnalyser = new SqliteAnalyser(content);
-
-            return sqlAnalyser;
+            return SqlHandler.GetHandler(databaseType).GetSqlAnalyser(content);
         }
 
         public static ScriptBuildFactory GetScriptBuildFactory(DatabaseType databaseType)
         {
-            ScriptBuildFactory factory = null;
-
-            if (databaseType == DatabaseType.SqlServer)
-                factory = new TSqlScriptBuildFactory();
-            else if (databaseType == DatabaseType.MySql)
-                factory = new MySqlScriptBuildFactory();
-            else if (databaseType == DatabaseType.Oracle)
-                factory = new PlSqlScriptBuildFactory();
-            else if (databaseType == DatabaseType.Postgres)
-                factory = new PostgreSqlScriptBuildFactory();
-            else if (databaseType == DatabaseType.Sqlite) factory = new SqliteScriptBuildFactory();
-
-            return factory;
+            return SqlHandler.GetHandler(databaseType).CreateScriptBuildFactory();
         }
 
         public static string TranslateComments(DbInterpreter sourceDbInterpreter, DbInterpreter targetDbInterpreter,

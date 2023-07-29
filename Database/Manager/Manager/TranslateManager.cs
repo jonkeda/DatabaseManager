@@ -137,9 +137,12 @@ namespace DatabaseManager.Core
             DbInterpreter targetDbInterpreter) where T : ScriptDbObject
         {
             var translator = new ScriptTranslator<T>(sourceDbInterpreter, targetDbInterpreter, dbObjects);
-            translator.Option = new DbConverterOption { OutputRemindInformation = false };
-            translator.Option.ConvertConcatChar = TranslateHelper.NeedConvertConcatChar(
-                SettingManager.Setting.ConvertConcatCharTargetDatabases, targetDbInterpreter.DatabaseType);
+            translator.Option = new DbConverterOption
+            {
+                OutputRemindInformation = false,
+                ConvertConcatChar = TranslateHelper.NeedConvertConcatChar(
+                    SettingManager.Setting.ConvertConcatCharTargetDatabases, targetDbInterpreter.DatabaseType)
+            };
             translator.AutoMakeupSchemaName = false;
 
             return translator;

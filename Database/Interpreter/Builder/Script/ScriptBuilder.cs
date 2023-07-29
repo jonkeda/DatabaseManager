@@ -39,9 +39,13 @@ namespace DatabaseInterpreter.Core
             return FormatScript ? Format(script) : script;
         }
 
+        private static readonly Regex FormatRegex = new Regex(@"([;]+[\s]*[;]+)|(\r\n[\s]*[;])",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+
         private string Format(string script)
         {
-            var regex = new Regex(@"([;]+[\s]*[;]+)|(\r\n[\s]*[;])");
+            var regex = FormatRegex;
 
             return StringHelper.ToSingleEmptyLine(regex.Replace(script, ";"));
         }

@@ -67,11 +67,11 @@ public partial class frmTranslateScript : Form
             return false;
         }
 
-        if (sourceDbTypeName == targetDbTypeName)
+/*        if (sourceDbTypeName == targetDbTypeName)
         {
             MessageBox.Show("The source database type can't be same as target.");
             return false;
-        }
+        }*/
 
         var sourceScript = txtSource.Text.Trim();
 

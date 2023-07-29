@@ -293,10 +293,13 @@ namespace DatabaseConverter.Core
             }
         }
 
+        private static readonly Regex GetDataTypeSpecificationRegex = new Regex(@"([(][^(^)]+[)])",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         private static DataTypeSpecification GetDataTypeSpecification(
             IEnumerable<DataTypeSpecification> dataTypeSpecifications, string dataType)
         {
-            var regex = new Regex(@"([(][^(^)]+[)])", RegexOptions.IgnoreCase);
+            var regex = GetDataTypeSpecificationRegex;
 
             if (regex.IsMatch(dataType))
             {

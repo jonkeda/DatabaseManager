@@ -9,6 +9,7 @@
     <PackageProjectUrl>https://github.com/victor-wiki/DatabaseManager</PackageProjectUrl>
     <PackageReleaseNotes>add "Definition" for "Table";
 add "ColumnName" for "TableConstraint"</PackageReleaseNotes>
+    <RootNamespace>Databases</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

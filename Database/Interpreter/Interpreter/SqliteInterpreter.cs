@@ -76,9 +76,9 @@ namespace DatabaseInterpreter.Core
 
         #region Database & Schema
 
-        public override async Task<List<Database>> GetDatabasesAsync()
+        public override async Task<List<Model.Database>> GetDatabasesAsync()
         {
-            var databases = new List<Database> { new Database { Name = ConnectionInfo.Database } };
+            var databases = new List<Model.Database> { new Model.Database { Name = ConnectionInfo.Database } };
 
             return await Task.Run(() => { return databases; });
         }

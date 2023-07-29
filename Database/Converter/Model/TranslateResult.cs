@@ -1,4 +1,5 @@
 ﻿using DatabaseInterpreter.Model;
+using SqlAnalyser.Model;
 
 namespace DatabaseConverter.Model
 {
@@ -7,8 +8,8 @@ namespace DatabaseConverter.Model
         public DatabaseObjectType DbObjectType { get; set; } = DatabaseObjectType.None;
         public string DbObjectSchema { get; set; }
         public string DbObjectName { get; set; }
-        public object Error { get; set; }
-        public object Data { get; set; }
+        public SqlSyntaxError Error { get; set; }
+        public string Data { get; set; }
 
         public bool HasError => Error != null;
     }

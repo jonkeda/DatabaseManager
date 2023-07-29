@@ -80,12 +80,12 @@ namespace DatabaseInterpreter.Core
 
         #region Database
 
-        public override Task<List<Database>> GetDatabasesAsync()
+        public override Task<List<Model.Database>> GetDatabasesAsync()
         {
             var sql =
                 $"SELECT SCHEMA_NAME AS `Name` FROM INFORMATION_SCHEMA.`SCHEMATA` {GetExcludeBuiltinDbNamesCondition("SCHEMA_NAME")} ORDER BY SCHEMA_NAME";
 
-            return GetDbObjectsAsync<Database>(sql);
+            return GetDbObjectsAsync<Model.Database>(sql);
         }
 
         public string GetDatabaseVersion()

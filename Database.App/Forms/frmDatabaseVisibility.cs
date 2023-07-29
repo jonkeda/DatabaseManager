@@ -79,7 +79,7 @@ public partial class frmDatabaseVisibility : Form
         LoadRecords(databases);
     }
 
-    private async void LoadRecords(IEnumerable<Database> databases)
+    private async void LoadRecords(IEnumerable<DatabaseInterpreter.Model.Database> databases)
     {
         var databaseNames = databases.Select(item => item.Name);
 

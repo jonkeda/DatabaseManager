@@ -87,12 +87,12 @@ namespace DatabaseInterpreter.Core
 
         #region Database
 
-        public override Task<List<Database>> GetDatabasesAsync()
+        public override Task<List<Model.Database>> GetDatabasesAsync()
         {
             var sql =
                 $@"SELECT name AS [Name] FROM sys.databases {GetExcludeBuiltinDbNamesCondition("name")} ORDER BY name";
 
-            return GetDbObjectsAsync<Database>(sql);
+            return GetDbObjectsAsync<Model.Database>(sql);
         }
 
         #endregion

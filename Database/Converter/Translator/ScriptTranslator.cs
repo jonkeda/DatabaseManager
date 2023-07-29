@@ -30,7 +30,7 @@ namespace DatabaseConverter.Core
 
         public override void Translate()
         {
-            if (sourceDbInterpreter.DatabaseType == targetDbInterpreter.DatabaseType) return;
+            // if (sourceDbInterpreter.DatabaseType == targetDbInterpreter.DatabaseType) return;
 
             if (hasError) return;
 

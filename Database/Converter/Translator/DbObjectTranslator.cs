@@ -178,6 +178,11 @@ namespace DatabaseConverter.Core
 
         public string ReplaceVariables(string script, List<IEnumerable<VariableMapping>> mappings)
         {
+            if (mappings == null)
+            {
+                return script;
+            }
+
             foreach (var mapping in mappings)
             {
                 var sourceVariable =

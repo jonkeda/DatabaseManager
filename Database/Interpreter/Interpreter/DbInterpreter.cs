@@ -71,7 +71,7 @@ namespace DatabaseInterpreter.Core
 
         #region Database
 
-        public abstract Task<List<Database>> GetDatabasesAsync();
+        public abstract Task<List<Model.Database>> GetDatabasesAsync();
 
         #endregion
 

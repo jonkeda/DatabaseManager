@@ -333,7 +333,7 @@ public partial class UC_DbObjectsComplexTree : UserControl, IObserver<FeedbackIn
                 nameof(DbObjectTreeFolderType.Indexes), true));
     }
 
-    private void AddDatabaseFakeNodes(TreeNode databaseNode, Database database)
+    private void AddDatabaseFakeNodes(TreeNode databaseNode, DatabaseInterpreter.Model.Database database)
     {
         ClearNodes(databaseNode);
 

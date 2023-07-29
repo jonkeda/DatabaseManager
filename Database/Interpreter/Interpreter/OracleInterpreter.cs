@@ -118,11 +118,11 @@ namespace DatabaseInterpreter.Core
             return dbSchema;
         }
 
-        public override Task<List<Database>> GetDatabasesAsync()
+        public override Task<List<Model.Database>> GetDatabasesAsync()
         {
             var sql = GetSqlForTablespaces();
 
-            return GetDbObjectsAsync<Database>(sql);
+            return GetDbObjectsAsync<Model.Database>(sql);
         }
 
         private string GetSqlForTablespaces()

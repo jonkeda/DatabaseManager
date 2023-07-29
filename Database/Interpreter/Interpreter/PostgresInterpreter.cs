@@ -77,12 +77,12 @@ namespace DatabaseInterpreter.Core
 
         #region Database
 
-        public override Task<List<Database>> GetDatabasesAsync()
+        public override Task<List<Model.Database>> GetDatabasesAsync()
         {
             var sql =
                 $@"SELECT datname AS ""Name"" FROM pg_database WHERE datname NOT LIKE 'template%'{GetExcludeBuiltinDbNamesCondition("datname", false)} ORDER BY datname";
 
-            return GetDbObjectsAsync<Database>(sql);
+            return GetDbObjectsAsync<Model.Database>(sql);
         }
 
         #endregion

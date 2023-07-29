@@ -245,7 +245,7 @@ namespace SqlAnalyser.Core
 
                     if (item.Type != IfStatementType.ELSE)
                         ifItem.Condition = new TokenInfo($"{variableName}={item.Condition}")
-                            { Type = TokenType.IfCondition };
+                        { Type = TokenType.IfCondition };
 
                     i++;
                 }
@@ -551,12 +551,7 @@ namespace SqlAnalyser.Core
                 }
             };
 
-            Action appendFrom = () =>
-            {
-                if (select.HasFromItems)
-                    BuildSelectStatementFromItems(select);
-                else if (select.TableName != null) AppendLine($"FROM {GetNameWithAlias(select.TableName)}");
-            };
+            AppendLine();
 
             if (isWith)
             {
@@ -565,17 +560,30 @@ namespace SqlAnalyser.Core
                 AppendLine(selectColumns);
             }
 
-            appendFrom();
+            if (select.HasFromItems)
+                BuildSelectStatementFromItems(select);
+            else if (select.TableName != null) AppendLine($"FROM {GetNameWithAlias(select.TableName)}");
 
-            if (select.Where != null) Append($"WHERE {select.Where}");
+
+            if (select.Where != null)
+            {
+                AppendLine($"WHERE {select.Where}");
+            }
 
             if (select.GroupBy != null && select.GroupBy.Count > 0)
+            {
                 AppendLine($"GROUP BY {string.Join(",", select.GroupBy.Select(item => item))}");
+            }
 
-            if (select.Having != null) AppendLine($"HAVING {select.Having}");
+            if (select.Having != null)
+            {
+                AppendLine($"HAVING {select.Having}");
+            }
 
             if (select.OrderBy != null && select.OrderBy.Count > 0)
+            {
                 AppendLine($"ORDER BY {string.Join(",", select.OrderBy.Select(item => item))}");
+            }
 
             if (select.LimitInfo != null)
                 if (select.TopInfo == null)
@@ -597,7 +605,7 @@ namespace SqlAnalyser.Core
             if (appendSeparator) AppendLine(";");
         }
 
-        private void MakeupRoutineName(TokenInfo token)
+        private static void MakeupRoutineName(TokenInfo token)
         {
             var symbol = token.Symbol;
             var index = symbol.IndexOf("(", StringComparison.Ordinal);

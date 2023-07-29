@@ -23,7 +23,7 @@ namespace DatabaseConverter.Core
 
         public override void Translate()
         {
-            if (sourceDbInterpreter.DatabaseType == targetDbInterpreter.DatabaseType) return;
+            //if (sourceDbInterpreter.DatabaseType == targetDbInterpreter.DatabaseType) return;
 
             if (hasError) return;
 
@@ -31,7 +31,7 @@ namespace DatabaseConverter.Core
 
             if (string.IsNullOrEmpty(targetSchemaName))
             {
-                if (targetDbInterpreter is SqlServerInterpreter)
+                if (targetDbInterpreter.DatabaseType == DatabaseType.SqlServer)
                     targetSchemaName = "dbo";
                 else
                     targetSchemaName = targetDbInterpreter.DefaultSchema;

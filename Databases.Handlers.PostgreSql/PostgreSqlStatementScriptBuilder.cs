@@ -807,5 +807,8 @@ namespace SqlAnalyser.Core
 
             return sb.ToString();
         }
+
+        protected virtual Boolean IsPostgreBuilder => true;
+
     }
 }

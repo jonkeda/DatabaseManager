@@ -198,7 +198,7 @@ namespace SqlAnalyser.Core
                         }
                         else
                         {
-                            var isPostgresDeleteFromJoin = isDeleteFromItem && this is PostgreSqlStatementScriptBuilder;
+                            var isPostgresDeleteFromJoin = isDeleteFromItem && IsPostgreBuilder;
 
                             var condition = joinItem.Condition == null
                                 ? ""
@@ -231,6 +231,8 @@ namespace SqlAnalyser.Core
             if (!hasJoins) AppendLine("", false);
         }
 
+        protected virtual Boolean IsPostgreBuilder => false;
+
         protected void BuildIfCondition(IfStatementItem item)
         {
             if (item.Condition != null)
@@ -241,7 +243,8 @@ namespace SqlAnalyser.Core
             {
                 if (item.ConditionType == IfConditionType.NotExists)
                     Append("NOT EXISTS");
-                else if (item.ConditionType == IfConditionType.Exists) Append("EXISTS");
+                else if (item.ConditionType == IfConditionType.Exists) 
+                    Append("EXISTS");
 
                 AppendSubquery(item.CondtionStatement);
             }

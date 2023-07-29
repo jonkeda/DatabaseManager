@@ -711,7 +711,7 @@ namespace DatabaseInterpreter.Core
 
                     if (oracleSemicolon)
                         strValue = strValue.Replace(";",
-                            $"'{dbInterpreter.STR_CONCAT_CHARS}{OracleInterpreter.SEMICOLON_FUNC}{dbInterpreter.STR_CONCAT_CHARS}'");
+                            $"'{dbInterpreter.STR_CONCAT_CHARS}{OracleInterpreter_SEMICOLON_FUNC}{dbInterpreter.STR_CONCAT_CHARS}'");
 
                     return strValue;
                 }
@@ -721,6 +721,8 @@ namespace DatabaseInterpreter.Core
 
             return null;
         }
+
+        public const string OracleInterpreter_SEMICOLON_FUNC = "CHR(59)";
 
         public static string ConvertGuidBytesToString(byte[] value, DatabaseType databaseType, string dataType,
             long? length, bool bytesAsString)

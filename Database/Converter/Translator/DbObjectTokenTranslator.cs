@@ -234,7 +234,7 @@ namespace DatabaseConverter.Core
                         switch (text.ToUpper())
                         {
                             case "AS":
-                                if (targetDbInterpreter is OracleInterpreter)
+                                if (targetDbInterpreter.DatabaseType == DatabaseType.Oracle)
                                 {
                                     var previousKeyword =
                                         (from t in tokens

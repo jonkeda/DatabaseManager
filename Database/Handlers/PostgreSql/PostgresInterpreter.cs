@@ -2,14 +2,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using Microsoft.SqlServer.Types;
 using Npgsql;
+using static Npgsql.Replication.PgOutput.Messages.RelationMessage;
 using PgGeom = NetTopologySuite.Geometries;
 
 namespace DatabaseInterpreter.Core
@@ -1268,5 +1271,15 @@ namespace DatabaseInterpreter.Core
         }
 
         #endregion
+
+        protected override string GetUserDefinedColumnName(string columnName, string columnDataType)
+        {
+            if (!DataTypeHelper.IsGeometryType(columnDataType))
+                columnName = $@"{columnName}::CHARACTER VARYING AS {columnName}";
+
+            return columnName;
+        }
+
     }
+
 }

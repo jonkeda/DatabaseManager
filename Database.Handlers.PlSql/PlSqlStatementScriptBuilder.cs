@@ -937,5 +937,17 @@ namespace SqlAnalyser.Core
                 }
             }
         }
+
+        protected override bool IsInvalidTableName(string tableName)
+        {
+            if (tableName == null) return false;
+
+            tableName = GetTrimedQuotationValue(tableName);
+
+            if (tableName.ToUpper() == "DUAL" && !(this is PlSqlStatementScriptBuilder)) return true;
+
+            return false;
+        }
+
     }
 }

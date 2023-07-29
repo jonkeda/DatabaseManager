@@ -701,50 +701,7 @@ namespace DatabaseInterpreter.Core
 
                 if (column.IsUserDefined)
                 {
-                    if (DatabaseType == DatabaseType.Postgres)
-                    {
-                        if (!DataTypeHelper.IsGeometryType(column.DataType))
-                            columnName = $@"{columnName}::CHARACTER VARYING AS {columnName}";
-                    }
-                    else if (DatabaseType == DatabaseType.Oracle)
-                    {
-                        if (!IsLowDbVersion())
-                        {
-                            columnName = $@"JSON_OBJECT({columnName}) AS {columnName}"; //JSON_OBJECT -> v12.2
-                        }
-                        else
-                        {
-                            quotedTableName += " t";
-
-                            var oracleInterpreter = this as OracleInterpreter;
-
-                            var attributes = await oracleInterpreter.GetUserDefinedTypeAttributesAsync(connection,
-                                new SchemaInfoFilter { UserDefinedTypeNames = new[] { column.DataType } });
-
-                            var sb = new StringBuilder();
-                            sb.Append("('('||");
-
-                            var count = 0;
-
-                            foreach (var atrribute in attributes)
-                            {
-                                if (count > 0) sb.Append("||','||");
-
-                                var attrName = GetQuotedString(atrribute.Name);
-
-                                if (!DataTypeHelper.IsCharType(atrribute.DataType))
-                                    sb.Append($"TO_CHAR(t.{columnName}.{attrName})");
-                                else
-                                    sb.Append($"t.{columnName}.{attrName}");
-
-                                count++;
-                            }
-
-                            sb.Append($"||')') AS {columnName}");
-
-                            columnName = sb.ToString();
-                        }
-                    }
+                    columnName = GetUserDefinedColumnName(columnName, column.DataType);
                 }
 
                 #endregion
@@ -1196,5 +1153,10 @@ namespace DatabaseInterpreter.Core
         }
 
         #endregion
+
+        protected virtual string GetUserDefinedColumnName(string columnName, string columnDataType)
+        {
+            return columnName;
+        }
     }
 }

@@ -1,10 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Data.Common;
 using DatabaseInterpreter.Core;
-//using Databases.Handlers.MySql;
-using Databases.Handlers.PlSql;
-using Databases.Handlers.Sqlite;
-using Databases.Handlers.TSql;
 using DatabaseInterpreter.Model;
 using DatabaseManager.Core;
 using SqlAnalyser.Core;

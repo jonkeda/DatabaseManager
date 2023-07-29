@@ -30,7 +30,7 @@ namespace SqlAnalyser.Core
 
         public StatementScriptBuilderOption Option { get; set; } = new StatementScriptBuilderOption();
 
-        internal int Length => Script.Length;
+        protected int Length => Script.Length;
 
         public void Dispose()
         {
@@ -271,13 +271,13 @@ namespace SqlAnalyser.Core
             return value?.Trim('[', ']', '"', '`');
         }
 
-        protected bool IsInvalidTableName(string tableName)
+        protected virtual bool IsInvalidTableName(string tableName)
         {
             if (tableName == null) return false;
 
             tableName = GetTrimedQuotationValue(tableName);
 
-            if (tableName.ToUpper() == "DUAL" && !(this is PlSqlStatementScriptBuilder)) return true;
+            if (tableName.ToUpper() == "DUAL") return true;
 
             return false;
         }

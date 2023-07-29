@@ -24,6 +24,8 @@
     <ProjectReference Include="..\Database.Handlers.PlSql\Databases.Handlers.PlSql.csproj" />
     <ProjectReference Include="..\Database.Handlers.Sqlite\Databases.Handlers.Sqlite.csproj" />
     <ProjectReference Include="..\Database.Profile\Database.Profile.csproj" />
+    <ProjectReference Include="..\Databases.Handlers.PostgreSql\Databases.Handlers.PostgreSql.csproj" />
+    <ProjectReference Include="..\Databases.Handlers.TSql\Databases.Handlers.TSql.csproj" />
     <ProjectReference Include="..\Database\Databases.csproj" />
   </ItemGroup>
   <ItemGroup>

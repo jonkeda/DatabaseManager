@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using DatabaseInterpreter.Core;
 using Databases.Handlers.MySql;
 using Databases.Handlers.PlSql;
 using Databases.Handlers.Sqlite;
@@ -28,6 +29,8 @@ namespace Databases.Handlers
         public abstract SqlAnalyserBase GetSqlAnalyser(string content);
         public abstract DbBackup CreateDbBackup();
         public abstract DbDiagnosis CreateDbDiagnosis(ConnectionInfo connectionInfo);
+        public abstract DbInterpreter CreateDbInterpreter(ConnectionInfo connectionInfo, DbInterpreterOption option);
+        public abstract DbScriptGenerator CreateDbScriptGenerator(DbInterpreter dbInterpreter);
 
         private static readonly SqlHandlerDictionary Handlers = new SqlHandlerDictionary();
 

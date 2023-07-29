@@ -119,7 +119,7 @@ namespace DatabaseConverter.Core
             {
                 var sb = new StringBuilder();
 
-                if (sourceDbInterpreter.GetType() == typeof(MySqlInterpreter))
+                if (sourceDbInterpreter.DatabaseType == DatabaseType.MySql)
                 {
                     var hasError = false;
                     var formattedDefinition = FormatSql(definition, out hasError);

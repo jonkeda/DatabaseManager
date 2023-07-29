@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using DatabaseInterpreter.Model;
+using Databases.Handlers;
 
 namespace DatabaseInterpreter.Core
 {
@@ -10,19 +11,7 @@ namespace DatabaseInterpreter.Core
         public static DbInterpreter GetDbInterpreter(DatabaseType dbType, ConnectionInfo connectionInfo,
             DbInterpreterOption option)
         {
-            DbInterpreter dbInterpreter = null;
-
-            if (dbType == DatabaseType.SqlServer)
-                dbInterpreter = new SqlServerInterpreter(connectionInfo, option);
-            else if (dbType == DatabaseType.MySql)
-                dbInterpreter = new MySqlInterpreter(connectionInfo, option);
-            else if (dbType == DatabaseType.Oracle)
-                dbInterpreter = new OracleInterpreter(connectionInfo, option);
-            else if (dbType == DatabaseType.Postgres)
-                dbInterpreter = new PostgresInterpreter(connectionInfo, option);
-            else if (dbType == DatabaseType.Sqlite) dbInterpreter = new SqliteInterpreter(connectionInfo, option);
-
-            return dbInterpreter;
+            return SqlHandler.GetHandler(dbType).CreateDbInterpreter(connectionInfo, option);
         }
 
         public static IEnumerable<DatabaseType> GetDisplayDatabaseTypes()

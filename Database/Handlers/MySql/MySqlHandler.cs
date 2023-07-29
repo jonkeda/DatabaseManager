@@ -1,4 +1,5 @@
-﻿using SqlAnalyser.Core;
+﻿using DatabaseInterpreter.Core;
+using SqlAnalyser.Core;
 using DatabaseInterpreter.Model;
 using DatabaseManager.Core;
 
@@ -25,5 +26,16 @@ namespace Databases.Handlers.MySql
         {
             return new MySqlDiagnosis(connectionInfo);
         }
+
+        public override DbInterpreter CreateDbInterpreter(ConnectionInfo connectionInfo, 
+            DbInterpreterOption option)
+        {
+            return new MySqlInterpreter(connectionInfo, option);
+        }
+
+        public override DbScriptGenerator CreateDbScriptGenerator(DbInterpreter dbInterpreter)
+        {
+            return new MySqlScriptGenerator(dbInterpreter);
+        }        
     }
 }

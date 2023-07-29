@@ -1,4 +1,5 @@
-﻿using SqlAnalyser.Core;
+﻿using DatabaseInterpreter.Core;
+using SqlAnalyser.Core;
 using DatabaseInterpreter.Model;
 using DatabaseManager.Core;
 
@@ -26,5 +27,18 @@ namespace Databases.Handlers.TSql
         {
             return new SqlServerDiagnosis(connectionInfo);
         }
+
+
+        public override DbInterpreter CreateDbInterpreter(ConnectionInfo connectionInfo,
+            DbInterpreterOption option)
+        {
+            return new SqlServerInterpreter(connectionInfo, option);
+        }
+
+        public override DbScriptGenerator CreateDbScriptGenerator(DbInterpreter dbInterpreter)
+        {
+            return new SqlServerScriptGenerator(dbInterpreter);
+        }
+
     }
 }

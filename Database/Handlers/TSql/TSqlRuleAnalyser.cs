@@ -1212,7 +1212,7 @@ namespace SqlAnalyser.Core
                 }
                 else if (child is Table_sourcesContext table)
                 {
-                    if (!AnalyserHelper.IsSubquery(table))
+                    if (!AnalyserHelper.IsSubQuery(table))
                     {
                         //statement.TableName = this.ParseTableName(table);
                     }

@@ -210,7 +210,7 @@ namespace SqlAnalyser.Core
 
                             string joinTableName = null;
 
-                            var isSubquery = AnalyserHelper.IsSubquery(tableName.Symbol);
+                            var isSubquery = AnalyserHelper.IsSubQuery(tableName.Symbol);
 
                             if (!isSubquery)
                                 joinTableName = GetNameWithAlias(tableName);

@@ -118,7 +118,7 @@ public class RichTextBoxHelper
 
         var pattern = "";
 
-        if (Regex.IsMatch(word, RegexHelper.NameRegexPattern))
+        if (RegexHelper.NameRegex.IsMatch(word))
             pattern = $"\\b{word}\\b";
         else
             pattern = $"({word})";

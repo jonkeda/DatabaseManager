@@ -362,7 +362,7 @@ namespace SqlAnalyser.Core
 
                         value = GetSetVariableValue(set.Key.Symbol, set.Value?.Symbol);
 
-                        if (!AnalyserHelper.IsSubquery(value))
+                        if (!AnalyserHelper.IsSubQuery(value))
                             AppendLine($"{set.Key} := {value};");
                         else
                             AppendLine(StatementScriptBuilderHelper.ConvertToSelectIntoVariable(set.Key.Symbol, value));
@@ -655,7 +655,7 @@ namespace SqlAnalyser.Core
 
                         value = GetSetVariableValue(variable, value);
 
-                        if (!AnalyserHelper.IsSubquery(value))
+                        if (!AnalyserHelper.IsSubQuery(value))
                             symbol = $"{variable}:={value}";
                         else
                             symbol = StatementScriptBuilderHelper.ConvertToSelectIntoVariable(variable, value);

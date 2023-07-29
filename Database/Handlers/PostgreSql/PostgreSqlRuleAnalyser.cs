@@ -605,7 +605,7 @@ namespace SqlAnalyser.Core
 
                     var value = set.a_expr();
 
-                    var isSubquery = AnalyserHelper.IsSubquery(value);
+                    var isSubquery = AnalyserHelper.IsSubQuery(value);
 
                     if (!isSubquery)
                     {
@@ -1090,7 +1090,7 @@ namespace SqlAnalyser.Core
                 {
                     tableName = new TableName(swp);
 
-                    if (AnalyserHelper.IsSubquery(swp)) AddChildTableAndColumnNameToken(swp, tableName);
+                    if (AnalyserHelper.IsSubQuery(swp)) AddChildTableAndColumnNameToken(swp, tableName);
                 }
                 else if (node is Relation_expr_opt_aliasContext reo)
                 {

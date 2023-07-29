@@ -669,7 +669,7 @@ namespace SqlAnalyser.Core
 
                 item.Name = ParseColumnName(setItem.columnRef());
 
-                var isSubquery = AnalyserHelper.IsSubquery(valueExp);
+                var isSubquery = AnalyserHelper.IsSubQuery(valueExp);
 
                 if (!isSubquery)
                     item.Value = new TokenInfo(valueExp) { Type = TokenType.UpdateSetValue };
@@ -1038,7 +1038,7 @@ namespace SqlAnalyser.Core
                     }
                     else if (child is SetExprOrDefaultContext setExpr)
                     {
-                        var isSubquery = AnalyserHelper.IsSubquery(setExpr);
+                        var isSubquery = AnalyserHelper.IsSubQuery(setExpr);
 
                         var statement = statements.Last();
 

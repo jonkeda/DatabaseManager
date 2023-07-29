@@ -291,11 +291,10 @@ namespace DatabaseConverter.Core
                         else
                         {
                             if (value.StartsWith("@")
-                                || Regex.IsMatch(value.Trim('(', ')', ' '), RegexHelper.NameRegexPattern)
+                                || RegexHelper.NameRegex.IsMatch(value.Trim('(', ')', ' '))
                                 || (value.Contains(".") && value.Split('.').All(item =>
-                                    Regex.IsMatch(item.Trim().Trim(quotationChars), RegexHelper.NameRegexPattern)))
-                                || Regex.IsMatch(TranslateHelper.ExtractNameFromParenthesis(value.Trim()),
-                                    RegexHelper.NameRegexPattern)
+                                    RegexHelper.NameRegex.IsMatch(item.Trim().Trim(quotationChars))))
+                                || RegexHelper.NameRegex.IsMatch(TranslateHelper.ExtractNameFromParenthesis(value.Trim()))
                                )
                             {
                                 sb.Append(value);

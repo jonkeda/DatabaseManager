@@ -17,7 +17,7 @@ namespace DatabaseConverter.Core
     {
         public static string ConvertNumberToPostgresMoney(string str)
         {
-            var matches = Regex.Matches(str, RegexHelper.NumberRegexPattern);
+            var matches = RegexHelper.NumberRegex.Matches(str);
 
             if (matches != null)
                 foreach (Match match in matches)
@@ -225,7 +225,7 @@ namespace DatabaseConverter.Core
 
             if (trimedName.Contains(" ") && IsNameQuoted(name.Trim(), trimChars))
                 return true;
-            return Regex.IsMatch(trimedName, RegexHelper.NameRegexPattern);
+            return RegexHelper.NameRegex.IsMatch(trimedName);
         }
 
         public static bool IsNameQuoted(string name, char[] trimChars)
@@ -241,7 +241,7 @@ namespace DatabaseConverter.Core
 
                 var assignName = items[0].Trim(trimChars).Trim();
 
-                if (Regex.IsMatch(assignName, RegexHelper.NameRegexPattern)) return true;
+                if (RegexHelper.NameRegex.IsMatch(assignName)) return true;
             }
 
             return false;

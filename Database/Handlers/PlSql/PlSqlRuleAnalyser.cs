@@ -902,7 +902,7 @@ namespace SqlAnalyser.Core
                     }
 
                     var valueExp = colSet.expression();
-                    var isSubquery = AnalyserHelper.IsSubquery(valueExp);
+                    var isSubquery = AnalyserHelper.IsSubQuery(valueExp);
 
                     TokenInfo value = null;
                     SelectStatement valueStatement = null;
@@ -1885,7 +1885,7 @@ namespace SqlAnalyser.Core
 
                     setAlias(tra.table_alias());
 
-                    if (AnalyserHelper.IsSubquery(tfa)) AddChildTableAndColumnNameToken(tfa, tableName);
+                    if (AnalyserHelper.IsSubQuery(tfa)) AddChildTableAndColumnNameToken(tfa, tableName);
                 }
                 else if (node is Table_ref_listContext trl)
                 {

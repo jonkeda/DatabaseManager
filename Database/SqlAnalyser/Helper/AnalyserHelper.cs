@@ -23,14 +23,14 @@ namespace SqlAnalyser.Core
             return Regex.IsMatch(content, $@"\b({word})\b", RegexOptions.IgnoreCase);
         }
 
-        public static bool IsSubquery(ParserRuleContext node)
+        public static bool IsSubQuery(ParserRuleContext node)
         {
             if (node != null)
-                return IsSubquery(node.GetText());
+                return IsSubQuery(node.GetText());
             return false;
         }
 
-        public static bool IsSubquery(string query)
+        public static bool IsSubQuery(string query)
         {
             var hasWord = HasWord(query, "SELECT");
 
@@ -49,8 +49,7 @@ namespace SqlAnalyser.Core
         public static string ReplaceSymbol(string symbol, string oldValue, string newValue)
         {
             string pattern;
-
-            if (Regex.IsMatch(oldValue, RegexHelper.NameRegexPattern))
+            if (RegexHelper.NameRegex.IsMatch(oldValue))
                 pattern = $"\\b{oldValue}\\b";
             else
                 pattern = $"({oldValue})";
@@ -94,7 +93,7 @@ namespace SqlAnalyser.Core
 
                 var assignName = items[0].Trim(TrimChars).Trim();
 
-                if (Regex.IsMatch(assignName, RegexHelper.NameRegexPattern)) return true;
+                if (RegexHelper.NameRegex.IsMatch(assignName)) return true;
             }
 
             return false;
@@ -113,11 +112,11 @@ namespace SqlAnalyser.Core
 
         public static bool IsValidName(string name)
         {
-            var trimedName = name.Trim(TrimChars).Trim();
+            var trimmedName = name.Trim(TrimChars).Trim();
 
-            if (trimedName.Contains(" ") && IsNameQuoted(name.Trim()))
+            if (trimmedName.Contains(" ") && IsNameQuoted(name.Trim()))
                 return true;
-            return Regex.IsMatch(trimedName, RegexHelper.NameRegexPattern);
+            return RegexHelper.NameRegex.IsMatch(trimmedName);
         }
 
         public static bool IsNameQuoted(string name)

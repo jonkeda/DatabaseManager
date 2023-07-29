@@ -421,7 +421,7 @@ namespace DatabaseConverter.Core
                         var items = parentOldSymbol.Split('.');
 
                         if (items.Length <= 3 && items.All(item =>
-                                Regex.IsMatch(GetTrimedName(item), RegexHelper.NameRegexPattern))) procToken();
+                                RegexHelper.NameRegex.IsMatch(GetTrimedName(item)))) procToken();
                     }
             }
 
@@ -555,7 +555,7 @@ namespace DatabaseConverter.Core
 
             oldSymbolPattern = Regex.Escape(oldSymbolPattern);
 
-            if (Regex.IsMatch(oldSymbol, RegexHelper.NameRegexPattern))
+            if (RegexHelper.NameRegex.IsMatch(oldSymbol))
             {
                 pattern = $"\\b{oldSymbolPattern}\\b";
             }

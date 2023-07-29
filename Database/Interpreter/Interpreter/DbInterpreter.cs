@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Dapper;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
+using Databases.Exceptions;
+using Databases.Interpreter.Builder;
 using Npgsql;
 //using DatabaseInterpreter.Geometry;
 using PgGeom = NetTopologySuite.Geometries;
@@ -266,10 +268,12 @@ namespace DatabaseInterpreter.Core
         protected async Task<List<T>> GetDbObjectsAsync<T>(string sql) where T : DatabaseObject
         {
             if (!string.IsNullOrEmpty(sql))
+            {
                 using (var dbConnection = CreateConnection())
                 {
                     return await GetDbObjectsAsync<T>(dbConnection, sql);
                 }
+            }
 
             return new List<T>();
         }
@@ -280,6 +284,7 @@ namespace DatabaseInterpreter.Core
             var objects = new List<T>();
 
             if (!string.IsNullOrEmpty(sql))
+            {
                 try
                 {
                     await OpenConnectionAsync(dbConnection);
@@ -299,8 +304,12 @@ namespace DatabaseInterpreter.Core
                 {
                     FeedbackError(ExceptionHelper.GetExceptionDetails(ex));
 
-                    if (Option.ThrowExceptionWhenErrorOccurs) throw;
+                    if (Option.ThrowExceptionWhenErrorOccurs)
+                    {
+                        throw;
+                    }
                 }
+            }
 
             FeedbackInfo($"Got {objects.Count} {StringHelper.GetFriendlyTypeName(typeof(T).Name).ToLower()}(s).");
 
@@ -309,7 +318,10 @@ namespace DatabaseInterpreter.Core
 
         public virtual async Task<SchemaInfo> GetSchemaInfoAsync(SchemaInfoFilter filter = null)
         {
-            if (filter == null) filter = new SchemaInfoFilter();
+            if (filter == null)
+            {
+                filter = new SchemaInfoFilter();
+            }
 
             FeedbackInfo("Getting schema info...");
 
@@ -318,49 +330,75 @@ namespace DatabaseInterpreter.Core
             using (var connection = CreateConnection())
             {
                 if (NeedFetchObjects(DatabaseObjectType.Type, filter.UserDefinedTypeNames, filter))
+                {
                     schemaInfo.UserDefinedTypes = await GetUserDefinedTypesAsync(connection, filter);
+                }
 
                 if (NeedFetchObjects(DatabaseObjectType.Sequence, filter.SequenceNames, filter))
+                {
                     schemaInfo.Sequences = await GetSequencesAsync(connection, filter);
+                }
 
                 if (NeedFetchObjects(DatabaseObjectType.Function, filter.FunctionNames, filter))
+                {
                     schemaInfo.Functions = await GetFunctionsAsync(connection, filter);
+                }
 
                 if (NeedFetchObjects(DatabaseObjectType.Table, filter.TableNames, filter))
+                {
                     schemaInfo.Tables = await GetTablesAsync(connection, filter);
+                }
 
                 if (NeedFetchObjects(DatabaseObjectType.View, filter.ViewNames, filter))
+                {
                     schemaInfo.Views = await GetViewsAsync(connection, filter);
+                }
 
                 if (NeedFetchObjects(DatabaseObjectType.Procedure, filter.ProcedureNames, filter))
+                {
                     schemaInfo.Procedures = await GetProceduresAsync(connection, filter);
+                }
 
                 if (NeedFetchTableObjects(DatabaseObjectType.Column, filter, null))
+                {
                     schemaInfo.TableColumns = await GetTableColumnsAsync(connection, filter);
+                }
 
                 if (NeedFetchTableObjects(DatabaseObjectType.PrimaryKey, filter, null))
+                {
                     schemaInfo.TablePrimaryKeys = await GetTablePrimaryKeysAsync(connection, filter);
+                }
 
                 if ((Option.SortObjectsByReference && schemaInfo.Tables.Count > 1) ||
                     NeedFetchTableObjects(DatabaseObjectType.ForeignKey, filter, null))
+                {
                     schemaInfo.TableForeignKeys = await GetTableForeignKeysAsync(connection, filter);
+                }
 
                 if (NeedFetchTableObjects(DatabaseObjectType.Index, filter, null))
+                {
                     schemaInfo.TableIndexes =
                         await GetTableIndexesAsync(connection, filter, Option.IncludePrimaryKeyWhenGetTableIndex);
+                }
 
                 if (NeedFetchTableObjects(DatabaseObjectType.Constraint, filter, null))
+                {
                     schemaInfo.TableConstraints = await GetTableConstraintsAsync(connection, filter);
+                }
 
                 if (NeedFetchTableObjects(DatabaseObjectType.Trigger, filter, filter.TableTriggerNames))
+                {
                     schemaInfo.TableTriggers = await GetTableTriggersAsync(connection, filter);
+                }
             }
 
             if (Option.SortObjectsByReference)
             {
                 if (schemaInfo.Tables.Count > 1)
+                {
                     schemaInfo.Tables =
                         TableReferenceHelper.ResortTables(schemaInfo.Tables, schemaInfo.TableForeignKeys);
+                }
 
                 DbObjectHelper.Resort(schemaInfo.Views);
                 DbObjectHelper.Resort(schemaInfo.Functions);
@@ -387,7 +425,10 @@ namespace DatabaseInterpreter.Core
             var hasName = names != null && names.Any();
 
             if (filter.Strict)
+            {
                 return hasName && filter.DatabaseObjectType.HasFlag(currentObjectType);
+            }
+
             return hasName || filter.DatabaseObjectType.HasFlag(currentObjectType);
         }
 
@@ -417,10 +458,12 @@ namespace DatabaseInterpreter.Core
         protected async Task<List<T>> GetDbObjectUsagesAsync<T>(string sql) where T : DbObjectUsage
         {
             if (!string.IsNullOrEmpty(sql))
+            {
                 using (var dbConnection = CreateConnection())
                 {
                     return await GetDbObjectUsagesAsync<T>(dbConnection, sql);
                 }
+            }
 
             return new List<T>();
         }
@@ -431,6 +474,7 @@ namespace DatabaseInterpreter.Core
             var objects = new List<T>();
 
             if (!string.IsNullOrEmpty(sql))
+            {
                 try
                 {
                     await OpenConnectionAsync(dbConnection);
@@ -441,8 +485,12 @@ namespace DatabaseInterpreter.Core
                 {
                     FeedbackError(ExceptionHelper.GetExceptionDetails(ex));
 
-                    if (Option.ThrowExceptionWhenErrorOccurs) throw;
+                    if (Option.ThrowExceptionWhenErrorOccurs)
+                    {
+                        throw;
+                    }
                 }
+            }
 
             FeedbackInfo($"Got {objects.Count} {StringHelper.GetFriendlyTypeName(typeof(T).Name).ToLower()}(s).");
 
@@ -459,14 +507,20 @@ namespace DatabaseInterpreter.Core
         {
             var dbConnection = dbConnector.CreateConnection();
 
-            if (Option.RequireInfoMessage) SubscribeInfoMessage(dbConnection);
+            if (Option.RequireInfoMessage)
+            {
+                SubscribeInfoMessage(dbConnection);
+            }
 
             return dbConnection;
         }
 
         public async Task OpenConnectionAsync(DbConnection connection)
         {
-            if (connection.State == ConnectionState.Closed) await connection.OpenAsync();
+            if (connection.State == ConnectionState.Closed)
+            {
+                await connection.OpenAsync();
+            }
         }
 
         public Task<int> ExecuteNonQueryAsync(string sql)
@@ -492,18 +546,28 @@ namespace DatabaseInterpreter.Core
         protected async Task<int> InternalExecuteNonQuery(DbConnection dbConnection, CommandInfo commandInfo,
             bool disposeConnection = true)
         {
-            if (CancelRequested || hasError) return 0;
+            if (CancelRequested || hasError)
+            {
+                return 0;
+            }
 
             var command = dbConnection.CreateCommand();
             command.CommandType = commandInfo.CommandType;
             command.CommandText = commandInfo.CommandText;
             command.CommandTimeout = Setting.CommandTimeout;
 
-            if (Option.RequireInfoMessage) SubscribeInfoMessage(command);
+            if (Option.RequireInfoMessage)
+            {
+                SubscribeInfoMessage(command);
+            }
 
-            if (commandInfo.Transaction != null) command.Transaction = commandInfo.Transaction;
+            if (commandInfo.Transaction != null)
+            {
+                command.Transaction = commandInfo.Transaction;
+            }
 
             if (commandInfo.Parameters != null)
+            {
                 foreach (var kp in commandInfo.Parameters)
                 {
                     var dbParameter = command.CreateParameter();
@@ -512,6 +576,7 @@ namespace DatabaseInterpreter.Core
 
                     command.Parameters.Add(dbParameter);
                 }
+            }
 
             Func<Task<int>> exec = async () =>
             {
@@ -519,7 +584,10 @@ namespace DatabaseInterpreter.Core
 
                 try
                 {
-                    if (isClosed) await dbConnection.OpenAsync(commandInfo.CancellationToken).ConfigureAwait(false);
+                    if (isClosed)
+                    {
+                        await dbConnection.OpenAsync(commandInfo.CancellationToken).ConfigureAwait(false);
+                    }
 
                     var result = await command.ExecuteNonQueryAsync(commandInfo.CancellationToken)
                         .ConfigureAwait(false);
@@ -533,6 +601,7 @@ namespace DatabaseInterpreter.Core
                     var hasRollbackedTransaction = false;
 
                     if (!commandInfo.ContinueWhenErrorOccurs)
+                    {
                         if (dbConnection.State == ConnectionState.Open && command.Transaction != null)
                         {
                             command.Transaction.Rollback();
@@ -540,26 +609,34 @@ namespace DatabaseInterpreter.Core
 
                             hasRollbackedTransaction = true;
                         }
+                    }
 
                     FeedbackError(ExceptionHelper.GetExceptionDetails(ex), commandInfo.ContinueWhenErrorOccurs);
 
                     if (Option.ThrowExceptionWhenErrorOccurs && !commandInfo.ContinueWhenErrorOccurs)
-                        throw new DbCommandException(ex) { HasRollbackedTransaction = hasRollbackedTransaction };
+                    {
+                        throw new DbCommandException(ex) { HasRolledBackTransaction = hasRollbackedTransaction };
+                    }
 
                     return 0;
                 }
                 finally
                 {
                     if (disposeConnection && isClosed &&
-                        dbConnection.State != ConnectionState.Closed) dbConnection.Close();
+                        dbConnection.State != ConnectionState.Closed)
+                    {
+                        dbConnection.Close();
+                    }
                 }
             };
 
             if (disposeConnection)
+            {
                 using (dbConnection)
                 {
                     return await exec();
                 }
+            }
 
             return await exec();
         }
@@ -576,7 +653,10 @@ namespace DatabaseInterpreter.Core
         {
             var sql = $"SELECT COUNT(1) FROM {GetQuotedDbObjectNameWithSchema(dbObject)}";
 
-            if (!string.IsNullOrEmpty(whereClause)) sql += whereClause;
+            if (!string.IsNullOrEmpty(whereClause))
+            {
+                sql += whereClause;
+            }
 
             return GetTableRecordCountAsync(connection, sql);
         }
@@ -624,7 +704,9 @@ namespace DatabaseInterpreter.Core
         public async Task<DataTable> GetDataTableAsync(DbConnection dbConnection, string sql)
         {
             if (DatabaseType == DatabaseType.Postgres)
+            {
                 NpgsqlConnection.GlobalTypeMapper.UseNetTopologySuite(geographyAsDefault: false);
+            }
 
             if (DatabaseType == DatabaseType.Oracle)
             {
@@ -648,9 +730,15 @@ namespace DatabaseInterpreter.Core
 
             foreach (var column in columns)
             {
-                if (Option.ExcludeGeometryForData && DataTypeHelper.IsGeometryType(column.DataType)) continue;
+                if (Option.ExcludeGeometryForData && DataTypeHelper.IsGeometryType(column.DataType))
+                {
+                    continue;
+                }
 
-                if (Option.ExcludeIdentityForData && column.IsIdentity) continue;
+                if (Option.ExcludeIdentityForData && column.IsIdentity)
+                {
+                    continue;
+                }
 
                 var columnName = GetQuotedString(column.Name);
                 var dataType = column.DataType.ToLower();
@@ -676,16 +764,23 @@ namespace DatabaseInterpreter.Core
                                 var precisionRange = DataTypeManager.GetArgumentRange(dataTypeSpec, "precision");
 
                                 if (precisionRange.HasValue)
+                                {
                                     if (int.TryParse(strPrecision, out precision) && precision > 0 &&
                                         precision <= precisionRange.Value.Max)
+                                    {
                                         columnName =
                                             $"CONVERT({columnName},DECIMAL({dataTypeInfo.Args})) AS {columnName}";
+                                    }
+                                }
                             }
                         }
                     }
                     else if (dataType == "geometry")
                     {
-                        if (Option.ShowTextForGeometry) columnName = $"ST_ASTEXT({columnName}) AS {columnName}";
+                        if (Option.ShowTextForGeometry)
+                        {
+                            columnName = $"ST_ASTEXT({columnName}) AS {columnName}";
+                        }
                     }
                 }
 
@@ -696,21 +791,29 @@ namespace DatabaseInterpreter.Core
                 else if (DatabaseType == DatabaseType.Oracle)
                 {
                     if (dataType == "st_geometry" && column.DataTypeSchema == "SDE")
+                    {
                         columnName = $"SDE.ST_ASTEXT({columnName}) AS {columnName}";
+                    }
                 }
 
                 #endregion
 
                 #region User defined type
 
-                if (column.IsUserDefined) columnName = GetUserDefinedColumnName(columnName, column.DataType);
+                if (column.IsUserDefined)
+                {
+                    columnName = GetUserDefinedColumnName(columnName, column.DataType);
+                }
 
                 #endregion
 
                 columnNames.Add(columnName);
             }
 
-            if (columnNames.Count == 0) return new DataTable();
+            if (columnNames.Count == 0)
+            {
+                return new DataTable();
+            }
 
             var strColumnNames = string.Join(",", columnNames);
 
@@ -721,14 +824,19 @@ namespace DatabaseInterpreter.Core
 
             var dtColumns = dt.Columns.OfType<DataColumn>();
 
-            if (dtColumns.Any(item => item.ColumnName == RowNumberColumnName)) dt.Columns.Remove(RowNumberColumnName);
+            if (dtColumns.Any(item => item.ColumnName == RowNumberColumnName))
+            {
+                dt.Columns.Remove(RowNumberColumnName);
+            }
 
             foreach (var col in dtColumns)
             {
                 var tc = columns.FirstOrDefault(item => item.Name == col.ColumnName);
 
                 if (tc != null)
+                {
                     col.ExtendedProperties.Add(nameof(DataTypeInfo), new DataTypeInfo { DataType = tc.DataType });
+                }
             }
 
             return dt;
@@ -743,7 +851,10 @@ namespace DatabaseInterpreter.Core
 
                 var filter = new SchemaInfoFilter { Schema = table.Schema };
 
-                if (isForView) filter.ColumnType = ColumnType.ViewColumn;
+                if (isForView)
+                {
+                    filter.ColumnType = ColumnType.ViewColumn;
+                }
 
                 filter.TableNames = new[] { table.Name };
 
@@ -766,7 +877,10 @@ namespace DatabaseInterpreter.Core
 
             for (long pageNumber = 1; pageNumber <= pageCount; pageNumber++)
             {
-                if (CancelRequested) break;
+                if (CancelRequested)
+                {
+                    break;
+                }
 
                 var dataTable = await GetPagedDataTableAsync(connection, table, columns, primaryKeyColumns, pageSize,
                     pageNumber, whereClause);
@@ -782,22 +896,32 @@ namespace DatabaseInterpreter.Core
                         var column = dataTable.Columns[i];
                         var columnName = column.ColumnName;
 
-                        if (columnName == RowNumberColumnName) continue;
+                        if (columnName == RowNumberColumnName)
+                        {
+                            continue;
+                        }
 
                         var tableColumn = columns.FirstOrDefault(item => item.Name == columnName);
 
                         var value = row[i];
 
                         if (ValueHelper.IsBytes(value))
+                        {
                             if (Option.TreatBytesAsNullForReading)
+                            {
                                 if (!(((byte[])value).Length == 16) && DatabaseType == DatabaseType.Oracle)
                                 {
                                     value = null;
 
-                                    if (dataTable.Columns[i].ReadOnly) dataTable.Columns[i].ReadOnly = false;
+                                    if (dataTable.Columns[i].ReadOnly)
+                                    {
+                                        dataTable.Columns[i].ReadOnly = false;
+                                    }
 
                                     row[i] = null;
                                 }
+                            }
+                        }
 
                         /*                        else if (value is PgGeom.Geometry pg && tableColumn.DataType == "geography")
                         {
@@ -813,6 +937,7 @@ namespace DatabaseInterpreter.Core
                 dictPagedData.Add(pageNumber, rows);
 
                 if (OnDataRead != null && !CancelRequested && !HasError)
+                {
                     await OnDataRead(new TableDataReadInfo
                     {
                         Table = table,
@@ -821,6 +946,7 @@ namespace DatabaseInterpreter.Core
                         Data = rows,
                         DataTable = dataTable
                     });
+                }
             }
 
             return dictPagedData;
@@ -850,19 +976,20 @@ namespace DatabaseInterpreter.Core
         public abstract bool IsLowDbVersion(string serverVersion);
 
         protected virtual void SubscribeInfoMessage(DbConnection dbConnection)
-        {
-        }
+        { }
 
         protected virtual void SubscribeInfoMessage(DbCommand dbCommand)
-        {
-        }
+        { }
 
         public string GetQuotedDbObjectNameWithSchema(DatabaseObject obj)
         {
             if (DatabaseType == DatabaseType.SqlServer || DatabaseType == DatabaseType.Postgres)
             {
                 if (!string.IsNullOrEmpty(obj.Schema))
+                {
                     return $"{GetString(obj.Schema, true)}.{GetString(obj.Name, true)}";
+                }
+
                 return obj.Name;
             }
 
@@ -872,7 +999,10 @@ namespace DatabaseInterpreter.Core
         public string GetQuotedDbObjectNameWithSchema(string schema, string dbObjName)
         {
             if (string.IsNullOrEmpty(schema))
+            {
                 return GetQuotedString(dbObjName);
+            }
+
             return $"{GetQuotedString(schema)}.{GetQuotedString(dbObjName)}";
         }
 
@@ -885,7 +1015,10 @@ namespace DatabaseInterpreter.Core
         {
             if (str != null && SupportQuotationChar &&
                 (DbObjectNameMode == DbObjectNameMode.WithQuotation || str.Contains(" ")))
+            {
                 return $"{QuotationLeftChar}{str}{QuotationRightChar}";
+            }
+
             return str;
         }
 
@@ -908,14 +1041,20 @@ namespace DatabaseInterpreter.Core
         {
             var serverVersion = ServerVersion;
 
-            if (!string.IsNullOrEmpty(serverVersion)) return IsLowDbVersion(serverVersion);
+            if (!string.IsNullOrEmpty(serverVersion))
+            {
+                return IsLowDbVersion(serverVersion);
+            }
 
             return false;
         }
 
         protected string GetDbVersion()
         {
-            if (!string.IsNullOrEmpty(ServerVersion)) return ServerVersion;
+            if (!string.IsNullOrEmpty(ServerVersion))
+            {
+                return ServerVersion;
+            }
 
             return GetDbVersion(CreateConnection());
         }
@@ -930,11 +1069,17 @@ namespace DatabaseInterpreter.Core
                 needClose = true;
             }
 
-            if (connection.State != ConnectionState.Open) connection.Open();
+            if (connection.State != ConnectionState.Open)
+            {
+                connection.Open();
+            }
 
             var serverVersion = connection.ServerVersion;
 
-            if (needClose) connection.Close();
+            if (needClose)
+            {
+                connection.Close();
+            }
 
             return serverVersion;
         }
@@ -944,6 +1089,7 @@ namespace DatabaseInterpreter.Core
             var serverVersion = ServerVersion;
 
             if (string.IsNullOrEmpty(serverVersion))
+            {
                 try
                 {
                     serverVersion = GetDbVersion(connection);
@@ -952,6 +1098,7 @@ namespace DatabaseInterpreter.Core
                 {
                     return false;
                 }
+            }
 
             return IsLowDbVersion(serverVersion);
         }
@@ -977,8 +1124,14 @@ namespace DatabaseInterpreter.Core
                         var vItemToCompare = int.Parse(itemToCompare);
 
                         if (vItem > vItemToCompare)
+                        {
                             return false;
-                        if (vItem < vItemToCompare) return true;
+                        }
+
+                        if (vItem < vItemToCompare)
+                        {
+                            return true;
+                        }
                     }
                 }
             }
@@ -993,7 +1146,10 @@ namespace DatabaseInterpreter.Core
 
         protected string GetFilterSchemaCondition(SchemaInfoFilter filter, string columnName)
         {
-            if (filter != null && !string.IsNullOrEmpty(filter.Schema)) return $"AND {columnName}='{filter.Schema}'";
+            if (filter != null && !string.IsNullOrEmpty(filter.Schema))
+            {
+                return $"AND {columnName}='{filter.Schema}'";
+            }
 
             return string.Empty;
         }
@@ -1028,7 +1184,9 @@ namespace DatabaseInterpreter.Core
         public DataTypeInfo GetDataTypeInfo(string dataType)
         {
             if (!(DatabaseType == DatabaseType.Postgres && dataType == "\"char\""))
+            {
                 dataType = dataType.Trim(QuotationLeftChar, QuotationRightChar).Trim();
+            }
 
             return DataTypeHelper.GetDataTypeInfo(dataType);
         }
@@ -1058,7 +1216,10 @@ namespace DatabaseInterpreter.Core
             {
                 var trimedValue = column.DefaultValue.Trim('(', ')').Trim().ToUpper();
 
-                if (!trimedValue.StartsWith("\'") && !trimedValue.StartsWith("N'")) return $"'{column.DefaultValue}'";
+                if (!trimedValue.StartsWith("\'") && !trimedValue.StartsWith("N'"))
+                {
+                    return $"'{column.DefaultValue}'";
+                }
             }
 
             return column.DefaultValue?.Trim();
@@ -1069,7 +1230,10 @@ namespace DatabaseInterpreter.Core
             var computeExpression = column.ComputeExp.Trim();
 
             if (computeExpression.StartsWith("(") && computeExpression.EndsWith(")"))
+            {
                 return computeExpression;
+            }
+
             return $"({computeExpression})";
         }
 
@@ -1097,15 +1261,22 @@ namespace DatabaseInterpreter.Core
 
                 if (dataTypeSpecification.Args.Contains(","))
                 {
-                    if (precision > 0) return $"{precision},{scale}";
+                    if (precision > 0)
+                    {
+                        return $"{precision},{scale}";
+                    }
                 }
                 else if (dataTypeSpecification.Args == "scale")
                 {
                     var range = DataTypeManager.GetArgumentRange(dataTypeSpecification, "scale");
 
                     if (range.HasValue)
+                    {
                         if (scale > range.Value.Max)
+                        {
                             scale = range.Value.Max;
+                        }
+                    }
 
                     return $"{scale}";
                 }
@@ -1131,7 +1302,10 @@ namespace DatabaseInterpreter.Core
                 IgnoreError = skipError
             };
 
-            if (observer != null) FeedbackHelper.Feedback(observer, info);
+            if (observer != null)
+            {
+                FeedbackHelper.Feedback(observer, info);
+            }
         }
 
         public void FeedbackInfo(string message)
@@ -1141,7 +1315,10 @@ namespace DatabaseInterpreter.Core
 
         public void FeedbackError(string message, bool skipError = false)
         {
-            if (!skipError) hasError = true;
+            if (!skipError)
+            {
+                hasError = true;
+            }
 
             Feedback(FeedbackInfoType.Error, message, skipError);
         }

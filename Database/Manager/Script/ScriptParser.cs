@@ -36,7 +36,10 @@ namespace DatabaseManager.Core
 
             foreach (var line in lines)
             {
-                if (line.Trim().StartsWith(dbInterpreter.CommentString)) continue;
+                if (line.Trim().StartsWith(dbInterpreter.CommentString))
+                {
+                    continue;
+                }
 
                 sb.AppendLine(line);
             }
@@ -59,7 +62,9 @@ namespace DatabaseManager.Core
 
                 if (!(dmlMatches.Cast<Match>().Any(item => !IsWordInSingleQuotation(Script, item.Index))
                       || routineMathes.Cast<Match>().Any(item => !IsWordInSingleQuotation(Script, item.Index))))
+                {
                     return true;
+                }
             }
 
             return false;
@@ -93,18 +98,33 @@ namespace DatabaseManager.Core
 
                 var asIndex = asMatch.Index;
 
-                if (asIndex <= 0) asIndex = firstLine.Length;
+                if (asIndex <= 0)
+                {
+                    asIndex = firstLine.Length;
+                }
 
                 var prefix = upperScript.Substring(0, asIndex);
 
                 if (prefix.IndexOf(" VIEW ", StringComparison.Ordinal) > 0)
+                {
                     return ScriptType.View;
+                }
+
                 if (prefix.IndexOf(" FUNCTION ", StringComparison.Ordinal) > 0)
+                {
                     return ScriptType.Function;
+                }
+
                 if (prefix.IndexOf(" PROCEDURE ", StringComparison.Ordinal) > 0 ||
                     prefix.IndexOf(" PROC ", StringComparison.Ordinal) > 0)
+                {
                     return ScriptType.Procedure;
-                if (prefix.IndexOf(" TRIGGER ", StringComparison.Ordinal) > 0) return ScriptType.Trigger;
+                }
+
+                if (prefix.IndexOf(" TRIGGER ", StringComparison.Ordinal) > 0)
+                {
+                    return ScriptType.Trigger;
+                }
             }
             else if (scriptParser.IsSelect())
             {
@@ -129,14 +149,20 @@ namespace DatabaseManager.Core
                 var lineInfo = new TextLineInfo { Index = i, FirstCharIndex = count };
 
                 if (lines[i].Trim().StartsWith(commentString) || lines[i].Trim().StartsWith("**"))
+                {
                     lineInfo.Type = TextLineType.Comment;
+                }
 
                 if (i < lines.Length - 1)
+                {
                     lineInfo.Length = lines[i].Length + lineSeperatorLength;
+                }
                 else
+                {
                     lineInfo.Length = script.EndsWith(lineSeperator)
                         ? lines[i].Length + lineSeperatorLength
                         : lines[i].Length;
+                }
 
                 count += lines[i].Length + lineSeperatorLength;
 
@@ -150,7 +176,10 @@ namespace DatabaseManager.Core
         {
             var match = MatchWord(definition, "BEGIN|AS");
 
-            if (match != null) return definition.Substring(match.Index + match.Value.Length);
+            if (match != null)
+            {
+                return definition.Substring(match.Index + match.Value.Length);
+            }
 
             return definition;
         }
@@ -163,7 +192,10 @@ namespace DatabaseManager.Core
             {
                 match = MatchWord(definition, "BEGIN");
 
-                if (match != null) return match.Index;
+                if (match != null)
+                {
+                    return match.Index;
+                }
             }
             else
             {

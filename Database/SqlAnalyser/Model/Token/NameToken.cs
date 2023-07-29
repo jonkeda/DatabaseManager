@@ -8,24 +8,19 @@ namespace SqlAnalyser.Model
         protected TokenInfo alias;
 
         public NameToken(string symbol) : base(symbol)
-        {
-        }
+        { }
 
         public NameToken(ParserRuleContext context) : base(context)
-        {
-        }
+        { }
 
         public NameToken(string symbol, ParserRuleContext context) : base(symbol, context)
-        {
-        }
+        { }
 
         public NameToken(ITerminalNode node) : base(node)
-        {
-        }
+        { }
 
         public NameToken(string symbol, ITerminalNode node) : base(symbol, node)
-        {
-        }
+        { }
 
         public string Server { get; set; }
         public string Database { get; set; }
@@ -43,8 +38,13 @@ namespace SqlAnalyser.Model
                     var type = GetType();
 
                     if (type == typeof(TableName))
+                    {
                         value.Type = TokenType.TableAlias;
-                    else if (type == typeof(ColumnName)) value.Type = TokenType.ColumnAlias;
+                    }
+                    else if (type == typeof(ColumnName))
+                    {
+                        value.Type = TokenType.ColumnAlias;
+                    }
                 }
 
                 alias = value;
@@ -55,7 +55,10 @@ namespace SqlAnalyser.Model
         {
             get
             {
-                if (!string.IsNullOrEmpty(Schema)) return $"{Schema}.{Symbol}";
+                if (!string.IsNullOrEmpty(Schema))
+                {
+                    return $"{Schema}.{Symbol}";
+                }
 
                 return Symbol;
             }
@@ -65,7 +68,10 @@ namespace SqlAnalyser.Model
         {
             get
             {
-                if (alias == null) return Symbol;
+                if (alias == null)
+                {
+                    return Symbol;
+                }
 
                 var strAs = HasAs ? " AS " : " ";
 

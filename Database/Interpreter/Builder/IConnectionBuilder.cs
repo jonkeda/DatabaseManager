@@ -1,6 +1,6 @@
 ﻿using DatabaseInterpreter.Model;
 
-namespace DatabaseInterpreter.Core
+namespace Databases.Interpreter.Builder
 {
     public interface IConnectionBuilder
     {

@@ -12,6 +12,8 @@ using DatabaseConverter.Profile;
 using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
+using Databases.Exceptions;
+using Databases.Interpreter.Builder;
 
 namespace DatabaseConverter.Core
 {
@@ -34,7 +36,10 @@ namespace DatabaseConverter.Core
             Source = source;
             Target = target;
 
-            if (option != null) Option = option;
+            if (option != null)
+            {
+                Option = option;
+            }
 
             Init();
         }
@@ -116,7 +121,10 @@ namespace DatabaseConverter.Core
             sourceInterpreterOption.GetTableAllObjects = false;
             targetInterpreterOption.GetTableAllObjects = false;
 
-            if (dataModeOnly) sourceInterpreterOption.ObjectFetchMode = DatabaseObjectFetchMode.Simple;
+            if (dataModeOnly)
+            {
+                sourceInterpreterOption.ObjectFetchMode = DatabaseObjectFetchMode.Simple;
+            }
 
             targetInterpreterOption.ObjectFetchMode = DatabaseObjectFetchMode.Simple;
 
@@ -126,14 +134,21 @@ namespace DatabaseConverter.Core
 
             if (schemaInfo != null && !sourceInterpreterOption.GetTableAllObjects
                                    && (schemaInfo.TableTriggers == null || schemaInfo.TableTriggers.Count == 0))
+            {
                 databaseObjectType = databaseObjectType ^ DatabaseObjectType.Trigger;
+            }
 
             if (Source.DatabaseObjectType != DatabaseObjectType.None)
+            {
                 databaseObjectType = databaseObjectType & Source.DatabaseObjectType;
+            }
 
             var filter = new SchemaInfoFilter { Strict = true, DatabaseObjectType = databaseObjectType };
 
-            if (schema != null) filter.Schema = schema;
+            if (schema != null)
+            {
+                filter.Schema = schema;
+            }
 
             SchemaInfoHelper.SetSchemaInfoFilterValues(filter, schemaInfo);
 
@@ -156,6 +171,7 @@ namespace DatabaseConverter.Core
             List<TableColumn> existedTableColumns = null;
 
             if (DbInterpreter.Setting.NotCreateIfExists && !onlyForTranslate && !onlyForTableCopy)
+            {
                 if (!dataModeOnly)
                 {
                     targetInterpreterOption.ObjectFetchMode = DatabaseObjectFetchMode.Simple;
@@ -169,6 +185,7 @@ namespace DatabaseConverter.Core
 
                     SchemaInfoHelper.ExcludeExistingObjects(sourceSchemaInfo, targetSchema);
                 }
+            }
 
             if (!onlyForTranslate && existedTableColumns == null && !schemaModeOnly)
             {
@@ -184,12 +201,15 @@ namespace DatabaseConverter.Core
             var utypes = new List<UserDefinedType>();
 
             if (!dataModeOnly)
+            {
                 if (sourceDbType != targetDbType)
                 {
                     utypes = await sourceInterpreter.GetUserDefinedTypesAsync();
 
                     if (Option.UseOriginalDataTypeIfUdtHasOnlyOneAttr)
+                    {
                         if (utypes != null && utypes.Count > 0)
+                        {
                             foreach (var column in sourceSchemaInfo.TableColumns)
                             {
                                 var utype = utypes.FirstOrDefault(item => item.Name == column.DataType);
@@ -205,7 +225,10 @@ namespace DatabaseConverter.Core
                                     column.IsUserDefined = false;
                                 }
                             }
+                        }
+                    }
                 }
+            }
 
             #endregion
 
@@ -216,13 +239,20 @@ namespace DatabaseConverter.Core
             if (onlyForTableCopy)
             {
                 if (Source.TableNameMappings != null && Source.TableNameMappings.Count > 0)
+                {
                     SchemaInfoHelper.MapTableNames(targetSchemaInfo, Source.TableNameMappings);
+                }
 
-                if (Option.RenameTableChildren) SchemaInfoHelper.RenameTableChildren(targetSchemaInfo);
+                if (Option.RenameTableChildren)
+                {
+                    SchemaInfoHelper.RenameTableChildren(targetSchemaInfo);
+                }
 
                 if (Option.IgnoreNotSelfForeignKey)
+                {
                     targetSchemaInfo.TableForeignKeys = targetSchemaInfo.TableForeignKeys
                         .Where(item => item.TableName == item.ReferencedTableName).ToList();
+                }
             }
 
             #endregion
@@ -233,9 +263,13 @@ namespace DatabaseConverter.Core
 
             if (!dataModeOnly && Option.CreateSchemaIfNotExists &&
                 (targetDbType == DatabaseType.SqlServer || targetDbType == DatabaseType.Postgres))
+            {
                 using (var dbConnection = targetInterpreter.CreateConnection())
                 {
-                    if (dbConnection.State != ConnectionState.Open) await dbConnection.OpenAsync();
+                    if (dbConnection.State != ConnectionState.Open)
+                    {
+                        await dbConnection.OpenAsync();
+                    }
 
                     var sourceSchemas = (await sourceInterpreter.GetDatabaseSchemasAsync()).Select(item => item.Name);
                     var targetSchemas =
@@ -255,7 +289,9 @@ namespace DatabaseConverter.Core
                     }
 
                     if (Option.SchemaMappings.Count == 1 && Option.SchemaMappings.First().SourceSchema == "")
+                    {
                         Option.SchemaMappings.Clear();
+                    }
 
                     foreach (var ss in sourceSchemas)
                     {
@@ -272,6 +308,7 @@ namespace DatabaseConverter.Core
                         }
                     }
                 }
+            }
 
             #endregion
 
@@ -308,10 +345,15 @@ namespace DatabaseConverter.Core
                     SchemaInfoHelper.EnsurePrimaryKeyNameUnique(targetSchemaInfo);
 
                     if (sourceDbType == DatabaseType.MySql)
+                    {
                         SchemaInfoHelper.ForceRenameMySqlPrimaryKey(targetSchemaInfo);
+                    }
                 }
 
-                if (Option.EnsureIndexNameUnique) SchemaInfoHelper.EnsureIndexNameUnique(targetSchemaInfo);
+                if (Option.EnsureIndexNameUnique)
+                {
+                    SchemaInfoHelper.EnsureIndexNameUnique(targetSchemaInfo);
+                }
             }
 
             #endregion
@@ -333,6 +375,7 @@ namespace DatabaseConverter.Core
                     #region Oracle name length of low database version handle
 
                     if (targetDbType == DatabaseType.Oracle)
+                    {
                         if (!onlyForTranslate)
                         {
                             var serverVersion = targetInterpreter.ConnectionInfo?.ServerVersion;
@@ -340,21 +383,29 @@ namespace DatabaseConverter.Core
                                 ? targetInterpreter.IsLowDbVersion()
                                 : targetInterpreter.IsLowDbVersion(dbConnection);
 
-                            if (isLowDbVersion) SchemaInfoHelper.RistrictNameLength(targetSchemaInfo, 30);
+                            if (isLowDbVersion)
+                            {
+                                SchemaInfoHelper.RistrictNameLength(targetSchemaInfo, 30);
+                            }
                         }
+                    }
 
                     #endregion
 
                     scriptBuilder = targetDbScriptGenerator.GenerateSchemaScripts(targetSchemaInfo);
 
                     if (onlyForTranslate)
+                    {
                         if (!(translateDbObject is
                                 ScriptDbObject)) //script db object uses script translator which uses event to feed back to ui.
+                        {
                             result.TranslateResults.Add(new TranslateResult
                             {
                                 DbObjectType = DbObjectHelper.GetDatabaseObjectType(translateDbObject),
                                 DbObjectName = translateDbObject.Name, Data = scriptBuilder.ToString()
                             });
+                        }
+                    }
                 }
 
                 if (onlyForTranslate)
@@ -370,7 +421,10 @@ namespace DatabaseConverter.Core
 
                 if (executeScriptOnTargetServer)
                 {
-                    if (dbConnection.State != ConnectionState.Open) await dbConnection.OpenAsync();
+                    if (dbConnection.State != ConnectionState.Open)
+                    {
+                        await dbConnection.OpenAsync();
+                    }
 
                     if (Option.UseTransaction)
                     {
@@ -429,7 +483,10 @@ namespace DatabaseConverter.Core
                                 var isRoutineScript = IsRoutineScript(s);
                                 var isRoutineScriptOrView = isRoutineScript || isView;
 
-                                if (!isValidScript(s)) continue;
+                                if (!isValidScript(s))
+                                {
+                                    continue;
+                                }
 
                                 var sql = s.Content?.Trim();
 
@@ -439,7 +496,9 @@ namespace DatabaseConverter.Core
 
                                     if (!isRoutineScript && targetInterpreter.ScriptsDelimiter.Length == 1 &&
                                         sql.EndsWith(targetInterpreter.ScriptsDelimiter))
+                                    {
                                         sql = sql.TrimEnd(targetInterpreter.ScriptsDelimiter.ToArray());
+                                    }
 
                                     if (!targetInterpreter.HasError ||
                                         (isRoutineScriptOrView && Option.ContinueWhenErrorOccurs))
@@ -458,12 +517,21 @@ namespace DatabaseConverter.Core
                                         {
                                             HasError = true;
 
-                                            if (!Option.ContinueWhenErrorOccurs) break;
+                                            if (!Option.ContinueWhenErrorOccurs)
+                                            {
+                                                break;
+                                            }
 
-                                            if (isRoutineScriptOrView) continuedWhenErrorOccured = true;
+                                            if (isRoutineScriptOrView)
+                                            {
+                                                continuedWhenErrorOccured = true;
+                                            }
                                         }
 
-                                        if (commandInfo.TransactionRollbacked) canCommit = false;
+                                        if (commandInfo.TransactionRollbacked)
+                                        {
+                                            canCommit = false;
+                                        }
                                     }
                                 }
                             }
@@ -500,19 +568,25 @@ namespace DatabaseConverter.Core
                 #region Data sync
 
                 if (!schemaModeOnly)
+                {
                     await SyncData(sourceInterpreter, targetInterpreter, dbConnection, sourceSchemaInfo,
                         targetSchemaInfo, targetDbScriptGenerator, result);
+                }
 
                 #endregion
 
                 if (transaction != null && transaction.Connection != null && !CancelRequested && canCommit)
+                {
                     transaction.Commit();
+                }
 
                 IsBusy = false;
             }
 
             if (dataErrorProfile != null && !HasError && !CancelRequested)
+            {
                 DataTransferErrorProfileManager.Remove(dataErrorProfile);
+            }
 
             if (HasError)
             {
@@ -525,7 +599,10 @@ namespace DatabaseConverter.Core
                 {
                     result.InfoType = DbConvertResultInfoType.Error;
 
-                    if (string.IsNullOrEmpty(result.Message)) result.Message = "Convert failed.";
+                    if (string.IsNullOrEmpty(result.Message))
+                    {
+                        result.Message = "Convert failed.";
+                    }
                 }
             }
             else
@@ -558,16 +635,20 @@ namespace DatabaseConverter.Core
             if (!targetInterpreter.HasError && !schemaModeOnly && sourceSchemaInfo.Tables.Count > 0)
             {
                 if (targetDbType == DatabaseType.Oracle && generateIdentity)
+                {
                     if (!targetInterpreter.IsLowDbVersion())
                     {
                         sourceInterpreter.Option.ExcludeIdentityForData = true;
                         targetInterpreter.Option.ExcludeIdentityForData = true;
                     }
+                }
 
                 var identityTableColumns = new List<TableColumn>();
 
                 if (generateIdentity)
+                {
                     identityTableColumns = targetSchemaInfo.TableColumns.Where(item => item.IsIdentity).ToList();
+                }
 
                 //await this.SetIdentityEnabled(identityTableColumns, targetInterpreter, targetDbScriptGenerator, dbConnection, transaction, false);
 
@@ -589,13 +670,17 @@ namespace DatabaseConverter.Core
                                     .Where(item => item.SourceSchema == table.Schema).FirstOrDefault()?.TargetSchema;
 
                                 if (string.IsNullOrEmpty(targetTableSchema))
+                                {
                                     targetTableSchema = targetInterpreter.DefaultSchema;
+                                }
 
                                 var targetTableAndColumns = GetTargetTableColumns(targetSchemaInfo, targetTableSchema,
                                     table, columns);
 
                                 if (targetTableAndColumns.Table == null || targetTableAndColumns.Columns == null)
+                                {
                                     return;
+                                }
 
                                 var data = tableDataReadInfo.Data;
 
@@ -608,19 +693,27 @@ namespace DatabaseConverter.Core
                                         var bulkCopyInfo = GetBulkCopyInfo(table, targetSchemaInfo, transaction);
 
                                         if (targetDbType == DatabaseType.Oracle)
+                                        {
                                             if (columns.Any(item =>
                                                     item.DataType.ToLower().Contains("datetime2") ||
                                                     item.DataType.ToLower().Contains("timestamp")))
+                                            {
                                                 bulkCopyInfo.DetectDateTimeTypeByValues = true;
+                                            }
+                                        }
 
                                         if (Option.ConvertComputeColumnExpression)
                                         {
                                             var dataColumns = dataTable.Columns.OfType<DataColumn>();
 
                                             foreach (var column in bulkCopyInfo.Columns)
+                                            {
                                                 if (column.IsComputed &&
                                                     dataColumns.Any(item => item.ColumnName == column.Name))
+                                                {
                                                     dataTable.Columns.Remove(column.Name);
+                                                }
+                                            }
                                         }
 
                                         await targetInterpreter.BulkCopyAsync(dbConnection, dataTable, bulkCopyInfo);
@@ -660,9 +753,13 @@ namespace DatabaseConverter.Core
                                     }
 
                                     if (!dictTableDataTransferredCount.ContainsKey(table))
+                                    {
                                         dictTableDataTransferredCount.Add(table, dataTable.Rows.Count);
+                                    }
                                     else
+                                    {
                                         dictTableDataTransferredCount[table] += dataTable.Rows.Count;
+                                    }
 
                                     var transferredCount = dictTableDataTransferredCount[table];
 
@@ -702,6 +799,7 @@ namespace DatabaseConverter.Core
                                 };
 
                                 if (!Option.UseTransaction)
+                                {
                                     DataTransferErrorProfileManager.Save(new DataTransferErrorProfile
                                     {
                                         SourceServer = sourceConnectionInfo.Server,
@@ -711,6 +809,7 @@ namespace DatabaseConverter.Core
                                         TargetDatabase = targetConnectionInfo.Database,
                                         TargetTableName = mappedTableName
                                     });
+                                }
 
                                 var res = HandleError(dataTransferException);
 
@@ -775,20 +874,28 @@ namespace DatabaseConverter.Core
         {
             if (transaction != null && transaction.Connection != null &&
                 transaction.Connection.State == ConnectionState.Open)
+            {
                 try
                 {
                     CancelRequested = true;
 
                     var hasRollbacked = false;
 
-                    if (ex != null && ex is DbCommandException dbe) hasRollbacked = dbe.HasRollbackedTransaction;
+                    if (ex != null && ex is DbCommandException dbe)
+                    {
+                        hasRollbacked = dbe.HasRolledBackTransaction;
+                    }
 
-                    if (!hasRollbacked) transaction.Rollback();
+                    if (!hasRollbacked)
+                    {
+                        transaction.Rollback();
+                    }
                 }
                 catch (Exception e)
                 {
                     //throw;
                 }
+            }
         }
 
         private CommandInfo GetCommandInfo(string commandText, Dictionary<string, object> parameters = null,
@@ -821,7 +928,10 @@ namespace DatabaseConverter.Core
 
             var mappedSchema = SchemaInfoHelper.GetMappedSchema(table.Schema, Option.SchemaMappings);
 
-            if (mappedSchema == null) mappedSchema = Target.DbInterpreter.DefaultSchema;
+            if (mappedSchema == null)
+            {
+                mappedSchema = Target.DbInterpreter.DefaultSchema;
+            }
 
             bulkCopyInfo.DestinationTableSchema = mappedSchema;
             bulkCopyInfo.Columns =
@@ -856,9 +966,15 @@ namespace DatabaseConverter.Core
         {
             CancelRequested = true;
 
-            if (Source != null) Source.DbInterpreter.CancelRequested = true;
+            if (Source != null)
+            {
+                Source.DbInterpreter.CancelRequested = true;
+            }
 
-            if (Target != null) Target.DbInterpreter.CancelRequested = true;
+            if (Target != null)
+            {
+                Target.DbInterpreter.CancelRequested = true;
+            }
 
             Rollback();
 
@@ -914,12 +1030,16 @@ namespace DatabaseConverter.Core
             else
             {
                 if (sourceInterpreter.DefaultSchema != null && targetInterpreter.DefaultSchema != null)
+                {
                     if (!schemaMappings.Any(item => item.SourceSchema == sourceInterpreter.DefaultSchema))
+                    {
                         schemaMappings.Add(new SchemaMappingInfo
                         {
                             SourceSchema = sourceInterpreter.DefaultSchema,
                             TargetSchema = targetInterpreter.DefaultSchema
                         });
+                    }
+                }
             }
 
             SchemaInfoHelper.MapDatabaseObjectSchema(targetSchemaInfo, schemaMappings);
@@ -928,7 +1048,10 @@ namespace DatabaseConverter.Core
         public void Feedback(object owner, string content, FeedbackInfoType infoType = FeedbackInfoType.Info,
             bool enableLog = true)
         {
-            if (infoType == FeedbackInfoType.Error) HasError = true;
+            if (infoType == FeedbackInfoType.Error)
+            {
+                HasError = true;
+            }
 
             var info = new FeedbackInfo
                 { InfoType = infoType, Message = StringHelper.ToSingleEmptyLine(content), Owner = owner };

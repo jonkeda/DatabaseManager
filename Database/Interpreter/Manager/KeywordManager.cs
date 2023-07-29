@@ -13,7 +13,10 @@ namespace DatabaseInterpreter.Core
         {
             var filePath = Path.Combine(KeywordFolder, $"{databaseType}.txt");
 
-            if (File.Exists(filePath)) return File.ReadAllLines(filePath).Where(item => item.Length > 0);
+            if (File.Exists(filePath))
+            {
+                return File.ReadAllLines(filePath).Where(item => item.Length > 0);
+            }
 
             return Enumerable.Empty<string>();
         }

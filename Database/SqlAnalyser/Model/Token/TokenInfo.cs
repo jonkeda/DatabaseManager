@@ -69,7 +69,10 @@ namespace SqlAnalyser.Model
 
         public void AddChild(TokenInfo child)
         {
-            if (child == null) return;
+            if (child == null)
+            {
+                return;
+            }
 
             if (!(child.StartIndex == StartIndex && child.StopIndex == StopIndex))
             {

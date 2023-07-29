@@ -41,10 +41,16 @@ namespace DatabaseConverter.Core
             if (!string.IsNullOrEmpty(dti.Args))
             {
                 if (sourceDataTypeSpec.Args == "scale")
+                {
                     dataTypeInfo.Scale = int.Parse(dti.Args);
+                }
                 else if (sourceDataTypeSpec.Args == "length")
+                {
                     if (dataTypeInfo.MaxLength == null)
+                    {
                         dataTypeInfo.MaxLength = int.Parse(dti.Args);
+                    }
+                }
             }
 
             var dataTypeMapping = dataTypeMappings.FirstOrDefault(item =>
@@ -62,7 +68,9 @@ namespace DatabaseConverter.Core
                 var targetDataTypeSpec = GetDataTypeSpecification(targetDataTypeSpecs, targetDataType);
 
                 if (targetDataTypeSpec == null)
+                {
                     throw new Exception($"No type '{targetDataType}' defined for '{targetDbType}'.");
+                }
 
                 dataTypeInfo.DataType = targetDataType;
 
@@ -80,15 +88,24 @@ namespace DatabaseConverter.Core
                             dataTypeInfo.MaxLength = int.Parse(targetMapping.Length);
 
                             if (!DataTypeHelper.StartsWithN(sourceDataType) &&
-                                DataTypeHelper.StartsWithN(targetDataType)) dataTypeInfo.MaxLength *= 2;
+                                DataTypeHelper.StartsWithN(targetDataType))
+                            {
+                                dataTypeInfo.MaxLength *= 2;
+                            }
                         }
                         else
                         {
                             if (DataTypeHelper.StartsWithN(sourceDataType) &&
                                 !DataTypeHelper.StartsWithN(targetDataType))
+                            {
                                 if (!Option?.NcharToDoubleChar == true)
+                                {
                                     if (dataTypeInfo.MaxLength > 0 && dataTypeInfo.MaxLength % 2 == 0)
+                                    {
                                         dataTypeInfo.MaxLength /= 2;
+                                    }
+                                }
+                            }
                         }
                     }
 
@@ -100,7 +117,10 @@ namespace DatabaseConverter.Core
 
                         if (special != null)
                         {
-                            if (!string.IsNullOrEmpty(special.Type)) dataTypeInfo.DataType = special.Type;
+                            if (!string.IsNullOrEmpty(special.Type))
+                            {
+                                dataTypeInfo.DataType = special.Type;
+                            }
 
                             if (!string.IsNullOrEmpty(special.TargetMaxLength))
                             {
@@ -115,12 +135,17 @@ namespace DatabaseConverter.Core
                     }
 
                     if (!noLength)
+                    {
                         if (dataTypeInfo.MaxLength == -1)
                         {
                             var sourceLengthRange = DataTypeManager.GetArgumentRange(sourceDataTypeSpec, "length");
 
-                            if (sourceLengthRange.HasValue) dataTypeInfo.MaxLength = sourceLengthRange.Value.Max;
+                            if (sourceLengthRange.HasValue)
+                            {
+                                dataTypeInfo.MaxLength = sourceLengthRange.Value.Max;
+                            }
                         }
+                    }
 
                     var targetLengthRange = DataTypeManager.GetArgumentRange(targetDataTypeSpec, "length");
 
@@ -128,9 +153,13 @@ namespace DatabaseConverter.Core
                     {
                         var targetMaxLength = targetLengthRange.Value.Max;
 
-                        if (DataTypeHelper.StartsWithN(targetDataTypeSpec.Name)) targetMaxLength *= 2;
+                        if (DataTypeHelper.StartsWithN(targetDataTypeSpec.Name))
+                        {
+                            targetMaxLength *= 2;
+                        }
 
                         if (dataTypeInfo.MaxLength > targetMaxLength)
+                        {
                             if (!string.IsNullOrEmpty(targetMapping.Substitute))
                             {
                                 var substitutes = targetMapping.Substitute.Split(',');
@@ -157,32 +186,51 @@ namespace DatabaseConverter.Core
                                     }
                                 }
                             }
+                        }
                     }
                 }
                 else
                 {
                     if (dataTypeMapping.Specials != null && dataTypeMapping.Specials.Count > 0)
+                    {
                         foreach (var special in dataTypeMapping.Specials)
                         {
                             var name = special.Name;
                             var matched = false;
 
                             if (name == "maxLength")
+                            {
                                 matched = IsSpecialMaxLengthMatched(special, dataTypeInfo);
+                            }
                             else if (name == "precisionScale")
+                            {
                                 matched = IsSpecialPrecisionAndScaleMatched(special, dataTypeInfo);
+                            }
                             else if (name.Contains("precision") || name.Contains("scale"))
+                            {
                                 matched = IsSpecialPrecisionOrScaleMatched(special, dataTypeInfo);
+                            }
                             else if (name == "expression")
+                            {
                                 matched = IsSpecialExpressionMatched(special, originalDataType);
-                            else if (name == "isIdentity") matched = dataTypeInfo.IsIdentity;
+                            }
+                            else if (name == "isIdentity")
+                            {
+                                matched = dataTypeInfo.IsIdentity;
+                            }
 
 
-                            if (matched) dataTypeInfo.DataType = special.Type;
+                            if (matched)
+                            {
+                                dataTypeInfo.DataType = special.Type;
+                            }
 
                             if (!string.IsNullOrEmpty(special.TargetMaxLength))
+                            {
                                 dataTypeInfo.MaxLength = int.Parse(special.TargetMaxLength);
+                            }
                         }
+                    }
 
                     if (string.IsNullOrEmpty(targetDataTypeSpec.Format))
                     {
@@ -210,15 +258,25 @@ namespace DatabaseConverter.Core
                                 var scaleRange = DataTypeManager.GetArgumentRange(targetDataTypeSpec, "scale");
 
                                 if (precisionRange.HasValue && dataTypeInfo.Precision > precisionRange.Value.Max)
+                                {
                                     dataTypeInfo.Precision = precisionRange.Value.Max;
+                                }
 
                                 if (scaleRange.HasValue && dataTypeInfo.Scale > scaleRange.Value.Max)
+                                {
                                     dataTypeInfo.Scale = scaleRange.Value.Max;
+                                }
 
                                 if (dataTypeInfo.Precision.HasValue)
+                                {
                                     if (dataTypeInfo.DataType.ToLower() == "int")
+                                    {
                                         if (dataTypeInfo.Precision.Value > 10)
+                                        {
                                             dataTypeInfo.DataType = "bigint";
+                                        }
+                                    }
+                                }
                             }
                             else
                             {
@@ -265,7 +323,9 @@ namespace DatabaseConverter.Core
                                 var scale = dataTypeInfo.Scale == null ? 0 : dataTypeInfo.Scale.Value;
 
                                 if (targetScaleRange.HasValue && scale > targetScaleRange.Value.Max)
+                                {
                                     scale = targetScaleRange.Value.Max;
+                                }
 
                                 dataType = dataType.Replace("$scale$", scale.ToString());
                             }
@@ -278,7 +338,9 @@ namespace DatabaseConverter.Core
                                 var value = defaultValue;
 
                                 if (targetMapping.Arguments.Any(item => item.Name == arg.Name))
+                                {
                                     value = targetMapping.Arguments.FirstOrDefault(item => item.Name == arg.Name).Value;
+                                }
 
                                 dataType = dataType.Replace($"${arg.Name}$", value);
                             }
@@ -305,7 +367,10 @@ namespace DatabaseConverter.Core
             {
                 var matches = regex.Matches(dataType);
 
-                foreach (Match match in matches) dataType = regex.Replace(dataType, "");
+                foreach (Match match in matches)
+                {
+                    dataType = regex.Replace(dataType, "");
+                }
             }
 
             return dataTypeSpecifications.FirstOrDefault(item => item.Name.ToLower() == dataType.ToLower().Trim());
@@ -315,9 +380,15 @@ namespace DatabaseConverter.Core
         {
             var value = special.Value;
 
-            if (string.IsNullOrEmpty(value)) return false;
+            if (string.IsNullOrEmpty(value))
+            {
+                return false;
+            }
 
-            if (value == dataTypeInfo.MaxLength?.ToString()) return true;
+            if (value == dataTypeInfo.MaxLength?.ToString())
+            {
+                return true;
+            }
 
             if (dataTypeInfo.MaxLength.HasValue && (value.StartsWith(">") || value.StartsWith("<")))
             {
@@ -346,18 +417,32 @@ namespace DatabaseConverter.Core
             foreach (var name in names)
             {
                 if (name == "precision")
+                {
                     precision = values[i];
-                else if (name == "scale") scale = values[i];
+                }
+                else if (name == "scale")
+                {
+                    scale = values[i];
+                }
 
                 i++;
             }
 
             if (!string.IsNullOrEmpty(precision) && !string.IsNullOrEmpty(scale))
+            {
                 return IsValueEqual(precision, dataTypeInfo.Precision) && IsValueEqual(scale, dataTypeInfo.Scale);
+            }
+
             if (!string.IsNullOrEmpty(precision) && string.IsNullOrEmpty(scale))
+            {
                 return IsValueEqual(precision, dataTypeInfo.Precision);
+            }
+
             if (string.IsNullOrEmpty(precision) && !string.IsNullOrEmpty(scale))
+            {
                 return IsValueEqual(scale, dataTypeInfo.Scale);
+            }
+
             return false;
         }
 
@@ -379,7 +464,10 @@ namespace DatabaseConverter.Core
         {
             var v2 = value2?.ToString();
             if (value1 == v2)
+            {
                 return true;
+            }
+
             return value1 == "0" && (v2 is null || v2 == "");
         }
 

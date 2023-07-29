@@ -4,14 +4,14 @@ using System.Linq;
 using System.Text;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
+using Databases.Interpreter.Builder;
 
 namespace DatabaseInterpreter.Core
 {
     public class SqlServerScriptGenerator : DbScriptGenerator
     {
         public SqlServerScriptGenerator(DbInterpreter dbInterpreter) : base(dbInterpreter)
-        {
-        }
+        { }
 
         #region Data Script
 
@@ -109,7 +109,9 @@ namespace DatabaseInterpreter.Core
             #endregion
 
             if (option.ScriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToFile))
+            {
                 AppendScriptsToFile(sb.ToString().Trim(), GenerateScriptMode.Schema, true);
+            }
 
             return sb;
         }
@@ -126,7 +128,11 @@ namespace DatabaseInterpreter.Core
                 case "varchar":
                 case "nvarchar":
                 case "varbinary":
-                    if (column.MaxLength == -1 && !column.IsComputed) return true;
+                    if (column.MaxLength == -1 && !column.IsComputed)
+                    {
+                        return true;
+                    }
+
                     return false;
                 default:
                     return false;
@@ -223,9 +229,15 @@ namespace DatabaseInterpreter.Core
                 $@"ALTER TABLE {quotedTableName} WITH CHECK ADD CONSTRAINT {fkName} FOREIGN KEY({columnNames})
 REFERENCES {GetQuotedDbObjectNameWithSchema(foreignKey.ReferencedSchema, foreignKey.ReferencedTableName)} ({referencedColumnName})");
 
-            if (foreignKey.UpdateCascade) sb.AppendLine("ON UPDATE CASCADE");
+            if (foreignKey.UpdateCascade)
+            {
+                sb.AppendLine("ON UPDATE CASCADE");
+            }
 
-            if (foreignKey.DeleteCascade) sb.AppendLine("ON DELETE CASCADE");
+            if (foreignKey.DeleteCascade)
+            {
+                sb.AppendLine("ON DELETE CASCADE");
+            }
 
             //sb.AppendLine($"ALTER TABLE {quotedTableName} CHECK CONSTRAINT {this.GetQuotedString(foreignKey.Name)}");
 
@@ -286,11 +298,18 @@ REFERENCES {GetQuotedDbObjectNameWithSchema(foreignKey.ReferencedSchema, foreign
             var type = "";
 
             if (typeName == nameof(TableColumn))
+            {
                 type = "COLUMN";
+            }
             else if (typeName == nameof(TablePrimaryKey) || typeName == nameof(TableForeignKey) ||
                      typeName == nameof(TableConstraint))
+            {
                 type = "CONSTRAINT";
-            else if (typeName == nameof(TableIndex)) type = "INDEX";
+            }
+            else if (typeName == nameof(TableIndex))
+            {
+                type = "INDEX";
+            }
 
             var sql =
                 $"EXEC {(isNew ? "sp_addextendedproperty" : "sp_updateextendedproperty")} N'MS_Description',N'{TransferSingleQuotationString(tableChild.Comment)}',N'SCHEMA',N'{tableChild.Schema}',N'table',N'{tableChild.TableName}',N'{type}',N'{tableChild.Name}'";
@@ -364,10 +383,15 @@ CREATE TABLE {quotedTableName}(
 
             if (option.TableScriptsGenerateOption.GenerateComment)
             {
-                if (!string.IsNullOrEmpty(table.Comment)) sb.AppendLine(SetTableComment(table));
+                if (!string.IsNullOrEmpty(table.Comment))
+                {
+                    sb.AppendLine(SetTableComment(table));
+                }
 
                 foreach (var column in columns.Where(item => !string.IsNullOrEmpty(item.Comment)))
+                {
                     sb.AppendLine(SetTableColumnComment(table, column));
+                }
             }
 
             #endregion
@@ -383,8 +407,14 @@ CREATE TABLE {quotedTableName}(
                 foreach (var column in defaultValueColumns)
                 {
                     if (ValueHelper.IsSequenceNextVal(column.DefaultValue))
+                    {
                         continue;
-                    if (column.DefaultValue.ToUpper().TrimStart().StartsWith("CREATE DEFAULT")) continue;
+                    }
+
+                    if (column.DefaultValue.ToUpper().TrimStart().StartsWith("CREATE DEFAULT"))
+                    {
+                        continue;
+                    }
 
                     sb.AppendLine(AddDefaultValueConstraint(column));
                 }
@@ -398,7 +428,10 @@ CREATE TABLE {quotedTableName}(
             {
                 sb.AppendLine(AddPrimaryKey(primaryKey));
 
-                if (!string.IsNullOrEmpty(primaryKey.Comment)) sb.AppendLine(SetTableChildComment(primaryKey, true));
+                if (!string.IsNullOrEmpty(primaryKey.Comment))
+                {
+                    sb.AppendLine(SetTableChildComment(primaryKey, true));
+                }
             }
 
             #endregion
@@ -406,38 +439,51 @@ CREATE TABLE {quotedTableName}(
             #region Foreign Key
 
             if (option.TableScriptsGenerateOption.GenerateForeignKey && foreignKeys != null)
+            {
                 foreach (var foreignKey in foreignKeys)
                 {
                     sb.AppendLine(AddForeignKey(foreignKey));
 
                     if (!string.IsNullOrEmpty(foreignKey.Comment))
+                    {
                         sb.AppendLine(SetTableChildComment(foreignKey, true));
+                    }
                 }
+            }
 
             #endregion
 
             #region Index
 
             if (option.TableScriptsGenerateOption.GenerateIndex && indexes != null)
+            {
                 foreach (var index in indexes)
                 {
                     sb.AppendLine(AddIndex(index));
 
-                    if (!string.IsNullOrEmpty(index.Comment)) sb.AppendLine(SetTableChildComment(index, true));
+                    if (!string.IsNullOrEmpty(index.Comment))
+                    {
+                        sb.AppendLine(SetTableChildComment(index, true));
+                    }
                 }
+            }
 
             #endregion
 
             #region Constraint
 
             if (option.TableScriptsGenerateOption.GenerateConstraint && constraints != null)
+            {
                 foreach (var constraint in constraints)
                 {
                     sb.AppendLine(AddCheckConstraint(constraint));
 
                     if (!string.IsNullOrEmpty(constraint.Comment))
+                    {
                         sb.AppendLine(SetTableChildComment(constraint, true));
+                    }
                 }
+            }
 
             #endregion
 

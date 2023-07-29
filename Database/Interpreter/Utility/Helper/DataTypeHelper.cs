@@ -69,7 +69,10 @@ namespace DatabaseInterpreter.Utility
             var dataType = column.DataType;
 
             //although for its owned database, these are udt, but as a whole, they are not.
-            if (dataType == "geography" || dataType == "geometry" || dataType == "st_geometry") return false;
+            if (dataType == "geography" || dataType == "geometry" || dataType == "st_geometry")
+            {
+                return false;
+            }
 
             return column.IsUserDefined;
         }
@@ -111,15 +114,20 @@ namespace DatabaseInterpreter.Utility
             var args = new List<string>();
 
             if (matches.Count > 0)
+            {
                 foreach (Match match in matches)
                 {
                     dataType = dataType.Replace(match.Value, "");
                     args.Add(match.Value.Trim('(', ')'));
                 }
+            }
 
             dataTypeInfo.DataType = dataType;
 
-            if (args.Count > 0) dataTypeInfo.Args = string.Join(",", args);
+            if (args.Count > 0)
+            {
+                dataTypeInfo.Args = string.Join(",", args);
+            }
 
             return dataTypeInfo;
         }

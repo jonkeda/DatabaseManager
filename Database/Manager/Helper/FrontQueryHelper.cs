@@ -17,14 +17,19 @@ namespace DatabaseManager.Helper
                 DataTypeHelper.IsDateOrTimeType(typeName) ||
                 DataTypeHelper.IsGeometryType(typeName)
                )
+            {
                 return true;
+            }
 
             return false;
         }
 
         public static string GetSafeValue(string value)
         {
-            if (string.IsNullOrEmpty(value)) return value;
+            if (string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
 
             value = Regex.Replace(value, @";", string.Empty);
             value = Regex.Replace(value, @"'", string.Empty);

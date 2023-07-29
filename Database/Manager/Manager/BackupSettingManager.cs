@@ -13,8 +13,10 @@ namespace DatabaseManager.Core
         public static List<BackupSetting> GetSettings()
         {
             if (File.Exists(ConfigFilePath))
+            {
                 return (List<BackupSetting>)JsonConvert.DeserializeObject(File.ReadAllText(ConfigFilePath),
                     typeof(List<BackupSetting>));
+            }
 
             return new List<BackupSetting>();
         }

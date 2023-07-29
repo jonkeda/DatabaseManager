@@ -38,11 +38,19 @@ namespace DatabaseManager.Core
         public virtual Task<TableDiagnoseResult> DiagnoseTable(TableDiagnoseType diagnoseType)
         {
             if (diagnoseType == TableDiagnoseType.SelfReferenceSame)
+            {
                 return DiagnoseSelfReferenceSameForTable();
+            }
+
             if (diagnoseType == TableDiagnoseType.NotNullWithEmpty)
+            {
                 return DiagnoseNotNullWithEmptyForTable();
+            }
+
             if (diagnoseType == TableDiagnoseType.WithLeadingOrTrailingWhitespace)
+            {
                 return DiagnoseWithLeadingOrTrailingWhitespaceForTable();
+            }
 
             throw new NotSupportedException($"Not support diagnose for {diagnoseType}");
         }
@@ -88,13 +96,17 @@ namespace DatabaseManager.Core
             dynamic groups = null;
 
             if (diagnoseType == TableDiagnoseType.NotNullWithEmpty)
+            {
                 groups = columns.Where(item =>
                         DataTypeHelper.IsCharType(item.DataType) && !item.DataType.EndsWith("[]") && !item.IsNullable)
                     .GroupBy(item => new { item.Schema, item.TableName });
+            }
             else if (diagnoseType == TableDiagnoseType.WithLeadingOrTrailingWhitespace)
+            {
                 groups = columns
                     .Where(item => DataTypeHelper.IsCharType(item.DataType) && !item.DataType.EndsWith("[]"))
                     .GroupBy(item => new { item.Schema, item.TableName });
+            }
 
             using (var dbConnection = interpreter.CreateConnection())
             {
@@ -104,9 +116,13 @@ namespace DatabaseManager.Core
                     var countSql = "";
 
                     if (diagnoseType == TableDiagnoseType.NotNullWithEmpty)
+                    {
                         countSql = GetTableColumnWithEmptyValueSql(interpreter, column, true);
+                    }
                     else
+                    {
                         countSql = GetTableColumnWithLeadingOrTrailingWhitespaceSql(interpreter, column, true);
+                    }
 
                     Feedback(
                         $@"Begin to get invalid record count for column ""{column.Name}"" of table ""{column.TableName}""...");
@@ -121,9 +137,13 @@ namespace DatabaseManager.Core
                         var sql = "";
 
                         if (diagnoseType == TableDiagnoseType.NotNullWithEmpty)
+                        {
                             sql = GetTableColumnWithEmptyValueSql(interpreter, column, false);
+                        }
                         else
+                        {
                             sql = GetTableColumnWithLeadingOrTrailingWhitespaceSql(interpreter, column, false);
+                        }
 
                         result.Details.Add(new TableDiagnoseResultDetail
                         {
@@ -175,12 +195,14 @@ namespace DatabaseManager.Core
                         $@"End get invalid record count for column ""{foreignKey.Name}"" of table ""{foreignKey.TableName}"", the count is {count}.");
 
                     if (count > 0)
+                    {
                         result.Details.Add(new TableDiagnoseResultDetail
                         {
                             DatabaseObject = foreignKey,
                             RecordCount = count,
                             Sql = GetTableColumnReferenceSql(interpreter, foreignKey, false)
                         });
+                    }
                 }
             }
 
@@ -225,8 +247,12 @@ namespace DatabaseManager.Core
                 $"SELECT {selectColumn} FROM {tableName} WHERE {lengthFunName}(TRIM({columnName}))<{lengthFunName}({columnName})";
 
             if (interpreter.DatabaseType == DatabaseType.Postgres)
+            {
                 if (column.DataType == "character")
+                {
                     sql += $" OR {lengthFunName}({columnName})<>{column.MaxLength}";
+                }
+            }
 
             return sql;
         }
@@ -254,8 +280,14 @@ namespace DatabaseManager.Core
         public virtual Task<List<ScriptDiagnoseResult>> DiagnoseScript(ScriptDiagnoseType diagnoseType)
         {
             if (diagnoseType == ScriptDiagnoseType.ViewColumnAliasWithoutQuotationChar)
+            {
                 return DiagnoseViewColumnAliasForScript();
-            if (diagnoseType == ScriptDiagnoseType.NameNotMatch) return DiagnoseNameNotMatchForScript();
+            }
+
+            if (diagnoseType == ScriptDiagnoseType.NameNotMatch)
+            {
+                return DiagnoseNameNotMatchForScript();
+            }
 
             throw new NotSupportedException($"Not support diagnose for {diagnoseType}.");
         }
@@ -335,11 +367,18 @@ namespace DatabaseManager.Core
                         result.Details.AddRange(ParseSelectStatementColumns(interpreter, selectStatement));
 
                         if (selectStatement.UnionStatements != null)
+                        {
                             foreach (var union in selectStatement.UnionStatements)
+                            {
                                 result.Details.AddRange(ParseSelectStatementColumns(interpreter,
                                     union.SelectStatement));
+                            }
+                        }
 
-                        if (result.Details.Count > 0) results.Add(result);
+                        if (result.Details.Count > 0)
+                        {
+                            results.Add(result);
+                        }
                     }
                 }
             }
@@ -357,6 +396,7 @@ namespace DatabaseManager.Core
             var columns = statement.Columns;
 
             foreach (var col in columns)
+            {
                 if (col.Alias != null && !col.Alias.Symbol.StartsWith(interpreter.QuotationLeftChar.ToString()))
                 {
                     var detail = new ScriptDiagnoseResultDetail
@@ -369,6 +409,7 @@ namespace DatabaseManager.Core
 
                     details.Add(detail);
                 }
+            }
 
             return details;
         }
@@ -412,7 +453,9 @@ namespace DatabaseManager.Core
                     { Schema = Schema, ViewNames = views.Select(item => item.Name).ToArray() };
 
                 if (DatabaseType == DatabaseType.SqlServer)
+                {
                     viewColumnUsages = await interpreter.GetViewColumnUsages(connection, viewNamesFilter);
+                }
 
                 #endregion
 
@@ -442,7 +485,10 @@ namespace DatabaseManager.Core
                     var usages =
                         await GetRoutineScriptUsages(interpreter, connection, functions, tables, views, functions);
 
-                    if (usages.Count > 0) functionUsages = usages;
+                    if (usages.Count > 0)
+                    {
+                        functionUsages = usages;
+                    }
                 }
 
                 #endregion
@@ -473,7 +519,10 @@ namespace DatabaseManager.Core
                     var usages = await GetRoutineScriptUsages(interpreter, connection, procedures, tables, views,
                         functions, procedures);
 
-                    if (usages.Count > 0) procedureUsages = usages;
+                    if (usages.Count > 0)
+                    {
+                        procedureUsages = usages;
+                    }
                 }
 
                 #endregion
@@ -482,15 +531,21 @@ namespace DatabaseManager.Core
             await Task.Run(() =>
             {
                 if (views != null && viewColumnUsages != null)
+                {
                     results.AddRange(DiagnoseNameNotMatchForViews(views, viewColumnUsages, interpreter.CommentString));
+                }
 
                 if (functions != null && functionUsages != null)
+                {
                     results.AddRange(DiagnoseNameNotMatchForRoutineScripts(functions, functionUsages,
                         interpreter.CommentString));
+                }
 
                 if (procedures != null && procedureUsages != null)
+                {
                     results.AddRange(DiagnoseNameNotMatchForRoutineScripts(procedures, procedureUsages,
                         interpreter.CommentString));
+                }
             });
 
             return results;
@@ -512,14 +567,22 @@ namespace DatabaseManager.Core
                 usages.AddRange(GetRoutineScriptUsages(sdb, tables, tableNames));
                 usages.AddRange(GetRoutineScriptUsages(sdb, views, viewNames));
 
-                if (functions != null) usages.AddRange(GetRoutineScriptUsages(sdb, functions, functionNames));
+                if (functions != null)
+                {
+                    usages.AddRange(GetRoutineScriptUsages(sdb, functions, functionNames));
+                }
 
-                if (procedures != null) usages.AddRange(GetRoutineScriptUsages(sdb, procedures, procedureNames));
+                if (procedures != null)
+                {
+                    usages.AddRange(GetRoutineScriptUsages(sdb, procedures, procedureNames));
+                }
             }
 
             if (usages.Count > 0)
+            {
                 await HandleRoutineScriptUsagesAsync(usages, interpreter, connection, tables, views, functions,
                     procedures);
+            }
 
             return usages;
         }
@@ -564,7 +627,9 @@ namespace DatabaseManager.Core
 
             if (tables != null)
                 //correct table name to defined if it's not same as defined
+            {
                 CorrectRefObjectName(usageTables, tables);
+            }
 
             var tableNames = usageTables.Select(item => item.RefObjectName).ToArray();
 
@@ -573,23 +638,37 @@ namespace DatabaseManager.Core
             var tableColumns = await interpreter.GetTableColumnsAsync(connection, tableNamesFilter);
 
             foreach (var usage in usages)
+            {
                 if (usage.RefObjectType == "Table")
+                {
                     usage.ColumnNames = tableColumns
                         .Where(item => item.Schema == usage.RefObjectSchema && item.TableName == usage.RefObjectName)
                         .Select(item => item.Name).ToList();
+                }
+            }
 
-            if (views != null) CorrectRefObjectName(usages.Where(item => item.RefObjectType == "View"), views);
+            if (views != null)
+            {
+                CorrectRefObjectName(usages.Where(item => item.RefObjectType == "View"), views);
+            }
 
             if (functions != null)
+            {
                 CorrectRefObjectName(usages.Where(item => item.RefObjectType == "Function"), functions);
+            }
 
             if (procedures != null)
+            {
                 CorrectRefObjectName(usages.Where(item => item.RefObjectType == "Procedure"), procedures);
+            }
         }
 
         private void CorrectRefObjectName(IEnumerable<RoutineScriptUsage> usages, IEnumerable<DatabaseObject> dbObjects)
         {
-            if (usages == null || dbObjects == null) return;
+            if (usages == null || dbObjects == null)
+            {
+                return;
+            }
 
             foreach (var usage in usages)
             {
@@ -598,7 +677,10 @@ namespace DatabaseManager.Core
                 var dbObject = dbObjects.FirstOrDefault(item =>
                     item.Schema == usage.RefObjectSchema && item.Name.ToLower() == refObjectName.ToLower());
 
-                if (dbObject != null && dbObject.Name != refObjectName) usage.RefObjectName = dbObject.Name;
+                if (dbObject != null && dbObject.Name != refObjectName)
+                {
+                    usage.RefObjectName = dbObject.Name;
+                }
             }
         }
 
@@ -631,7 +713,10 @@ namespace DatabaseManager.Core
         {
             var results = new List<ScriptDiagnoseResult>();
 
-            if (usages.Count == 0) return results;
+            if (usages.Count == 0)
+            {
+                return results;
+            }
 
             foreach (var rs in routineScripts)
             {
@@ -674,7 +759,10 @@ namespace DatabaseManager.Core
         {
             var details = new List<ScriptDiagnoseResultDetail>();
 
-            if (names.Count == 0) return details;
+            if (names.Count == 0)
+            {
+                return details;
+            }
 
             var pattern = $@"\b({string.Join("|", names)})\b";
 
@@ -691,11 +779,17 @@ namespace DatabaseManager.Core
             {
                 var value = match.Value;
 
-                if (beginAsIndex > 0 && match.Index < beginAsIndex) continue;
+                if (beginAsIndex > 0 && match.Index < beginAsIndex)
+                {
+                    continue;
+                }
 
                 //check whether the value is in comment line
                 if (commentLines.Any(item =>
-                        match.Index > item.FirstCharIndex && match.Index < item.FirstCharIndex + item.Length)) continue;
+                        match.Index > item.FirstCharIndex && match.Index < item.FirstCharIndex + item.Length))
+                {
+                    continue;
+                }
 
                 if (names.Any(item => item.ToLower() == value.ToLower()) && !names.Any(item => item == value))
                 {

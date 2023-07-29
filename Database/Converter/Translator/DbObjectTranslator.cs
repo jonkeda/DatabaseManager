@@ -74,16 +74,28 @@ namespace DatabaseConverter.Core
             var upperDataTypeName = dataTypeInfo.DataType.ToUpper();
 
             if (sourceDbType == DatabaseType.MySql)
+            {
                 if (upperDataTypeName == "SIGNED")
                 {
                     if (targetDbType == DatabaseType.SqlServer)
+                    {
                         return "DECIMAL";
+                    }
+
                     if (targetDbType == DatabaseType.Postgres)
+                    {
                         return "NUMERIC";
-                    if (targetDbType == DatabaseType.Oracle) return "NUMBER";
+                    }
+
+                    if (targetDbType == DatabaseType.Oracle)
+                    {
+                        return "NUMBER";
+                    }
                 }
+            }
 
             if (targetDbType == DatabaseType.Oracle)
+            {
                 if (usedForFunction && GetType() == typeof(FunctionTranslator) && dataTypeInfo.Args?.ToLower() == "max")
                 {
                     var mappedDataType = GetDataTypeMapping(mappings, dataTypeInfo.DataType)?.Target?.Type;
@@ -99,10 +111,14 @@ namespace DatabaseConverter.Core
                         {
                             var range = DataTypeManager.GetArgumentRange(dataTypeSpec, "length");
 
-                            if (range.HasValue) return $"{mappedDataType}({range.Value.Max})";
+                            if (range.HasValue)
+                            {
+                                return $"{mappedDataType}({range.Value.Max})";
+                            }
                         }
                     }
                 }
+            }
 
             var trimChars = TranslateHelper.GetTrimChars(sourceDbInterpreter, targetDbInterpreter).ToArray();
 
@@ -123,15 +139,24 @@ namespace DatabaseConverter.Core
                 {
                     var ndt = GetMySqlNewDataType(newDataTypeName);
 
-                    if (ndt != newDataTypeName) newDataType = ndt;
+                    if (ndt != newDataTypeName)
+                    {
+                        newDataType = ndt;
+                    }
                 }
                 else if (targetDbType == DatabaseType.Postgres)
                 {
-                    if (DataTypeHelper.IsBinaryType(newDataTypeName)) return newDataTypeName;
+                    if (DataTypeHelper.IsBinaryType(newDataTypeName))
+                    {
+                        return newDataTypeName;
+                    }
                 }
             }
 
-            if (string.IsNullOrEmpty(newDataType)) newDataType = targetDbInterpreter.ParseDataType(column);
+            if (string.IsNullOrEmpty(newDataType))
+            {
+                newDataType = targetDbInterpreter.ParseDataType(column);
+            }
 
             return newDataType;
         }
@@ -141,14 +166,29 @@ namespace DatabaseConverter.Core
             var upperTypeName = dataTypeName.ToUpper();
 
             if (upperTypeName.Contains("INT") || upperTypeName == "BIT")
+            {
                 return "SIGNED";
+            }
+
             if (upperTypeName == "NUMBER")
+            {
                 return "DOUBLE";
+            }
+
             if (DataTypeHelper.IsCharType(dataTypeName) || upperTypeName.Contains("TEXT"))
+            {
                 return "CHAR";
+            }
+
             if (DataTypeHelper.IsDateOrTimeType(dataTypeName))
+            {
                 return "DATETIME";
-            if (DataTypeHelper.IsBinaryType(dataTypeName)) return "BINARY";
+            }
+
+            if (DataTypeHelper.IsBinaryType(dataTypeName))
+            {
+                return "BINARY";
+            }
 
             return dataTypeName;
         }
@@ -168,8 +208,12 @@ namespace DatabaseConverter.Core
         {
             if (functionName.ToUpper() == "CONVERT" && targetDbInterpreter.DatabaseType == DatabaseType.MySql &&
                 args1.ToUpper().Contains("DATE"))
+            {
                 if (args2.Contains(','))
+                {
                     args2 = args2.Split(',')[0];
+                }
+            }
 
             var newExpression = $"{functionName}({args2},{args1})";
 
@@ -178,7 +222,10 @@ namespace DatabaseConverter.Core
 
         public string ReplaceVariables(string script, List<IEnumerable<VariableMapping>> mappings)
         {
-            if (mappings == null) return script;
+            if (mappings == null)
+            {
+                return script;
+            }
 
             foreach (var mapping in mappings)
             {
@@ -191,7 +238,9 @@ namespace DatabaseConverter.Core
                                            && targetVariable != null && targetVariable.Variable != null &&
                                            !string.IsNullOrEmpty(targetVariable.Variable)
                    )
+                {
                     script = ReplaceValue(script, sourceVariable.Variable, targetVariable.Variable);
+                }
             }
 
             return script;
@@ -207,7 +256,9 @@ namespace DatabaseConverter.Core
             var name = formula.Name;
 
             if (!string.IsNullOrEmpty(targetFunctionInfo.Args) && targetFunctionInfo.IsFixedArgs)
+            {
                 return $"{targetFunctionInfo.Name}({targetFunctionInfo.Args})";
+            }
 
             var sourceFuncSpec = sourceFuncSpecs.FirstOrDefault(item => item.Name.ToUpper() == name.ToUpper());
             var targetFuncSpec =
@@ -250,7 +301,10 @@ namespace DatabaseConverter.Core
 
                 if (targetArgItems == null || (formulaArgs.Count > 0 &&
                                                (targetArgItems == null || targetArgItems.Count == 0 ||
-                                                sourceArgItems.Count == 0))) ignore = true;
+                                                sourceArgItems.Count == 0)))
+                {
+                    ignore = true;
+                }
 
                 Func<FunctionArgumentItemInfo, string, string> getSourceArg = (source, content) =>
                 {
@@ -313,7 +367,9 @@ namespace DatabaseConverter.Core
                 var targetFunctionName = targetFunctionInfo.Name;
 
                 if (sourceDbInterpreter.DatabaseType == DatabaseType.Postgres)
+                {
                     if (name == "TRIM" && formulaArgs.Count > 1)
+                    {
                         switch (formulaArgs[0])
                         {
                             case "LEADING":
@@ -323,6 +379,8 @@ namespace DatabaseConverter.Core
                                 targetFunctionName = "RTRIM";
                                 break;
                         }
+                    }
+                }
 
                 if (!ignore)
                 {
@@ -331,7 +389,9 @@ namespace DatabaseConverter.Core
                     foreach (var tai in targetArgItems)
                     {
                         if (tai.Index > 0)
+                        {
                             sbArgs.Append(targetFuncSpec.Delimiter == "," ? "," : $" {targetFuncSpec.Delimiter} ");
+                        }
 
                         var content = tai.Content;
                         var trimedContent = GetTrimedContent(content);
@@ -345,19 +405,31 @@ namespace DatabaseConverter.Core
 
                             if (!string.IsNullOrEmpty(value))
                             {
-                                if (IsQuoted(sourceItem.Content) && !IsQuoted(content)) value = GetTrimedContent(value);
+                                if (IsQuoted(sourceItem.Content) && !IsQuoted(content))
+                                {
+                                    value = GetTrimedContent(value);
+                                }
 
-                                if (content.StartsWith("\'")) sbArgs.Append('\'');
+                                if (content.StartsWith("\'"))
+                                {
+                                    sbArgs.Append('\'');
+                                }
 
                                 sbArgs.Append(value);
 
-                                if (content.EndsWith("\'")) sbArgs.Append('\'');
+                                if (content.EndsWith("\'"))
+                                {
+                                    sbArgs.Append('\'');
+                                }
                             }
                             else
                             {
                                 var defaultValue = GetFunctionDictionaryValue(defaults, content);
 
-                                if (!string.IsNullOrEmpty(defaultValue)) sbArgs.Append(defaultValue);
+                                if (!string.IsNullOrEmpty(defaultValue))
+                                {
+                                    sbArgs.Append(defaultValue);
+                                }
                             }
                         }
                         else if (sourceArgItems.Any(item =>
@@ -378,6 +450,7 @@ namespace DatabaseConverter.Core
                                 {
                                     var i = 0;
                                     foreach (var detail in details)
+                                    {
                                         if (detail.Type != FunctionArgumentItemDetailType.Whitespace)
                                         {
                                             if (GetTrimedContent(detail.Content) == trimedContent)
@@ -388,6 +461,7 @@ namespace DatabaseConverter.Core
 
                                             i++;
                                         }
+                                    }
                                 }
                             }
                         }
@@ -409,13 +483,22 @@ namespace DatabaseConverter.Core
                                 {
                                     var value = getSourceArg(si, detail.Content);
 
-                                    if (IsQuoted(si.Content) && !IsQuoted(dc)) value = GetTrimedContent(value);
+                                    if (IsQuoted(si.Content) && !IsQuoted(dc))
+                                    {
+                                        value = GetTrimedContent(value);
+                                    }
 
-                                    if (dc.StartsWith("\'")) sbArgs.Append('\'');
+                                    if (dc.StartsWith("\'"))
+                                    {
+                                        sbArgs.Append('\'');
+                                    }
 
                                     sbArgs.Append(value);
 
-                                    if (dc.EndsWith("\'")) sbArgs.Append('\'');
+                                    if (dc.EndsWith("\'"))
+                                    {
+                                        sbArgs.Append('\'');
+                                    }
                                 }
                                 else
                                 {
@@ -440,12 +523,14 @@ namespace DatabaseConverter.Core
                     #region Oracle: use TO_CHAR instead of CAST(xxx as varchar2(n))
 
                     if (targetDbType == DatabaseType.Oracle)
+                    {
                         if (targetFunctionName == "CAST")
                         {
                             var items = sbArgs.ToString().SplitByString("AS");
                             var dataType = items.LastOrDefault().Trim();
 
                             if (DataTypeHelper.IsCharType(dataType))
+                            {
                                 if (routineType == RoutineType.PROCEDURE || routineType == RoutineType.FUNCTION ||
                                     routineType == RoutineType.TRIGGER)
                                 {
@@ -453,7 +538,9 @@ namespace DatabaseConverter.Core
                                     sbArgs.Clear();
                                     sbArgs.Append(items[0].Trim());
                                 }
+                            }
                         }
+                    }
 
                     #endregion
 
@@ -473,7 +560,10 @@ namespace DatabaseConverter.Core
                             {
                                 var defaultValue = GetFunctionDictionaryValue(defaults, sourceItem.Content);
 
-                                if (!string.IsNullOrEmpty(defaultValue)) value = defaultValue;
+                                if (!string.IsNullOrEmpty(defaultValue))
+                                {
+                                    value = defaultValue;
+                                }
                             }
 
                             expression = expression.Replace(sourceItem.Content, value);
@@ -486,7 +576,9 @@ namespace DatabaseConverter.Core
                 var replacements = GetFunctionStringDictionary(targetFunctionInfo.Replacements);
 
                 foreach (var replacement in replacements)
+                {
                     newExpression = newExpression.Replace(replacement.Key, replacement.Value);
+                }
             }
 
             dictDataType = dataTypeDict;
@@ -496,7 +588,10 @@ namespace DatabaseConverter.Core
 
         private string GetFunctionDictionaryValue(Dictionary<string, string> values, string arg)
         {
-            if (values.TryGetValue(arg, out var value)) return value;
+            if (values.TryGetValue(arg, out var value))
+            {
+                return value;
+            }
 
             return null;
         }
@@ -528,7 +623,10 @@ namespace DatabaseConverter.Core
                         var key = subItems[0];
                         var value = subItems[1];
 
-                        if (!dict.ContainsKey(key)) dict.Add(key, value);
+                        if (!dict.ContainsKey(key))
+                        {
+                            dict.Add(key, value);
+                        }
                     }
                 }
             }
@@ -542,8 +640,12 @@ namespace DatabaseConverter.Core
                 targetFuncSpecs.FirstOrDefault(item => item.Name.ToUpper() == value.TrimEnd('(', ')').ToUpper());
 
             if (targetFuncSpec != null)
+            {
                 if (targetFuncSpec.NoParenthesess && value.EndsWith("()"))
+                {
                     value = value.Substring(0, value.Length - 2);
+                }
+            }
 
             return value;
         }
@@ -574,8 +676,10 @@ namespace DatabaseConverter.Core
                         for (var j = 0; j < details.Length; j++)
                         {
                             if (j > 0)
+                            {
                                 itemInfo.Details.Add(new FunctionArgumentItemDetailInfo
                                     { Type = FunctionArgumentItemDetailType.Whitespace, Content = " " });
+                            }
 
                             var detail = new FunctionArgumentItemDetailInfo
                                 { Type = FunctionArgumentItemDetailType.Text, Content = details[j] };
@@ -623,8 +727,12 @@ namespace DatabaseConverter.Core
                 var matched = true;
 
                 if (!string.IsNullOrEmpty(args) && !string.IsNullOrEmpty(mapping.Args))
+                {
                     if (mapping.IsFixedArgs && args.Trim().ToLower() != mapping.Args.Trim().ToLower())
+                    {
                         matched = false;
+                    }
+                }
 
                 if (matched)
                 {

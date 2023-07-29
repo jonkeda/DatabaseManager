@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Dapper;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
+using Databases.Interpreter.Builder;
 using Microsoft.SqlServer.Types;
 using MySqlConnector;
 //using DatabaseInterpreter.Geometry;

@@ -18,7 +18,10 @@ namespace DatabaseConverter.Core
 
         public override void Translate()
         {
-            if (sourceDbType == targetDbType) return;
+            if (sourceDbType == targetDbType)
+            {
+                return;
+            }
 
             FeedbackInfo("Begin to translate user defined types.");
 

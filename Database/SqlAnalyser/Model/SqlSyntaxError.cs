@@ -13,8 +13,10 @@ namespace SqlAnalyser.Model
             var sb = new StringBuilder();
 
             foreach (var item in Items)
+            {
                 sb.AppendLine(
                     $"{item.Text}(Line={item.Line},Column={item.Column},StartIndex={item.StartIndex},StopIndex={item.StopIndex}):{item.Message};");
+            }
 
             return sb.ToString();
         }

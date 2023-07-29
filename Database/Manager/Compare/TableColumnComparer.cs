@@ -9,15 +9,17 @@ namespace DatabaseManager.Core
     public class TableColumnComparer : BaseTypeComparer
     {
         public TableColumnComparer(RootComparer rootComparer) : base(rootComparer)
-        {
-        }
+        { }
 
         public override void CompareType(CompareParms parms)
         {
             var column1 = (TableColumn)parms.Object1;
             var column2 = (TableColumn)parms.Object2;
 
-            if (!IsEquals(column1, column2)) AddDifference(parms);
+            if (!IsEquals(column1, column2))
+            {
+                AddDifference(parms);
+            }
         }
 
         private bool IsEquals(TableColumn column1, TableColumn column2)
@@ -31,12 +33,16 @@ namespace DatabaseManager.Core
                 || column2.Scale != column2.Scale
                 || column1.Comment != column2.Comment
                )
+            {
                 return false;
+            }
 
             if (!IsEqualsWithParenthesis(column1.DefaultValue, column2.DefaultValue)
                 || !IsEqualsWithParenthesis(column1.ComputeExp, column2.ComputeExp)
                )
+            {
                 return false;
+            }
 
             return true;
         }

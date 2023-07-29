@@ -23,7 +23,10 @@ namespace DatabaseInterpreter.Utility
         public static string CheckReplacement(string replacement)
         {
             //https://learn.microsoft.com/en-us/dotnet/standard/base-types/substitutions-in-regular-expressions
-            if (replacement != null && replacement.Contains("$")) return replacement.Replace("$", "$$");
+            if (replacement != null && replacement.Contains("$"))
+            {
+                return replacement.Replace("$", "$$");
+            }
 
             return replacement;
         }

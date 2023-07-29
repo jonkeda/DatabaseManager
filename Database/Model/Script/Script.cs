@@ -3,8 +3,7 @@
     public class Script
     {
         public Script()
-        {
-        }
+        { }
 
         public Script(string script)
         {

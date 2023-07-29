@@ -33,9 +33,13 @@ namespace DatabaseManager.Core
             if (dbObject is Table)
             {
                 if (scriptAction == ScriptAction.CREATE)
+                {
                     dbInterpreter.Option.GetTableAllObjects = true;
+                }
                 else
+                {
                     databaseObjectType |= DatabaseObjectType.Column;
+                }
             }
             else if (dbObject is View)
             {
@@ -54,17 +58,27 @@ namespace DatabaseManager.Core
             };
 
             if (columnType == ColumnType.ViewColumn)
+            {
                 filter.TableNames = new[] { dbObject.Name };
+            }
             else
+            {
                 filter.GetType().GetProperty($"{typeName}Names").SetValue(filter, new[] { dbObject.Name });
+            }
 
             if (dbObject is Function func)
             {
-                if (scriptAction == ScriptAction.SELECT) return await GenerateRoutineCallScript(dbObject, filter);
+                if (scriptAction == ScriptAction.SELECT)
+                {
+                    return await GenerateRoutineCallScript(dbObject, filter);
+                }
             }
             else if (dbObject is Procedure proc)
             {
-                if (scriptAction == ScriptAction.EXECUTE) return await GenerateRoutineCallScript(dbObject, filter);
+                if (scriptAction == ScriptAction.EXECUTE)
+                {
+                    return await GenerateRoutineCallScript(dbObject, filter);
+                }
             }
 
             var schemaInfo = await dbInterpreter.GetSchemaInfoAsync(filter);
@@ -81,7 +95,10 @@ namespace DatabaseManager.Core
 
                 foreach (var script in scripts)
                 {
-                    if (databaseType == DatabaseType.SqlServer && script is SpliterScript) continue;
+                    if (databaseType == DatabaseType.SqlServer && script is SpliterScript)
+                    {
+                        continue;
+                    }
 
                     var content = script.Content;
 
@@ -89,12 +106,16 @@ namespace DatabaseManager.Core
                     {
                         var objType = typeName;
 
-                        if (typeName == nameof(TableTrigger)) objType = "TRIGGER";
+                        if (typeName == nameof(TableTrigger))
+                        {
+                            objType = "TRIGGER";
+                        }
 
                         var createFlag = "CREATE ";
                         var createFlagIndex = GetCreateIndex(content, createFlag);
 
                         if (createFlagIndex >= 0)
+                        {
                             switch (databaseType)
                             {
                                 case DatabaseType.SqlServer:
@@ -109,10 +130,14 @@ namespace DatabaseManager.Core
                                 case DatabaseType.Oracle:
                                     if (!Regex.IsMatch(content, @"^(CREATE[\s]+OR[\s]+REPLACE[\s]+)",
                                             RegexOptions.IgnoreCase))
+                                    {
                                         content = content.Substring(0, createFlagIndex) + "CREATE OR REPLACE " +
                                                   content.Substring(createFlagIndex + createFlag.Length);
+                                    }
+
                                     break;
                             }
+                        }
                     }
 
                     sbContent.AppendLine(content);
@@ -140,7 +165,10 @@ namespace DatabaseManager.Core
 
             foreach (var line in lines)
             {
-                if (line.StartsWith(createFlag, StringComparison.OrdinalIgnoreCase)) return count;
+                if (line.StartsWith(createFlag, StringComparison.OrdinalIgnoreCase))
+                {
+                    return count;
+                }
 
                 count += line.Length + 1;
             }
@@ -239,27 +267,46 @@ namespace DatabaseManager.Core
                 }
             }
 
-            if (isTableFunction) sb.Append("* FROM ");
+            if (isTableFunction)
+            {
+                sb.Append("* FROM ");
+            }
 
             if (isFunction)
+            {
                 parameters = await dbInterpreter.GetFunctionParametersAsync(filter);
-            else if (isProcedure) parameters = await dbInterpreter.GetProcedureParametersAsync(filter);
+            }
+            else if (isProcedure)
+            {
+                parameters = await dbInterpreter.GetProcedureParametersAsync(filter);
+            }
 
             result.Parameters = parameters;
 
             sb.Append($"{action}{(string.IsNullOrEmpty(action) ? "" : " ")}{routineName}");
 
-            if (!isSqlServerProcedure) sb.Append("(");
+            if (!isSqlServerProcedure)
+            {
+                sb.Append("(");
+            }
 
             sb.AppendLine();
 
             if (parameters != null && parameters.Count > 0)
+            {
                 sb.AppendLine(string.Join(" ," + Environment.NewLine,
                     parameters.Select(item => GetRoutineParameterItem(item, isFunction))));
+            }
 
-            if (!isSqlServerProcedure) sb.AppendLine(")");
+            if (!isSqlServerProcedure)
+            {
+                sb.AppendLine(")");
+            }
 
-            if (isFunction && !isTableFunction && databaseType == DatabaseType.Oracle) sb.Append("FROM DUAL");
+            if (isFunction && !isTableFunction && databaseType == DatabaseType.Oracle)
+            {
+                sb.Append("FROM DUAL");
+            }
 
             result.Script = sb.ToString();
 

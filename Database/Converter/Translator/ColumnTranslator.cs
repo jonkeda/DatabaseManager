@@ -32,11 +32,20 @@ namespace DatabaseConverter.Core
 
         public override void Translate()
         {
-            if (sourceDbType == targetDbType) return;
+            if (sourceDbType == targetDbType)
+            {
+                return;
+            }
 
-            if (hasError) return;
+            if (hasError)
+            {
+                return;
+            }
 
-            if (!columns.Any()) return;
+            if (!columns.Any())
+            {
+                return;
+            }
 
             FeedbackInfo("Begin to translate columns.");
 
@@ -48,7 +57,10 @@ namespace DatabaseConverter.Core
 
             var dataModeOnly = Option.GenerateScriptMode == GenerateScriptMode.Data;
 
-            if (!dataModeOnly) CheckComputeExpression();
+            if (!dataModeOnly)
+            {
+                CheckComputeExpression();
+            }
 
             foreach (var column in columns)
             {
@@ -61,14 +73,22 @@ namespace DatabaseConverter.Core
                 else
                 {
                     if (!DataTypeHelper.IsUserDefinedType(column))
+                    {
                         TranslateHelper.TranslateTableColumnDataType(dataTypeTranslator, column);
+                    }
                 }
 
                 if (!dataModeOnly)
                 {
-                    if (!string.IsNullOrEmpty(column.DefaultValue)) ConvertDefaultValue(column);
+                    if (!string.IsNullOrEmpty(column.DefaultValue))
+                    {
+                        ConvertDefaultValue(column);
+                    }
 
-                    if (column.IsComputed) ConvertComputeExpression(column);
+                    if (column.IsComputed)
+                    {
+                        ConvertComputeExpression(column);
+                    }
                 }
             }
 
@@ -77,7 +97,10 @@ namespace DatabaseConverter.Core
 
         private TableColumn GetExistedColumn(TableColumn column)
         {
-            if (ExistedTableColumns == null || ExistedTableColumns.Count == 0) return null;
+            if (ExistedTableColumns == null || ExistedTableColumns.Count == 0)
+            {
+                return null;
+            }
 
             return ExistedTableColumns.FirstOrDefault(
                 item => SchemaInfoHelper.IsSameTableColumnIgnoreCase(item, column));
@@ -103,19 +126,25 @@ namespace DatabaseConverter.Core
                 if (targetDbType == DatabaseType.MySql
                     || Option.OnlyForTableCopy
                     || column.IsIdentity)
+                {
                     column.DefaultValue = null;
+                }
                 else
+                {
                     column.DefaultValue = sequenceTranslator.HandleSequenceValue(defaultValue);
+                }
 
                 return;
             }
 
             if (defaultValue == "''")
+            {
                 if (targetDbType == DatabaseType.Oracle)
                 {
                     column.IsNullable = true;
                     return;
                 }
+            }
 
             var hasScale = false;
             string scale = null;
@@ -133,7 +162,10 @@ namespace DatabaseConverter.Core
 
             var formulas = FunctionTranslator.GetFunctionFormulas(sourceDbInterpreter, defaultValue);
 
-            if (formulas.Count > 0) functionName = formulas.First().Name;
+            if (formulas.Count > 0)
+            {
+                functionName = formulas.First().Name;
+            }
 
             var funcMappings = functionMappings.FirstOrDefault(item => item.Any(t => t.DbType == sourceDbType.ToString()
                 && t.Function.Split(',').Any(m => m.Trim().ToLower() == functionName.ToLower())));
@@ -146,23 +178,34 @@ namespace DatabaseConverter.Core
                 var handled = false;
 
                 if (targetDbType == DatabaseType.MySql || targetDbType == DatabaseType.Postgres)
+                {
                     if (functionName.ToUpper() == "CURRENT_TIMESTAMP" && column.DataType.Contains("timestamp") &&
                         column.Scale > 0)
                     {
                         defaultValue = $"{functionName}({column.Scale})";
                         handled = true;
                     }
+                }
 
                 if (targetDbType == DatabaseType.SqlServer)
+                {
                     if (functionName == "GETDATE")
+                    {
                         if (hasScale && int.TryParse(scale, out _))
+                        {
                             if (int.Parse(scale) > 3)
                             {
                                 defaultValue = "SYSDATETIME";
                                 handled = true;
                             }
+                        }
+                    }
+                }
 
-                if (!handled) defaultValue = functionTranslator.GetMappedFunction(defaultValue);
+                if (!handled)
+                {
+                    defaultValue = functionTranslator.GetMappedFunction(defaultValue);
+                }
             }
             else
             {
@@ -174,22 +217,33 @@ namespace DatabaseConverter.Core
                         var list = new List<string>();
 
                         foreach (var item in items)
+                        {
                             list.Add(item.Split(new[] { "::" }, StringSplitOptions.RemoveEmptyEntries)[0]);
+                        }
 
                         defaultValue = string.Join(" ", list);
                         trimedValue = getTrimedValue();
                     }
 
                     if (defaultValue.Trim() == "true" || defaultValue.Trim() == "false")
+                    {
                         defaultValue = defaultValue.Replace("true", "1").Replace("false", "0");
+                    }
 
                     if (defaultValue.ToUpper().Contains("CURRENT_TIMESTAMP AT TIME ZONE 'UTC'"))
                     {
                         if (targetDbType == DatabaseType.SqlServer)
+                        {
                             defaultValue = "GETUTCDATE()";
+                        }
                         else if (targetDbType == DatabaseType.MySql)
+                        {
                             defaultValue = "UTC_TIMESTAMP()";
-                        else if (targetDbType == DatabaseType.Oracle) defaultValue = "SYS_EXTRACT_UTC(SYSTIMESTAMP)";
+                        }
+                        else if (targetDbType == DatabaseType.Oracle)
+                        {
+                            defaultValue = "SYS_EXTRACT_UTC(SYSTIMESTAMP)";
+                        }
                     }
                 }
                 else if (sourceDbType == DatabaseType.SqlServer)
@@ -215,14 +269,20 @@ namespace DatabaseConverter.Core
                 {
                     //target data type is datetime or timestamp, but default value is time ('HH:mm:ss')
                     if (DataTypeHelper.IsDatetimeOrTimestampType(column.DataType))
+                    {
                         if (TimeSpan.TryParse(trimedValue, out _))
                         {
                             if (targetDbType == DatabaseType.MySql || targetDbType == DatabaseType.Postgres)
+                            {
                                 defaultValue = $"'{DateTime.MinValue.Date.ToLongDateString()} {trimedValue}'";
+                            }
                             else if (targetDbType == DatabaseType.Oracle)
+                            {
                                 defaultValue =
                                     $"TO_TIMESTAMP('{DateTime.MinValue.Date.ToString("yyyy-MM-dd")} {TimeSpan.Parse(trimedValue).ToString("HH:mm:ss")}','yyyy-MM-dd hh24:mi:ss')";
+                            }
                         }
+                    }
                 }
                 else if (sourceDbType == DatabaseType.Oracle)
                 {
@@ -242,7 +302,9 @@ namespace DatabaseConverter.Core
                     }
 
                     if (targetDbType == DatabaseType.SqlServer || targetDbType == DatabaseType.Postgres)
+                    {
                         defaultValue = $"'{trimedValue}'";
+                    }
                 }
                 else if (sourceDbType == DatabaseType.Postgres)
                 {
@@ -251,7 +313,9 @@ namespace DatabaseConverter.Core
                 }
 
                 if (DataTypeHelper.IsDateOrTimeType(column.DataType))
+                {
                     if (targetDbType == DatabaseType.Oracle) //datetime string to TO_TIMESTAMP(value)
+                    {
                         if (DateTime.TryParse(trimedValue, out _))
                         {
                             if (trimedValue.Contains(" ")) // date & time
@@ -262,13 +326,19 @@ namespace DatabaseConverter.Core
                             else
                             {
                                 if (trimedValue.Contains(":")) //time
+                                {
                                     defaultValue =
                                         $"TO_TIMESTAMP('{DateTime.MinValue.ToString("yyyy-MM-dd")} {DateTime.Parse(trimedValue).ToString("HH:mm:ss")}','yyyy-MM-dd hh24:mi:ss')";
+                                }
                                 else //date
+                                {
                                     defaultValue =
                                         $"TO_TIMESTAMP('{DateTime.Parse(trimedValue).ToString("yyyy-MM-dd")}','yyyy-MM-dd')";
+                                }
                             }
                         }
+                    }
+                }
 
                 #endregion
 
@@ -306,13 +376,20 @@ namespace DatabaseConverter.Core
                                 var hex = value.ToString("X").PadLeft((int)column.MaxLength.Value * 2, '0');
 
                                 if (targetDbType == DatabaseType.Oracle)
+                                {
                                     defaultValue = $"'{hex}'";
-                                else if (targetDbType == DatabaseType.MySql) defaultValue = $"0x{hex}";
+                                }
+                                else if (targetDbType == DatabaseType.MySql)
+                                {
+                                    defaultValue = $"0x{hex}";
+                                }
                             }
                             else if (defaultValue.StartsWith("0x"))
                             {
                                 if (targetDbType == DatabaseType.Oracle)
+                                {
                                     defaultValue = $"'{defaultValue.Substring(2)}'";
+                                }
                             }
                         }
                     }
@@ -322,8 +399,13 @@ namespace DatabaseConverter.Core
                     if (DataTypeHelper.IsBinaryType(column.DataType) && trimedValue.StartsWith("\\x"))
                     {
                         if (targetDbType == DatabaseType.SqlServer || targetDbType == DatabaseType.MySql)
+                        {
                             defaultValue = $"0x{trimedValue.Substring(2)}";
-                        else if (targetDbType == DatabaseType.Oracle) defaultValue = $"'{trimedValue.Substring(2)}'";
+                        }
+                        else if (targetDbType == DatabaseType.Oracle)
+                        {
+                            defaultValue = $"'{trimedValue.Substring(2)}'";
+                        }
                     }
                 }
                 else if (sourceDbType == DatabaseType.MySql)
@@ -342,9 +424,13 @@ namespace DatabaseConverter.Core
                         if (trimedValue.StartsWith("0x"))
                         {
                             if (targetDbType == DatabaseType.Postgres)
+                            {
                                 defaultValue = $"'\\x{trimedValue.Substring(2)}'::bytea";
+                            }
                             else if (targetDbType == DatabaseType.Oracle)
+                            {
                                 defaultValue = $"'{trimedValue.Substring(2)}'";
+                            }
                         }
                     }
                 }
@@ -353,9 +439,14 @@ namespace DatabaseConverter.Core
                     if (DataTypeHelper.IsBinaryType(column.DataType))
                     {
                         if (targetDbType == DatabaseType.SqlServer || targetDbType == DatabaseType.MySql)
+                        {
                             defaultValue = $"0x{trimedValue}";
+                        }
+
                         if (targetDbType == DatabaseType.Postgres && column.DataType == "bytea")
+                        {
                             defaultValue = $"'\\x{trimedValue}'::bytea";
+                        }
                     }
                 }
 
@@ -364,7 +455,9 @@ namespace DatabaseConverter.Core
                 if (column.DataType == "boolean")
                 {
                     if (targetDbType == DatabaseType.Postgres)
+                    {
                         defaultValue = defaultValue.Replace("0", "false").Replace("1", "true");
+                    }
                 }
                 else if (DataTypeHelper.IsUserDefinedType(column))
                 {
@@ -381,7 +474,9 @@ namespace DatabaseConverter.Core
                         if (targetDbType == DatabaseType.Postgres)
                         {
                             if (dataTypeInfo.DataType == "boolean")
+                            {
                                 defaultValue = defaultValue.Replace("0", "row(false)").Replace("1", "row(true)");
+                            }
                         }
                         else if (targetDbType == DatabaseType.Oracle)
                         {
@@ -421,10 +516,14 @@ namespace DatabaseConverter.Core
                                     ?.TargetSchema;
 
                                 if (!string.IsNullOrEmpty(mappedSchema))
+                                {
                                     defaultValue =
                                         $"{targetDbInterpreter.GetQuotedString(mappedSchema)}.{string.Join(".", items.Skip(1))}";
+                                }
                                 else
+                                {
                                     defaultValue = string.Join(".", items.Skip(1));
+                                }
                             }
                             else
                             {
@@ -443,8 +542,13 @@ namespace DatabaseConverter.Core
         public void ConvertComputeExpression(TableColumn column)
         {
             if (sourceDbType == DatabaseType.Oracle)
+            {
                 column.ComputeExp = column.ComputeExp.Replace("U'", "'");
-            else if (sourceDbType == DatabaseType.SqlServer) column.ComputeExp = column.ComputeExp.Replace("N'", "'");
+            }
+            else if (sourceDbType == DatabaseType.SqlServer)
+            {
+                column.ComputeExp = column.ComputeExp.Replace("N'", "'");
+            }
 
             column.ComputeExp = ParseDefinition(column.ComputeExp);
 
@@ -452,12 +556,17 @@ namespace DatabaseConverter.Core
 
             if (targetDbType == DatabaseType.Postgres)
                 //this is to avoid error when datatype is money uses coalesce(exp,0)
+            {
                 if (computeExp.Contains("coalesce"))
+                {
                     if (column.DataType.ToLower() == "money")
                     {
                         var exp = column.ComputeExp;
 
-                        if (computeExp.StartsWith("(")) exp = exp.Substring(1, computeExp.Length - 1);
+                        if (computeExp.StartsWith("("))
+                        {
+                            exp = exp.Substring(1, computeExp.Length - 1);
+                        }
 
                         var formulas = FunctionTranslator.GetFunctionFormulas(sourceDbInterpreter, exp);
 
@@ -465,29 +574,46 @@ namespace DatabaseConverter.Core
                         {
                             var args = formulas.First().GetArgs();
 
-                            if (args.Count > 0) column.ComputeExp = args[0];
+                            if (args.Count > 0)
+                            {
+                                column.ComputeExp = args[0];
+                            }
                         }
                     }
+                }
+            }
 
             if (targetDbType == DatabaseType.Postgres)
+            {
                 if (column.DataType == "money" && !column.ComputeExp.ToLower().Contains("::money"))
+                {
                     column.ComputeExp = TranslateHelper.ConvertNumberToPostgresMoney(column.ComputeExp);
+                }
+            }
 
             if (sourceDbType == DatabaseType.Postgres)
+            {
                 if (column.ComputeExp.Contains("::")) //datatype convert operator
+                {
                     column.ComputeExp = TranslateHelper.RemovePostgresDataTypeConvertExpression(column.ComputeExp,
                         sourceDataTypeSpecs, targetDbInterpreter.QuotationLeftChar,
                         targetDbInterpreter.QuotationRightChar);
+                }
+            }
 
             if (computeExp.Contains("concat", StringComparison.OrdinalIgnoreCase)) //use "||" instead of "concat"
+            {
                 if (targetDbType == DatabaseType.Postgres || targetDbType == DatabaseType.Oracle)
                 {
                     column.ComputeExp = column.ComputeExp.ReplaceOrdinalIgnoreCase("concat", "").Replace(",", "||");
 
                     if (targetDbType == DatabaseType.Oracle)
+                    {
                         column.ComputeExp = CheckColumnDataTypeForComputeExpression(column.ComputeExp,
                             targetDbInterpreter.STR_CONCAT_CHARS, targetDbType);
+                    }
                 }
+            }
 
             if (!string.IsNullOrEmpty(sourceDbInterpreter.STR_CONCAT_CHARS))
             {
@@ -513,7 +639,9 @@ namespace DatabaseConverter.Core
             DatabaseType targetDbType)
         {
             if (sourceDbType == DatabaseType.Oracle)
+            {
                 computeExp = computeExp.Replace("SYS_OP_C2C", "").Replace("TO_CHAR", "");
+            }
 
             //check whether column datatype is char/varchar type
             var items = computeExp.SplitByString(concatChars);
@@ -532,9 +660,13 @@ namespace DatabaseConverter.Core
                     changed = true;
 
                     if (targetDbType == DatabaseType.Oracle)
+                    {
                         list.Add(item.Replace(trimedItem, $"TO_CHAR({trimedItem})"));
+                    }
                     else if (targetDbType == DatabaseType.SqlServer)
+                    {
                         list.Add(item.Replace(trimedItem, $"CAST({trimedItem} AS VARCHAR(MAX))"));
+                    }
                 }
                 else
                 {
@@ -542,7 +674,10 @@ namespace DatabaseConverter.Core
                 }
             }
 
-            if (changed) return string.Join(concatChars, list.ToArray());
+            if (changed)
+            {
+                return string.Join(concatChars, list.ToArray());
+            }
 
             return computeExp;
         }
@@ -552,12 +687,15 @@ namespace DatabaseConverter.Core
             IEnumerable<Function> customFunctions = SourceSchemaInfo?.Functions;
 
             foreach (var column in columns)
+            {
                 if (column.IsComputed)
                 {
                     if (Option != null && !Option.ConvertComputeColumnExpression)
                     {
                         if (Option.OnlyCommentComputeColumnExpressionInScript)
+                        {
                             column.ScriptComment = " AS " + column.ComputeExp;
+                        }
 
                         column.ComputeExp = null;
                         continue;
@@ -574,17 +712,26 @@ namespace DatabaseConverter.Core
                                                                                 $@"\b({item.Name})\b",
                                                                                 RegexOptions.IgnoreCase));
 
-                    if (isReferToSpecialDataType) setToNull = true;
+                    if (isReferToSpecialDataType)
+                    {
+                        setToNull = true;
+                    }
 
                     if (!setToNull && (targetDbType == DatabaseType.MySql || targetDbType == DatabaseType.Oracle))
                     {
                         if (customFunctions == null || !customFunctions.Any())
+                        {
                             customFunctions = await sourceDbInterpreter.GetFunctionsAsync();
+                        }
 
                         if (customFunctions != null)
+                        {
                             if (customFunctions.Any(item =>
                                     column.ComputeExp.IndexOf(item.Name, StringComparison.OrdinalIgnoreCase) >= 0))
+                            {
                                 setToNull = true;
+                            }
+                        }
                     }
 
                     if (setToNull)
@@ -593,6 +740,7 @@ namespace DatabaseConverter.Core
                         column.ComputeExp = null;
                     }
                 }
+            }
         }
     }
 }

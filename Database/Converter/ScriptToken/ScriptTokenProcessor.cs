@@ -92,12 +92,18 @@ namespace DatabaseConverter.Core
                     {
                         pv.Symbol = name.Replace("@", "V_");
 
-                        if (pv.Parent != null) pv.Parent.Symbol = pv.Parent.Symbol.Replace(name, pv.Symbol);
+                        if (pv.Parent != null)
+                        {
+                            pv.Parent.Symbol = pv.Parent.Symbol.Replace(name, pv.Symbol);
+                        }
                     }
                 }
                 else
                 {
-                    if (!pv.Symbol.StartsWith("@")) pv.Symbol = "@" + pv.Symbol;
+                    if (!pv.Symbol.StartsWith("@"))
+                    {
+                        pv.Symbol = "@" + pv.Symbol;
+                    }
                 }
 
                 AddChangedValue(dictChangedValues, name, pv.Symbol);
@@ -108,8 +114,12 @@ namespace DatabaseConverter.Core
                 if (token.Symbol != null)
                 {
                     if (sourceDbType == DatabaseType.SqlServer)
+                    {
                         if (token.Symbol.ToUpper() == "DOUBLEPRECISION")
+                        {
                             token.Symbol = "FLOAT";
+                        }
+                    }
 
                     var column = TranslateHelper.SimulateTableColumn(SourceDbInterpreter, token.Symbol, Option,
                         UserDefinedTypes, TrimChars);
@@ -117,14 +127,20 @@ namespace DatabaseConverter.Core
                     TranslateHelper.TranslateTableColumnDataType(dataTypeTranslator, column);
 
                     if (targetDbType == DatabaseType.SqlServer)
+                    {
                         if (DataTypeHelper.IsTextType(column.DataType) && statement is DeclareVariableStatement)
+                        {
                             column.DataType = "NVARCHAR";
+                        }
+                    }
 
                     token.Symbol = TargetDbInterpreter.ParseDataType(column);
 
                     if (statement is DeclareVariableStatement variableStatement &&
                         DataTypeHelper.IsCharType(column.DataType))
+                    {
                         charTokenSymbols.Add(variableStatement.Name.Symbol);
+                    }
                 }
             };
 
@@ -146,7 +162,9 @@ namespace DatabaseConverter.Core
                 {
                     if (routineScript.ReturnTable?.Name != null &&
                         routineScript.ReturnTable.Name.Type == TokenType.VariableName)
+                    {
                         changeParaVarName(routineScript.ReturnTable.Name);
+                    }
                 }
             }
 
@@ -162,7 +180,10 @@ namespace DatabaseConverter.Core
 
                 foreach (var token in tokens)
                 {
-                    if (string.IsNullOrEmpty(token.Symbol)) continue;
+                    if (string.IsNullOrEmpty(token.Symbol))
+                    {
+                        continue;
+                    }
 
                     var tokenType = token.Type;
 
@@ -184,7 +205,10 @@ namespace DatabaseConverter.Core
                             if (statement is SelectStatement select)
                             {
                                 if (select.TableName == null && select.FromItems == null &&
-                                    dictChangedValues.ContainsKey(token.Symbol)) changeParaVarName(token);
+                                    dictChangedValues.ContainsKey(token.Symbol))
+                                {
+                                    changeParaVarName(token);
+                                }
                             }
                             else if (token.Symbol?.StartsWith("@") == true && token.Children.Count == 0)
                             {
@@ -213,14 +237,19 @@ namespace DatabaseConverter.Core
                                                                      token.Symbol?.StartsWith("@") == true)
                             )
                     {
-                        if (token.Symbol?.StartsWith("@@") == false) changeParaVarName(token);
+                        if (token.Symbol?.StartsWith("@@") == false)
+                        {
+                            changeParaVarName(token);
+                        }
                     }
                     else if (token.Type == TokenType.DataType)
                     {
                         if (statement is DeclareVariableStatement && IsCopyingType(token.Symbol)
                                                                   && (targetDbType == DatabaseType.Oracle ||
                                                                       targetDbType == DatabaseType.Postgres))
+                        {
                             continue;
+                        }
 
                         changeDataType(statement, token);
                     }
@@ -233,7 +262,9 @@ namespace DatabaseConverter.Core
 
                     if (token.Symbol != null && !string.IsNullOrWhiteSpace(SourceDbInterpreter.STR_CONCAT_CHARS)
                                              && token.Symbol.Contains(SourceDbInterpreter.STR_CONCAT_CHARS))
+                    {
                         tokensWithConcatChars.Add(token);
+                    }
                 }
             }
 
@@ -241,7 +272,10 @@ namespace DatabaseConverter.Core
 
             Script.Schema = GetNewQuotedString(DbObject.Schema);
 
-            if (Script.Name != null) Script.Name.Symbol = GetNewQuotedString(DbObject.Name);
+            if (Script.Name != null)
+            {
+                Script.Name.Symbol = GetNewQuotedString(DbObject.Name);
+            }
 
             #region Handle Trigger
 
@@ -269,8 +303,10 @@ namespace DatabaseConverter.Core
         private void HandleConcatChars(TokenInfo token)
         {
             if (Option.ConvertConcatChar)
+            {
                 token.Symbol = ConcatCharsHelper.ConvertConcatChars(SourceDbInterpreter, TargetDbInterpreter,
                     token.Symbol, charTokenSymbols);
+            }
         }
 
         private void HandleQuotationChar(Statement statement, TokenInfo token, List<TokenInfo> tokens)
@@ -282,11 +318,17 @@ namespace DatabaseConverter.Core
         {
             var symbol = token.Symbol;
 
-            if (symbol == null) return;
+            if (symbol == null)
+            {
+                return;
+            }
 
             var canQuote = CanQuote(statement, token);
 
-            if (!canQuote) return;
+            if (!canQuote)
+            {
+                return;
+            }
 
             var isFunction = IsFunctionToken(token);
 
@@ -295,21 +337,32 @@ namespace DatabaseConverter.Core
                 var functionName = TranslateHelper.ExtractNameFromParenthesis(symbol);
 
                 if (token.Children.Count == 0)
+                {
                     if (sourceFunctions.Contains(functionName.ToUpper()))
+                    {
                         return;
+                    }
+                }
             }
 
             Action procToken = () =>
             {
-                if (token.Type == TokenType.SearchCondition) return;
+                if (token.Type == TokenType.SearchCondition)
+                {
+                    return;
+                }
 
                 if (!symbol.Contains("."))
                 {
-                    if (token.Type == TokenType.UpdateSetValue) return;
+                    if (token.Type == TokenType.UpdateSetValue)
+                    {
+                        return;
+                    }
 
                     var isTableAlias = IsAlias(token, tokens, TokenType.TableAlias);
 
                     if (!isTableAlias && !isFunction)
+                    {
                         if (!IsTriggerInteralTable(token))
                         {
                             var handled = false;
@@ -319,15 +372,21 @@ namespace DatabaseConverter.Core
                                 var intoTableName = GetIntoTableName(select);
 
                                 if (intoTableName?.Symbol == token.Symbol)
+                                {
                                     if (dictChangedValues.Keys.Contains(token.Symbol))
                                     {
                                         token.Symbol = dictChangedValues[token.Symbol];
                                         handled = true;
                                     }
+                                }
                             }
 
-                            if (!handled) token.Symbol = GetNewQuotedString(token.Symbol);
+                            if (!handled)
+                            {
+                                token.Symbol = GetNewQuotedString(token.Symbol);
+                            }
                         }
+                    }
                 }
                 else
                 {
@@ -340,7 +399,10 @@ namespace DatabaseConverter.Core
                             var isTableNameAlias = IsAlias(token, tokens, TokenType.TableAlias, nameInfo);
                             var isColumnNameAlias = IsAlias(token, tokens, TokenType.ColumnAlias, nameInfo);
 
-                            if (nameInfo.Schema != null) schema = GetMappedSchema(schema);
+                            if (nameInfo.Schema != null)
+                            {
+                                schema = GetMappedSchema(schema);
+                            }
 
                             return GetQuotedFullColumnName(schema, nameInfo.TableName, nameInfo.ColumnName,
                                 isTableNameAlias, isColumnNameAlias);
@@ -349,12 +411,19 @@ namespace DatabaseConverter.Core
                         if (nameInfo.Type == TokenSymbolNameType.SchemaTable)
                         {
                             if (nameInfo.TableName != null)
+                            {
                                 if (IsTriggerVariable(token))
+                                {
                                     return $"{nameInfo.Schema}.{GetNewQuotedString(nameInfo.TableName)}";
+                                }
+                            }
 
                             var isAlias = IsAlias(token, tokens, TokenType.TableAlias, nameInfo);
 
-                            if (schema != null) schema = GetMappedSchema(schema);
+                            if (schema != null)
+                            {
+                                schema = GetMappedSchema(schema);
+                            }
 
                             return GetQuotedFullTableName(schema, nameInfo.TableName, isAlias);
                         }
@@ -370,7 +439,10 @@ namespace DatabaseConverter.Core
 
                         var newSymbol = nameInfo == null ? null : getNewSymbol(nameInfo);
 
-                        if (!string.IsNullOrEmpty(newSymbol)) token.Symbol = RemoveRepeatedQuotationChars(newSymbol);
+                        if (!string.IsNullOrEmpty(newSymbol))
+                        {
+                            token.Symbol = RemoveRepeatedQuotationChars(newSymbol);
+                        }
                     }
                 }
             };
@@ -393,7 +465,10 @@ namespace DatabaseConverter.Core
                 {
                     var oldSymbol = child.Symbol;
 
-                    if (HasBeenQuoted(oldSymbol)) continue;
+                    if (HasBeenQuoted(oldSymbol))
+                    {
+                        continue;
+                    }
 
                     string oldAliasSymbol = null;
                     NameToken nt = null;
@@ -410,22 +485,34 @@ namespace DatabaseConverter.Core
 
                     if (nt != null)
                         // this.ChangeNameTokenAlias(child);
+                    {
                         if (oldAliasSymbol != nt.Alias?.Symbol)
+                        {
                             child.Parent.Symbol = ReplaceSymbol(child.Parent.Symbol, oldAliasSymbol, nt.Alias.Symbol);
+                        }
+                    }
 
                     child.Parent.Symbol = RemoveRepeatedQuotationChars(child.Parent.Symbol);
 
-                    if (child.Type == TokenType.TableAlias || child.Type == TokenType.ColumnAlias) aliasCount++;
+                    if (child.Type == TokenType.TableAlias || child.Type == TokenType.ColumnAlias)
+                    {
+                        aliasCount++;
+                    }
                 }
 
                 if (parentOldSymbol == token.Symbol)
+                {
                     if (aliasCount == token.Children.Count)
                     {
                         var items = parentOldSymbol.Split('.');
 
                         if (items.Length <= 3 && items.All(item =>
-                                RegexHelper.NameRegex.IsMatch(GetTrimedName(item)))) procToken();
+                                RegexHelper.NameRegex.IsMatch(GetTrimedName(item))))
+                        {
+                            procToken();
+                        }
                     }
+                }
             }
 
             ChangeNameTokenAlias(token);
@@ -433,25 +520,37 @@ namespace DatabaseConverter.Core
 
         private TokenInfo GetIntoTableName(SelectStatement statement)
         {
-            if (statement.Intos == null || statement.Intos.Count == 0) return null;
+            if (statement.Intos == null || statement.Intos.Count == 0)
+            {
+                return null;
+            }
 
             return statement.Intos.FirstOrDefault(item => item.Type == TokenType.TableName);
         }
 
         private void ChangeNameTokenAlias(TokenInfo token)
         {
-            if (token is NameToken nameToken) ChangeAliasQuotationChar(nameToken);
+            if (token is NameToken nameToken)
+            {
+                ChangeAliasQuotationChar(nameToken);
+            }
         }
 
         private bool HasChildren(TokenInfo token)
         {
-            if (token == null || token.Children == null || token.Children.Count == 0) return false;
+            if (token == null || token.Children == null || token.Children.Count == 0)
+            {
+                return false;
+            }
 
             if (token.Children.Count == 1)
             {
                 var child = token.Children[0];
 
-                if (child.StartIndex == token.StartIndex && child.StopIndex == token.StopIndex) return false;
+                if (child.StartIndex == token.StartIndex && child.StopIndex == token.StopIndex)
+                {
+                    return false;
+                }
             }
 
             return token.Children.Count > 0;
@@ -462,7 +561,10 @@ namespace DatabaseConverter.Core
             var symbol = token.Symbol;
             var items = symbol.Split('.');
 
-            if (items.Any(item => !TranslateHelper.IsValidName(item, TrimChars))) return null;
+            if (items.Any(item => !TranslateHelper.IsValidName(item, TrimChars)))
+            {
+                return null;
+            }
 
             string schema = null, tableName = null, columnName = null;
             var type = TokenSymbolNameType.Unknown;
@@ -520,12 +622,14 @@ namespace DatabaseConverter.Core
                 }
 
                 if (token is ColumnName)
+                {
                     if (!token.Alias.Symbol.StartsWith(TargetDbInterpreter.QuotationLeftChar.ToString()))
                     {
                         token.Alias.Symbol = GetNewQuotedString(token.Alias.Symbol);
 
                         return true;
                     }
+                }
             }
 
             return false;
@@ -534,8 +638,10 @@ namespace DatabaseConverter.Core
         private bool IsTriggerInteralTable(TokenInfo token)
         {
             if (Script is TriggerScript)
+            {
                 return triggerVariableMappings.Any(item => item.Any(t =>
                     t.DbType == SourceDbInterpreter.DatabaseType.ToString() && t.Variable.ToUpper() == token.Symbol));
+            }
 
             return false;
         }
@@ -548,7 +654,10 @@ namespace DatabaseConverter.Core
 
         private string ReplaceSymbol(string value, string oldSymbol, string newSymbol)
         {
-            if (string.IsNullOrEmpty(oldSymbol)) return value;
+            if (string.IsNullOrEmpty(oldSymbol))
+            {
+                return value;
+            }
 
             string pattern = null;
             var oldSymbolPattern = oldSymbol;
@@ -562,15 +671,21 @@ namespace DatabaseConverter.Core
             else
             {
                 if (oldSymbol.EndsWith(SourceDbInterpreter.QuotationRightChar.ToString()))
+                {
                     pattern = $"({oldSymbolPattern})";
+                }
                 else
+                {
                     pattern = $"({oldSymbolPattern})\\b";
+                }
             }
 
             var result = Regex.Replace(value, pattern, RegexHelper.CheckReplacement(newSymbol), RegexOptions.Multiline);
 
             if (value.Contains("@" + oldSymbol)) //restore variable name
+            {
                 result = result.Replace("@" + newSymbol, "@" + oldSymbol);
+            }
 
             return ValidateValue(result);
         }
@@ -579,45 +694,75 @@ namespace DatabaseConverter.Core
         {
             if (token.Type == TokenType.General || token.Type == TokenType.VariableName ||
                 token.Type == TokenType.ParameterName || token.Type == TokenType.CursorName)
+            {
                 return false;
+            }
 
-            if (token.Type == TokenType.InsertValue) return false;
+            if (token.Type == TokenType.InsertValue)
+            {
+                return false;
+            }
 
-            if (token.Type == TokenType.IfCondition || token.Type == TokenType.ExitCondition) return false;
+            if (token.Type == TokenType.IfCondition || token.Type == TokenType.ExitCondition)
+            {
+                return false;
+            }
 
             if (ValueHelper.IsStringValue(token.Symbol) && token.Children.Count == 0)
             {
                 if (token is ColumnName name && name.Alias != null)
+                {
                     return true;
+                }
+
                 return false;
             }
 
             if (token.Type == TokenType.ColumnName && token.IsConst)
             {
-                if (token is ColumnName name && name.Alias != null) return true;
+                if (token is ColumnName name && name.Alias != null)
+                {
+                    return true;
+                }
 
                 return false;
             }
 
-            if (dictChangedValues.ContainsValue(token.Symbol)) return false;
+            if (dictChangedValues.ContainsValue(token.Symbol))
+            {
+                return false;
+            }
 
             if (token.Type == TokenType.ColumnName && statement is SelectStatement select)
+            {
                 if (select.TableName == null && select.FromItems == null && select.Where == null &&
                     token.Children.Count == 0)
+                {
                     return false;
+                }
+            }
 
             if (token.Type == TokenType.UpdateSetValue)
+            {
                 if (ValueHelper.IsStringValue(token.Symbol) || decimal.TryParse(token.Symbol, out _))
+                {
                     return false;
+                }
+            }
 
-            if (HasBeenQuoted(token.Symbol)) return false;
+            if (HasBeenQuoted(token.Symbol))
+            {
+                return false;
+            }
 
             var upperCase = token.Symbol.Trim().ToUpper();
 
             if (upperCase == "NULL"
                 || (upperCase.EndsWith(")") && token.Children.Count == 0)
                 || (token.Symbol.StartsWith("@") && token.Children.Count == 0))
+            {
                 return false;
+            }
 
             return true;
         }
@@ -640,20 +785,33 @@ namespace DatabaseConverter.Core
             var symbol = token.Symbol;
             var isAlias = false;
 
-            if (nameInfo == null) nameInfo = GetTokenSymbolNameInfo(token);
+            if (nameInfo == null)
+            {
+                nameInfo = GetTokenSymbolNameInfo(token);
+            }
 
             if (nameInfo != null)
             {
                 if (tokenType == TokenType.TableAlias)
+                {
                     isAlias = tokens.Any(item => item.Type == tokenType && item.Symbol == nameInfo.TableName);
+                }
                 else if (tokenType == TokenType.ColumnAlias)
+                {
                     isAlias = tokens.Any(item => item.Type == tokenType && item.Symbol == nameInfo.ColumnName);
+                }
             }
 
             if (isAlias && tokenType == TokenType.ColumnAlias)
+            {
                 if (token.Parent is ColumnName cn)
+                {
                     if (cn != null && cn.Alias?.Symbol == symbol)
+                    {
                         return false; //column alias can't be as same as its parent's alias
+                    }
+                }
+            }
 
             return isAlias;
         }
@@ -661,7 +819,9 @@ namespace DatabaseConverter.Core
         private bool IsQuoted(TokenInfo token)
         {
             if (token != null && token.Symbol?.StartsWith(SourceDbInterpreter.QuotationLeftChar.ToString()) == true)
+            {
                 return true;
+            }
 
             return false;
         }
@@ -678,11 +838,20 @@ namespace DatabaseConverter.Core
 
         private string GetNewQuotedString(string value)
         {
-            if (value == null) return string.Empty;
+            if (value == null)
+            {
+                return string.Empty;
+            }
 
-            if (value == "*" || value?.EndsWith("'") == true) return value;
+            if (value == "*" || value?.EndsWith("'") == true)
+            {
+                return value;
+            }
 
-            if (HasBeenQuoted(value)) return value;
+            if (HasBeenQuoted(value))
+            {
+                return value;
+            }
 
             return GetQuotedString(GetTrimedName(value));
         }
@@ -690,7 +859,10 @@ namespace DatabaseConverter.Core
         private bool HasBeenQuoted(string symbol)
         {
             if (symbol?.StartsWith(TargetDbInterpreter.QuotationLeftChar.ToString()) == true &&
-                symbol?.EndsWith(TargetDbInterpreter.QuotationRightChar.ToString()) == true) return true;
+                symbol?.EndsWith(TargetDbInterpreter.QuotationRightChar.ToString()) == true)
+            {
+                return true;
+            }
 
             return false;
         }
@@ -732,7 +904,10 @@ namespace DatabaseConverter.Core
             var quotedTableName = isAlias ? GetAppropriateAlias(tableName) : GetNewQuotedString(tableName);
 
             if (!string.IsNullOrEmpty(schema))
+            {
                 return $"{GetNewQuotedString(schema)}.{quotedTableName}";
+            }
+
             return quotedTableName;
         }
 
@@ -744,33 +919,48 @@ namespace DatabaseConverter.Core
             var quotedColumnName = GetNewQuotedString(columnName);
 
             if (!string.IsNullOrEmpty(schema))
+            {
                 return $"{GetNewQuotedString(schema)}.{quotedTableName}.{quotedColumnName}";
+            }
+
             return $"{quotedTableName}.{quotedColumnName}";
         }
 
         private void AddChangedValue(Dictionary<string, string> dict, string key, string value)
         {
-            if (!dict.ContainsKey(key)) dict.Add(key, value);
+            if (!dict.ContainsKey(key))
+            {
+                dict.Add(key, value);
+            }
         }
 
         private string GetAppropriateAlias(string alias)
         {
-            if (alias.StartsWith(SourceDbInterpreter.QuotationLeftChar.ToString())) return GetNewQuotedString(alias);
+            if (alias.StartsWith(SourceDbInterpreter.QuotationLeftChar.ToString()))
+            {
+                return GetNewQuotedString(alias);
+            }
 
             return alias;
         }
 
         private void ReplaceTokenSymbol(Dictionary<string, string> dict, TokenInfo token)
         {
-            if (token.Symbol == null) return;
+            if (token.Symbol == null)
+            {
+                return;
+            }
 
             foreach (var pv in dict)
             {
                 var key = FindKeyIgnoreCase(dict, token.Symbol);
 
                 if (!string.IsNullOrEmpty(key))
+                {
                     token.Symbol = token.Symbol.Replace(key, pv.Value);
+                }
                 else if (token.Symbol.Contains(pv.Key, StringComparison.OrdinalIgnoreCase))
+                {
                     if (!token.Symbol.Contains($"'{pv.Key}'", StringComparison.OrdinalIgnoreCase))
                     {
                         var pattern = pv.Key.StartsWith("@") ? $"({pv.Key})" : $"\\b{pv.Key}\\b";
@@ -778,6 +968,7 @@ namespace DatabaseConverter.Core
                         token.Symbol = Regex.Replace(token.Symbol, pattern, pv.Value,
                             RegexOptions.Multiline | RegexOptions.IgnoreCase);
                     }
+                }
             }
         }
 
@@ -811,19 +1002,24 @@ namespace DatabaseConverter.Core
 
             foreach (var token in tokens)
             {
-                if (token.Symbol == null) continue;
+                if (token.Symbol == null)
+                {
+                    continue;
+                }
 
                 if (token.StartIndex != null || token.StopIndex != null)
                 {
                     changeValue(token);
 
                     foreach (var function in Script.Functions)
+                    {
                         if (function.StartIndex >= token.StartIndex && function.StopIndex <= token.StopIndex)
                         {
                             var oldValue = GetOriginalValue(function);
 
                             token.Symbol = ReplaceValue(token.Symbol, oldValue, function.Symbol);
                         }
+                    }
                 }
             }
         }
@@ -842,8 +1038,12 @@ namespace DatabaseConverter.Core
         private string ValidateValue(string value)
         {
             if (value != null)
+            {
                 while (value.Contains("()()"))
+                {
                     value = value.Replace("()()", "()");
+                }
+            }
 
             return value;
         }
@@ -868,13 +1068,19 @@ namespace DatabaseConverter.Core
             TranslateFunctions(builtInFunctions);
 
             foreach (var udf in userDefinedFunction)
+            {
                 if (!udf.Symbol.Contains("."))
                 {
                     if (targetDbType == DatabaseType.SqlServer && udf.Symbol.Contains("("))
+                    {
                         udf.Symbol = $"dbo.{ReplaceRoutineQuotationChar(udf.Symbol)}";
+                    }
                     else
+                    {
                         udf.Symbol = ReplaceRoutineQuotationChar(udf.Symbol);
+                    }
                 }
+            }
         }
 
         private bool IsBuiltinFunction(TokenInfo token)
@@ -901,8 +1107,13 @@ namespace DatabaseConverter.Core
             functionTranslator.UserDefinedTypes = UserDefinedTypes;
 
             if (Script is RoutineScript rs)
+            {
                 functionTranslator.RoutineType = rs.Type;
-            else if (Script is TriggerScript ts) functionTranslator.RoutineType = RoutineType.TRIGGER;
+            }
+            else if (Script is TriggerScript ts)
+            {
+                functionTranslator.RoutineType = RoutineType.TRIGGER;
+            }
 
             functionTranslator.Translate();
         }
@@ -933,7 +1144,10 @@ namespace DatabaseConverter.Core
         {
             var mappedSchema = SchemaInfoHelper.GetMappedSchema(GetTrimedName(schema), Option.SchemaMappings);
 
-            if (mappedSchema == null) mappedSchema = TargetDbInterpreter.DefaultSchema;
+            if (mappedSchema == null)
+            {
+                mappedSchema = TargetDbInterpreter.DefaultSchema;
+            }
 
             return mappedSchema;
         }

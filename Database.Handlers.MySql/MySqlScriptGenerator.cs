@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
+using Databases.Interpreter.Builder;
 
 namespace DatabaseInterpreter.Core
 {

@@ -16,13 +16,17 @@ namespace DatabaseInterpreter.Utility
             var dtChanged = dataTable.Clone();
 
             for (var i = 0; i < dtChanged.Columns.Count; i++)
+            {
                 if (changedColumns.ContainsKey(i))
                 {
                     if (changedColumns[i].MaxLength.HasValue)
+                    {
                         dtChanged.Columns[i].MaxLength = changedColumns[i].MaxLength.Value;
+                    }
 
                     dtChanged.Columns[i].DataType = changedColumns[i].Type;
                 }
+            }
 
             var rowIndex = 0;
 
@@ -35,9 +39,13 @@ namespace DatabaseInterpreter.Utility
                     var value = row[i];
 
                     if (changedValues.ContainsKey((rowIndex, i)))
+                    {
                         r[i] = changedValues[(rowIndex, i)];
+                    }
                     else
+                    {
                         r[i] = value;
+                    }
                 }
 
                 dtChanged.Rows.Add(r);
@@ -54,13 +62,19 @@ namespace DatabaseInterpreter.Utility
             {
                 var writer = new CsvWriter(sw, CultureInfo.CurrentCulture);
 
-                foreach (DataColumn column in dataTable.Columns) writer.WriteField(column.ColumnName);
+                foreach (DataColumn column in dataTable.Columns)
+                {
+                    writer.WriteField(column.ColumnName);
+                }
 
                 writer.NextRecord();
 
                 foreach (DataRow row in dataTable.Rows)
                 {
-                    for (var i = 0; i < dataTable.Columns.Count; i++) writer.WriteField(row[i]);
+                    for (var i = 0; i < dataTable.Columns.Count; i++)
+                    {
+                        writer.WriteField(row[i]);
+                    }
 
                     writer.NextRecord();
                 }

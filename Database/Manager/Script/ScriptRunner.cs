@@ -10,6 +10,7 @@ using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using DatabaseManager.Model;
+using Databases.Exceptions;
 using SqlAnalyser.Model;
 
 namespace DatabaseManager.Core
@@ -74,7 +75,9 @@ namespace DatabaseManager.Core
                         script = DecorateSelectWithLimit(dbInterpreter, script);
 
                         if (!scriptParser.IsCreateOrAlterScript() && dbInterpreter.ScriptsDelimiter.Length == 1)
+                        {
                             cleanScript = script.Trim().TrimEnd(dbInterpreter.ScriptsDelimiter[0]);
+                        }
 
                         var dataTable = await dbInterpreter.GetDataTableAsync(dbConnection, cleanScript);
 
@@ -99,7 +102,9 @@ namespace DatabaseManager.Core
 
                                 if (scriptType != ScriptType.Procedure && scriptType != ScriptType.Function &&
                                     scriptType != ScriptType.Trigger)
+                                {
                                     script = script.Trim().TrimEnd(dbInterpreter.ScriptsDelimiter[0]);
+                                }
                             }
 
                             commands = new[] { script };
@@ -122,7 +127,10 @@ namespace DatabaseManager.Core
 
                         foreach (var command in commands)
                         {
-                            if (string.IsNullOrEmpty(command.Trim())) continue;
+                            if (string.IsNullOrEmpty(command.Trim()))
+                            {
+                                continue;
+                            }
 
                             var commandInfo = new CommandInfo
                             {
@@ -133,8 +141,12 @@ namespace DatabaseManager.Core
                             };
 
                             if (commandType == CommandType.StoredProcedure)
+                            {
                                 if (action == ScriptAction.EXECUTE && dbInterpreter.DatabaseType == DatabaseType.Oracle)
+                                {
                                     ParseOracleProcedureCall(commandInfo, parameters);
+                                }
+                            }
 
                             var res = await dbInterpreter.ExecuteNonQueryAsync(dbConnection, commandInfo);
 
@@ -143,7 +155,10 @@ namespace DatabaseManager.Core
 
                         result.Result = affectedRows;
 
-                        if (!dbInterpreter.HasError && !CancelRequested) transaction.Commit();
+                        if (!dbInterpreter.HasError && !CancelRequested)
+                        {
+                            transaction.Commit();
+                        }
                     }
 
                     IsBusy = false;
@@ -221,7 +236,10 @@ namespace DatabaseManager.Core
 
                 foreach (var s in scripts)
                 {
-                    if (!isValidScript(s)) continue;
+                    if (!isValidScript(s))
+                    {
+                        continue;
+                    }
 
                     var sql = s.Content?.Trim();
 
@@ -230,7 +248,9 @@ namespace DatabaseManager.Core
                         i++;
 
                         if (dbInterpreter.ScriptsDelimiter.Length == 1 && sql.EndsWith(dbInterpreter.ScriptsDelimiter))
+                        {
                             sql = sql.TrimEnd(dbInterpreter.ScriptsDelimiter.ToArray());
+                        }
 
                         if (!dbInterpreter.HasError)
                         {
@@ -273,20 +293,28 @@ namespace DatabaseManager.Core
             if (transaction != null
                 && transaction.Connection != null
                 && transaction.Connection.State == ConnectionState.Open)
+            {
                 try
                 {
                     CancelRequested = true;
 
                     var hasRolledBack = false;
 
-                    if (ex != null && ex is DbCommandException dbe) hasRolledBack = dbe.HasRollbackedTransaction;
+                    if (ex != null && ex is DbCommandException dbe)
+                    {
+                        hasRolledBack = dbe.HasRolledBackTransaction;
+                    }
 
-                    if (!hasRolledBack) transaction.Rollback();
+                    if (!hasRolledBack)
+                    {
+                        transaction.Rollback();
+                    }
                 }
                 catch
                 {
                     //throw;
                 }
+            }
         }
 
         public string DecorateSelectWithLimit(DbInterpreter dbInterpreter, string script)
@@ -313,8 +341,12 @@ namespace DatabaseManager.Core
                     var tableName = selectStatement.TableName;
 
                     if (tableName == null)
+                    {
                         if (selectStatement.HasFromItems)
+                        {
                             tableName = selectStatement.FromItems[0].TableName;
+                        }
+                    }
 
                     var hasTableName = tableName != null && tableName.Symbol?.ToUpper() != "DUAL";
 
@@ -323,25 +355,33 @@ namespace DatabaseManager.Core
                         var defaultOrder = dbInterpreter.GetDefaultOrder();
 
                         if (selectStatement.OrderBy == null && !string.IsNullOrEmpty(defaultOrder))
+                        {
                             selectStatement.OrderBy = new List<TokenInfo> { new TokenInfo(defaultOrder) };
+                        }
 
                         if (databaseType == DatabaseType.SqlServer)
+                        {
                             selectStatement.TopInfo = new SelectTopInfo
                                 { TopCount = new TokenInfo(LimitCount.ToString()) };
+                        }
                         else if (databaseType == DatabaseType.MySql || databaseType == DatabaseType.Postgres)
+                        {
                             selectStatement.LimitInfo = new SelectLimitInfo
                                 { StartRowIndex = new TokenInfo("0"), RowCount = new TokenInfo(LimitCount.ToString()) };
+                        }
 
                         var scriptBuildFactory = TranslateHelper.GetScriptBuildFactory(databaseType);
 
                         script = scriptBuildFactory.GenerateScripts(cs).Script;
 
                         if (databaseType == DatabaseType.Oracle) //oracle low version doesn't support limit clause.
+                        {
                             script = $@"SELECT * FROM
                                (
                                  {script.Trim().TrimEnd(';')}
                                ) TEMP
                                WHERE ROWNUM BETWEEN 1 AND {LimitCount}";
+                        }
                     }
                 }
             }

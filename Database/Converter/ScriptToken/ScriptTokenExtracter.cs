@@ -26,7 +26,10 @@ namespace DatabaseConverter.Core
 
         private void ExtractTokens(dynamic obj, bool isFirst = true)
         {
-            if (obj == null) return;
+            if (obj == null)
+            {
+                return;
+            }
 
             Type type = obj.GetType();
 
@@ -36,21 +39,33 @@ namespace DatabaseConverter.Core
 
                 foreach (var property in properties)
                 {
-                    if (property.Name == nameof(TokenInfo.Parent)) continue;
+                    if (property.Name == nameof(TokenInfo.Parent))
+                    {
+                        continue;
+                    }
 
                     var value = property.GetValue(obj);
 
-                    if (value == null) continue;
+                    if (value == null)
+                    {
+                        continue;
+                    }
 
                     if (value is TokenInfo)
                     {
-                        if (!value.Equals(obj)) this.ExtractTokens(value, false);
+                        if (!value.Equals(obj))
+                        {
+                            this.ExtractTokens(value, false);
+                        }
                     }
                     else if (value.GetType().IsClass && property.PropertyType.IsGenericType &&
                              !(property.DeclaringType == typeof(CommonScript) &&
                                property.Name == nameof(CommonScript.Functions)))
                     {
-                        foreach (var v in value) this.ExtractTokens(v, false);
+                        foreach (var v in value)
+                        {
+                            this.ExtractTokens(v, false);
+                        }
                     }
                     else if (value is Statement || value is StatementItem || value is SelectTopInfo ||
                              value is TableInfo || value is ColumnInfo || value is ConstraintInfo ||
@@ -75,7 +90,10 @@ namespace DatabaseConverter.Core
 
         private void AddToken(TokenInfo token)
         {
-            if (token == null) return;
+            if (token == null)
+            {
+                return;
+            }
 
             tokens.Add(token);
         }

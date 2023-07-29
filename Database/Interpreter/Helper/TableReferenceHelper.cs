@@ -43,8 +43,10 @@ namespace DatabaseInterpreter.Core
             var childTableNames = new List<string>();
 
             foreach (var tableName in topReferencedTableNames)
+            {
                 childTableNames.AddRange(GetForeignTables(tableName, tableForeignKeys,
                     sortedTableNames.Concat(childTableNames)));
+            }
 
             var sortedChildTableNames = GetSortedTableNames(childTableNames, tableForeignKeys);
 
@@ -73,13 +75,17 @@ namespace DatabaseInterpreter.Core
                     item.TableName == tableName && item.TableName != item.ReferencedTableName);
 
                 if (foreignKeys.Any())
+                {
                     foreach (var foreignKey in foreignKeys)
                     {
                         var referencedTableIndex = tableNames.IndexOf(foreignKey.ReferencedTableName);
 
                         if (referencedTableIndex >= 0 && referencedTableIndex > i)
+                        {
                             sortedTableNames.Add(foreignKey.ReferencedTableName);
+                        }
                     }
+                }
 
                 sortedTableNames.Add(tableName);
             }
@@ -96,6 +102,7 @@ namespace DatabaseInterpreter.Core
                     item.TableName == tableName && item.TableName != item.ReferencedTableName);
 
                 if (foreignKeys.Any())
+                {
                     foreach (var foreignKey in foreignKeys)
                     {
                         var referencedTableIndex = sortedTableNames.IndexOf(foreignKey.ReferencedTableName);
@@ -106,8 +113,12 @@ namespace DatabaseInterpreter.Core
                             break;
                         }
                     }
+                }
 
-                if (needSort) return GetSortedTableNames(sortedTableNames, tableForeignKeys);
+                if (needSort)
+                {
+                    return GetSortedTableNames(sortedTableNames, tableForeignKeys);
+                }
             }
 
             return sortedTableNames;
@@ -155,7 +166,10 @@ namespace DatabaseInterpreter.Core
             {
                 var table = tables.FirstOrDefault(item => item.Name == tableName);
 
-                if (table != null) table.Order = i++;
+                if (table != null)
+                {
+                    table.Order = i++;
+                }
             }
 
             return tables.OrderBy(item => item.Order).ToList();

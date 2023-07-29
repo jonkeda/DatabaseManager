@@ -36,7 +36,10 @@ namespace DatabaseManager.Core
             {
                 var result = await GenerateChangeScripts(schemaDesignerInfo, isNew);
 
-                if (!result.IsOK) return result;
+                if (!result.IsOK)
+                {
+                    return result;
+                }
 
                 var scriptsData = result.ResultData as TableDesignerGenerateScriptsData;
 
@@ -44,7 +47,10 @@ namespace DatabaseManager.Core
 
                 table = scriptsData.Table;
 
-                if (scripts == null || scripts.Count == 0) return GetFaultSaveResult("No changes need to save.");
+                if (scripts == null || scripts.Count == 0)
+                {
+                    return GetFaultSaveResult("No changes need to save.");
+                }
 
                 var scriptRunner = new ScriptRunner();
 
@@ -72,7 +78,10 @@ namespace DatabaseManager.Core
             {
                 var isValid = ValidateModel(schemaDesignerInfo, out validateMsg);
 
-                if (!isValid) return GetFaultSaveResult(validateMsg);
+                if (!isValid)
+                {
+                    return GetFaultSaveResult(validateMsg);
+                }
 
                 var scriptsData = new TableDesignerGenerateScriptsData();
 
@@ -115,12 +124,16 @@ namespace DatabaseManager.Core
                     var oldTable = oldSchemaInfo.Tables.FirstOrDefault();
 
                     if (oldTable == null)
+                    {
                         return GetFaultSaveResult($"Table \"{tableDesignerInfo.OldName}\" is not existed");
+                    }
 
                     if (tableDesignerInfo.OldName != tableDesignerInfo.Name)
+                    {
                         scripts.Add(scriptGenerator.RenameTable(
                             new Table { Schema = tableDesignerInfo.Schema, Name = tableDesignerInfo.OldName },
                             tableDesignerInfo.Name));
+                    }
 
                     if (!IsStringEquals(tableDesignerInfo.Comment, oldTable.Comment))
                     {
@@ -164,9 +177,13 @@ namespace DatabaseManager.Core
                     }
 
                     foreach (var oldColumn in oldColumns)
+                    {
                         if (!renamedColNames.Contains(oldColumn.Name) &&
                             !columnDesingerInfos.Any(item => item.Name == oldColumn.Name))
+                        {
                             scripts.Add(scriptGenerator.DropTableColumn(oldColumn));
+                        }
+                    }
 
                     #endregion
 
@@ -200,16 +217,24 @@ namespace DatabaseManager.Core
                                 && (IsValueEqualsIgnoreCase(indexDesignerInfo.OldType, indexDesignerInfo.Type) ||
                                     (indexDesignerInfo.Type == nameof(IndexType.Unique) && oldIndex.IsUnique))
                                )
+                            {
                                 if (oldIndex != null && IsStringEquals(oldIndex.Comment, newIndex.Comment) &&
                                     SchemaInfoHelper.IsIndexColumnsEquals(oldIndex.Columns, newIndex.Columns))
+                                {
                                     continue;
+                                }
+                            }
 
                             scripts.AddRange(GetIndexAlterScripts(oldIndex, newIndex));
                         }
 
                         foreach (var oldIndex in oldIndexes)
+                        {
                             if (!indexDesignerInfos.Any(item => item.Name == oldIndex.Name))
+                            {
                                 scripts.Add(scriptGenerator.DropIndex(oldIndex));
+                            }
+                        }
                     }
 
                     #endregion
@@ -235,6 +260,7 @@ namespace DatabaseManager.Core
                             if (IsValueEqualsIgnoreCase(foreignKeyDesignerInfo.OldName, foreignKeyDesignerInfo.Name) &&
                                 foreignKeyDesignerInfo.UpdateCascade == oldForeignKey.UpdateCascade &&
                                 foreignKeyDesignerInfo.DeleteCascade == oldForeignKey.DeleteCascade)
+                            {
                                 if (oldForeignKey != null && IsStringEquals(oldForeignKey.Comment,
                                                               newForeignKey.Comment)
                                                           && oldForeignKey.ReferencedSchema ==
@@ -243,14 +269,21 @@ namespace DatabaseManager.Core
                                                           newForeignKey.ReferencedTableName
                                                           && SchemaInfoHelper.IsForeignKeyColumnsEquals(
                                                               oldForeignKey.Columns, newForeignKey.Columns))
+                                {
                                     continue;
+                                }
+                            }
 
                             scripts.AddRange(GetForeignKeyAlterScripts(oldForeignKey, newForeignKey));
                         }
 
                         foreach (var oldForeignKey in oldForeignKeys)
+                        {
                             if (!foreignKeyDesignerInfos.Any(item => item.Name == oldForeignKey.Name))
+                            {
                                 scripts.Add(scriptGenerator.DropForeignKey(oldForeignKey));
+                            }
+                        }
                     }
 
                     #endregion
@@ -274,18 +307,26 @@ namespace DatabaseManager.Core
                                 oldConstraints.FirstOrDefault(item => item.Name == constraintDesignerInfo.OldName);
 
                             if (IsValueEqualsIgnoreCase(constraintDesignerInfo.OldName, constraintDesignerInfo.Name))
+                            {
                                 if (oldConstraint != null && IsStringEquals(oldConstraint.Comment,
                                                               newConstraint.Comment)
                                                           && IsStringEquals(oldConstraint.Definition,
                                                               newConstraint.Definition))
+                                {
                                     continue;
+                                }
+                            }
 
                             scripts.AddRange(GetConstraintAlterScripts(oldConstraint, newConstraint));
                         }
 
                         foreach (var oldConstraint in oldConstraints)
+                        {
                             if (!constraintDesignerInfos.Any(item => item.Name == oldConstraint.Name))
+                            {
                                 scripts.Add(scriptGenerator.DropCheckConstraint(oldConstraint));
+                            }
+                        }
                     }
 
                     #endregion
@@ -313,8 +354,10 @@ namespace DatabaseManager.Core
             List<TableDefaultValueConstraint> defaultValueConstraints = null;
 
             if (dbInterpreter.DatabaseType == DatabaseType.SqlServer)
+            {
                 defaultValueConstraints =
                     await (dbInterpreter as SqlServerInterpreter).GetTableDefautValueConstraintsAsync(filter);
+            }
 
             return defaultValueConstraints;
         }
@@ -333,6 +376,7 @@ namespace DatabaseManager.Core
                 || !isDefaultValueEquals)
             {
                 if (!isDefaultValueEquals)
+                {
                     if (databaseType == DatabaseType.SqlServer)
                     {
                         var sqlServerScriptGenerator = scriptGenerator as SqlServerScriptGenerator;
@@ -342,11 +386,16 @@ namespace DatabaseManager.Core
                             item.ColumnName == oldColumn.Name);
 
                         if (defaultValueConstraint != null)
+                        {
                             scripts.Add(sqlServerScriptGenerator.DropDefaultValueConstraint(defaultValueConstraint));
+                        }
 
                         if (newColumn.DefaultValue != null)
+                        {
                             scripts.Add(sqlServerScriptGenerator.AddDefaultValueConstraint(newColumn));
+                        }
                     }
+                }
 
                 var oldColumnDefinition = dbInterpreter.ParseColumn(newTable, oldColumn);
                 var newColumnDefinition = dbInterpreter.ParseColumn(newTable, newColumn);
@@ -358,11 +407,15 @@ namespace DatabaseManager.Core
                     if (databaseType == DatabaseType.Oracle)
                     {
                         if (!oldColumn.IsNullable && !newColumn.IsNullable)
+                        {
                             alterColumnScript.Content = Regex.Replace(alterColumnScript.Content, "NOT NULL", "",
                                 RegexOptions.IgnoreCase);
+                        }
                         else if (oldColumn.IsNullable && newColumn.IsNullable)
+                        {
                             alterColumnScript.Content = Regex.Replace(alterColumnScript.Content, "NULL", "",
                                 RegexOptions.IgnoreCase);
+                        }
                     }
 
                     scripts.Add(alterColumnScript);
@@ -398,14 +451,19 @@ namespace DatabaseManager.Core
 
             Action alterPrimaryKey = () =>
             {
-                if (oldPrimaryKey != null) scripts.Add(scriptGenerator.DropPrimaryKey(oldPrimaryKey));
+                if (oldPrimaryKey != null)
+                {
+                    scripts.Add(scriptGenerator.DropPrimaryKey(oldPrimaryKey));
+                }
 
                 if (newPrimaryKey != null)
                 {
                     scripts.Add(scriptGenerator.AddPrimaryKey(newPrimaryKey));
 
                     if (!string.IsNullOrEmpty(newPrimaryKey.Comment))
+                    {
                         SetTableChildComment(scripts, scriptGenerator, newPrimaryKey, true);
+                    }
                 }
             };
 
@@ -416,10 +474,14 @@ namespace DatabaseManager.Core
             else if (!ValueHelper.IsStringEquals(oldPrimaryKey?.Comment, newPrimaryKey?.Comment))
             {
                 if (dbInterpreter.DatabaseType == DatabaseType.SqlServer)
+                {
                     SetTableChildComment(scripts, scriptGenerator, newPrimaryKey,
                         string.IsNullOrEmpty(oldPrimaryKey?.Comment));
+                }
                 else
+                {
                     alterPrimaryKey();
+                }
             }
 
             return scripts;
@@ -429,12 +491,17 @@ namespace DatabaseManager.Core
         {
             var scripts = new List<Script>();
 
-            if (oldForeignKey != null) scripts.Add(scriptGenerator.DropForeignKey(oldForeignKey));
+            if (oldForeignKey != null)
+            {
+                scripts.Add(scriptGenerator.DropForeignKey(oldForeignKey));
+            }
 
             scripts.Add(scriptGenerator.AddForeignKey(newForeignKey));
 
             if (!string.IsNullOrEmpty(newForeignKey.Comment))
+            {
                 SetTableChildComment(scripts, scriptGenerator, newForeignKey, true);
+            }
 
             return scripts;
         }
@@ -443,11 +510,17 @@ namespace DatabaseManager.Core
         {
             var scripts = new List<Script>();
 
-            if (oldIndex != null) scripts.Add(scriptGenerator.DropIndex(oldIndex));
+            if (oldIndex != null)
+            {
+                scripts.Add(scriptGenerator.DropIndex(oldIndex));
+            }
 
             scripts.Add(scriptGenerator.AddIndex(newIndex));
 
-            if (!string.IsNullOrEmpty(newIndex.Comment)) SetTableChildComment(scripts, scriptGenerator, newIndex, true);
+            if (!string.IsNullOrEmpty(newIndex.Comment))
+            {
+                SetTableChildComment(scripts, scriptGenerator, newIndex, true);
+            }
 
             return scripts;
         }
@@ -456,12 +529,17 @@ namespace DatabaseManager.Core
         {
             var scripts = new List<Script>();
 
-            if (oldConstraint != null) scripts.Add(scriptGenerator.DropCheckConstraint(oldConstraint));
+            if (oldConstraint != null)
+            {
+                scripts.Add(scriptGenerator.DropCheckConstraint(oldConstraint));
+            }
 
             scripts.Add(scriptGenerator.AddCheckConstraint(newConstraint));
 
             if (!string.IsNullOrEmpty(newConstraint.Comment))
+            {
                 SetTableChildComment(scripts, scriptGenerator, newConstraint, true);
+            }
 
             return scripts;
         }
@@ -477,14 +555,20 @@ namespace DatabaseManager.Core
             if (SettingManager.Setting.DbObjectNameMode == DbObjectNameMode.WithoutQuotation)
             {
                 if (IsValueEqualsIgnoreCase(name1, name2))
+                {
                     return false;
+                }
+
                 return true;
             }
 
             var databaseType = dbInterpreter.DatabaseType;
 
             if (name1 == name2)
+            {
                 return false;
+            }
+
             return true;
         }
 
@@ -492,7 +576,9 @@ namespace DatabaseManager.Core
             TableChild tableChild, bool isNew)
         {
             if (dbInterpreter.DatabaseType == DatabaseType.SqlServer)
+            {
                 scripts.Add((scriptGenerator as SqlServerScriptGenerator).SetTableChildComment(tableChild, isNew));
+            }
         }
 
         private bool IsStringEquals(string str1, string str2)
@@ -524,16 +610,20 @@ namespace DatabaseManager.Core
                 ObjectHelper.CopyProperties(column, tableColumn);
 
                 if (!DataTypeHelper.IsUserDefinedType(tableColumn))
+                {
                     ColumnManager.SetColumnLength(dbInterpreter.DatabaseType, tableColumn, column.Length);
+                }
 
                 if (column.IsPrimary)
                 {
                     if (primaryKey == null)
+                    {
                         primaryKey = new TablePrimaryKey
                         {
                             Schema = table.Schema, TableName = table.Name,
                             Name = IndexManager.GetPrimaryKeyDefaultName(table)
                         };
+                    }
 
                     var indexColumn = new IndexColumn
                         { ColumnName = column.Name, IsDesc = false, Order = primaryKey.Columns.Count + 1 };
@@ -553,10 +643,15 @@ namespace DatabaseManager.Core
                             var columnInfo =
                                 indexDesignerInfo.Columns.FirstOrDefault(item => item.ColumnName == column.Name);
 
-                            if (columnInfo != null) indexColumn.IsDesc = columnInfo.IsDesc;
+                            if (columnInfo != null)
+                            {
+                                indexColumn.IsDesc = columnInfo.IsDesc;
+                            }
 
                             if (indexDesignerInfo.ExtraPropertyInfo != null)
+                            {
                                 primaryKey.Clustered = indexDesignerInfo.ExtraPropertyInfo.Clustered;
+                            }
                         }
                     }
 
@@ -579,19 +674,27 @@ namespace DatabaseManager.Core
                     }
                 }
 
-                if (extralProperty?.Expression != null) tableColumn.ComputeExp = extralProperty.Expression;
+                if (extralProperty?.Expression != null)
+                {
+                    tableColumn.ComputeExp = extralProperty.Expression;
+                }
 
                 schemaInfo.TableColumns.Add(tableColumn);
             }
 
-            if (primaryKey != null) schemaInfo.TablePrimaryKeys.Add(primaryKey);
+            if (primaryKey != null)
+            {
+                schemaInfo.TablePrimaryKeys.Add(primaryKey);
+            }
 
             #endregion
 
             #region Indexes
 
             if (!schemaDesignerInfo.IgnoreTableIndex)
+            {
                 foreach (var indexDesignerInfo in schemaDesignerInfo.TableIndexDesingerInfos)
+                {
                     if (!indexDesignerInfo.IsPrimary)
                     {
                         var index = new TableIndex
@@ -611,12 +714,15 @@ namespace DatabaseManager.Core
 
                         schemaInfo.TableIndexes.Add(index);
                     }
+                }
+            }
 
             #endregion
 
             #region Foreign Keys
 
             if (!schemaDesignerInfo.IgnoreTableForeignKey)
+            {
                 foreach (var keyDesignerInfo in schemaDesignerInfo.TableForeignKeyDesignerInfos)
                 {
                     var foreignKey = new TableForeignKey
@@ -637,12 +743,14 @@ namespace DatabaseManager.Core
 
                     schemaInfo.TableForeignKeys.Add(foreignKey);
                 }
+            }
 
             #endregion
 
             #region Constraint
 
             if (!schemaDesignerInfo.IgnoreTableConstraint)
+            {
                 foreach (var constraintDesignerInfo in schemaDesignerInfo.TableConstraintDesignerInfos)
                 {
                     var constraint = new TableConstraint
@@ -656,6 +764,7 @@ namespace DatabaseManager.Core
 
                     schemaInfo.TableConstraints.Add(constraint);
                 }
+            }
 
             #endregion
 
@@ -721,7 +830,9 @@ namespace DatabaseManager.Core
                 }
 
                 if (!string.IsNullOrEmpty(column.Name) && !columnNames.Contains(column.Name))
+                {
                     columnNames.Add(column.Name);
+                }
             }
 
             #endregion
@@ -757,11 +868,17 @@ namespace DatabaseManager.Core
                     }
 
                     if (index.ExtraPropertyInfo != null)
+                    {
                         if (index.ExtraPropertyInfo.Clustered)
+                        {
                             clursteredCount++;
+                        }
+                    }
 
                     if (!string.IsNullOrEmpty(index.Name) && !indexNames.Contains(index.Name))
+                    {
                         indexNames.Add(index.Name);
+                    }
                 }
 
                 if (clursteredCount > 1)
@@ -801,7 +918,10 @@ namespace DatabaseManager.Core
                         return false;
                     }
 
-                    if (!string.IsNullOrEmpty(key.Name) && !keyNames.Contains(key.Name)) keyNames.Add(key.Name);
+                    if (!string.IsNullOrEmpty(key.Name) && !keyNames.Contains(key.Name))
+                    {
+                        keyNames.Add(key.Name);
+                    }
                 }
             }
 
@@ -851,11 +971,15 @@ namespace DatabaseManager.Core
                     }
 
                     if (!string.IsNullOrEmpty(constraint.Name) && !constraintNames.Contains(constraint.Name))
+                    {
                         constraintNames.Add(constraint.Name);
+                    }
 
                     if (!string.IsNullOrEmpty(constraint.ColumnName) &&
                         !constraintColumnNames.Contains(constraint.ColumnName))
+                    {
                         constraintColumnNames.Add(constraint.ColumnName);
+                    }
                 }
             }
 
@@ -869,7 +993,10 @@ namespace DatabaseManager.Core
             var info = new FeedbackInfo
                 { Owner = this, InfoType = infoType, Message = StringHelper.ToSingleEmptyLine(message) };
 
-            if (observer != null) FeedbackHelper.Feedback(observer, info);
+            if (observer != null)
+            {
+                FeedbackHelper.Feedback(observer, info);
+            }
         }
 
         public void FeedbackInfo(string message)

@@ -114,11 +114,17 @@ namespace DatabaseManager.Core
                         ScriptDbObject sdb = null;
 
                         if (dbObject is View)
+                        {
                             sdb = (await dbInterpreter.GetViewsAsync(connection, dbObjectFilter)).FirstOrDefault();
+                        }
                         else if (dbObject is Function)
+                        {
                             sdb = (await dbInterpreter.GetFunctionsAsync(connection, dbObjectFilter)).FirstOrDefault();
+                        }
                         else if (dbObject is Procedure)
+                        {
                             sdb = (await dbInterpreter.GetProceduresAsync(connection, dbObjectFilter)).FirstOrDefault();
+                        }
 
                         dbInterpreter.Option.ObjectFetchMode = DatabaseObjectFetchMode.Simple;
 
@@ -146,7 +152,10 @@ namespace DatabaseManager.Core
                             }
                         }
 
-                        if (routineScriptUsages.Count > 0) usages.AddRange(routineScriptUsages);
+                        if (routineScriptUsages.Count > 0)
+                        {
+                            usages.AddRange(routineScriptUsages);
+                        }
                     }
                 }
             }
@@ -197,6 +206,7 @@ namespace DatabaseManager.Core
 
             foreach (var sdb in scriptDbObjects.Where(item =>
                          !(item.Schema == refDbObject.Schema && item.Name == refDbObject.Name)))
+            {
                 if (Regex.IsMatch(sdb.Definition, $@"\b{refDbObject.Name}\b",
                         RegexOptions.Multiline | RegexOptions.IgnoreCase))
                 {
@@ -210,6 +220,7 @@ namespace DatabaseManager.Core
 
                     usages.Add(usage);
                 }
+            }
 
             return usages;
         }
@@ -244,12 +255,21 @@ namespace DatabaseManager.Core
             var filter = GetSchemaInfoFilter(dbObject);
 
             if (dbObject is Table)
+            {
                 filter.TableNames = new[] { dbObject.Name };
+            }
             else if (dbObject is View)
+            {
                 filter.ViewNames = new[] { dbObject.Name };
+            }
             else if (dbObject is Function)
+            {
                 filter.FunctionNames = new[] { dbObject.Name };
-            else if (dbObject is Procedure) filter.ProcedureNames = new[] { dbObject.Name };
+            }
+            else if (dbObject is Procedure)
+            {
+                filter.ProcedureNames = new[] { dbObject.Name };
+            }
 
             return filter;
         }

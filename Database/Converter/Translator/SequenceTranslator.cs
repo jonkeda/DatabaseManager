@@ -14,8 +14,7 @@ namespace DatabaseConverter.Core
 
         public SequenceTranslator(DbInterpreter sourceInterpreter, DbInterpreter targetInterpreter) : base(
             sourceInterpreter, targetInterpreter)
-        {
-        }
+        { }
 
         public SequenceTranslator(DbInterpreter sourceInterpreter, DbInterpreter targetInterpreter,
             IEnumerable<Sequence> sequences) : base(sourceInterpreter, targetInterpreter)
@@ -25,7 +24,10 @@ namespace DatabaseConverter.Core
 
         public override void Translate()
         {
-            if (sourceDbType == targetDbType) return;
+            if (sourceDbType == targetDbType)
+            {
+                return;
+            }
 
             FeedbackInfo("Begin to translate sequences.");
 
@@ -33,7 +35,10 @@ namespace DatabaseConverter.Core
             {
                 ConvertDataType(sequence);
 
-                if (sequence.StartValue < sequence.MinValue) sequence.StartValue = (int)sequence.MinValue;
+                if (sequence.StartValue < sequence.MinValue)
+                {
+                    sequence.StartValue = (int)sequence.MinValue;
+                }
             }
 
             FeedbackInfo("End translate sequences.");
@@ -41,7 +46,10 @@ namespace DatabaseConverter.Core
 
         public void ConvertDataType(Sequence sequence)
         {
-            if (targetDbType == DatabaseType.SqlServer) sequence.DataType = "bigint";
+            if (targetDbType == DatabaseType.SqlServer)
+            {
+                sequence.DataType = "bigint";
+            }
         }
 
         public static bool IsSequenceValueFlag(DatabaseType databaseType, string value)
@@ -49,10 +57,19 @@ namespace DatabaseConverter.Core
             var upperValue = value.ToUpper();
 
             if (databaseType == DatabaseType.SqlServer)
+            {
                 return upperValue.Contains(SqlServerSequenceNextValueFlag);
+            }
+
             if (databaseType == DatabaseType.Postgres)
+            {
                 return upperValue.Contains(PostgreSeqenceNextValueFlag);
-            if (databaseType == DatabaseType.Oracle) return upperValue.Contains(OracleSequenceNextValueFlag);
+            }
+
+            if (databaseType == DatabaseType.Oracle)
+            {
+                return upperValue.Contains(OracleSequenceNextValueFlag);
+            }
 
             return false;
         }
@@ -102,14 +119,22 @@ namespace DatabaseConverter.Core
             var targetDbType = targetDbInterpreter.DatabaseType;
 
             if (targetDbType == DatabaseType.SqlServer)
+            {
                 return
                     $"{SqlServerSequenceNextValueFlag} {targetDbInterpreter.GetQuotedDbObjectNameWithSchema(schema, sequenceName)}";
+            }
+
             if (targetDbType == DatabaseType.Postgres)
+            {
                 return
                     $"{PostgreSeqenceNextValueFlag}('{targetDbInterpreter.GetQuotedDbObjectNameWithSchema(schema, sequenceName)}')";
+            }
+
             if (targetDbType == DatabaseType.Oracle)
+            {
                 return
                     $"{targetDbInterpreter.GetQuotedDbObjectNameWithSchema(schema, sequenceName)}.{OracleSequenceNextValueFlag}";
+            }
 
             return targetDbInterpreter.GetQuotedDbObjectNameWithSchema(schema, sequenceName);
         }
@@ -118,7 +143,10 @@ namespace DatabaseConverter.Core
         {
             var mappedSchema = SchemaInfoHelper.GetMappedSchema(GetTrimmedName(schema), Option.SchemaMappings);
 
-            if (mappedSchema == null) mappedSchema = targetDbInterpreter.DefaultSchema;
+            if (mappedSchema == null)
+            {
+                mappedSchema = targetDbInterpreter.DefaultSchema;
+            }
 
             return mappedSchema;
         }

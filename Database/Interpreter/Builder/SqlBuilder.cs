@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DatabaseInterpreter.Core
+namespace Databases.Interpreter.Builder
 {
     public class SqlBuilder
     {
@@ -17,7 +17,10 @@ namespace DatabaseInterpreter.Core
             {
                 var line = item.Trim();
 
-                if (line.Length > 0) lines.Add(line);
+                if (line.Length > 0)
+                {
+                    lines.Add(line);
+                }
             }
         }
 

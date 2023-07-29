@@ -36,7 +36,10 @@ namespace DatabaseManager.Core
         {
             var scripts = await GenerateChangedScripts(schemaInfo, targetDbSchema, differences);
 
-            if (scripts == null || scripts.Count == 0) return GetFaultSaveResult("No changes need to save.");
+            if (scripts == null || scripts.Count == 0)
+            {
+                return GetFaultSaveResult("No changes need to save.");
+            }
 
             try
             {
@@ -71,7 +74,10 @@ namespace DatabaseManager.Core
             {
                 var diffType = difference.DifferenceType;
 
-                if (diffType == DbDifferenceType.None) continue;
+                if (diffType == DbDifferenceType.None)
+                {
+                    continue;
+                }
 
                 switch (difference.DatabaseObjectType)
                 {
@@ -189,14 +195,19 @@ namespace DatabaseManager.Core
             else if (diffType == DbDifferenceType.Modified)
             {
                 if (!ValueHelper.IsStringEquals(sourceTable.Comment, targetTable.Comment))
+                {
                     scripts.Add(targetScriptGenerator.SetTableComment(sourceTable,
                         string.IsNullOrEmpty(targetTable.Comment)));
+                }
 
                 foreach (var subDiff in difference.SubDifferences)
                 {
                     var subDiffType = subDiff.DifferenceType;
 
-                    if (subDiffType == DbDifferenceType.None) continue;
+                    if (subDiffType == DbDifferenceType.None)
+                    {
+                        continue;
+                    }
 
                     var subDbObjectType = subDiff.DatabaseObjectType;
 
@@ -254,7 +265,9 @@ namespace DatabaseManager.Core
                     var targetColumn = target as TableColumn;
 
                     if (tableManager.IsNameChanged(sourceColumn.Name, targetColumn.Name))
+                    {
                         scripts.Add(tableManager.GetColumnRenameScript(table, sourceColumn, targetColumn));
+                    }
 
                     scripts.AddRange(tableManager.GetColumnAlterScripts(table, table, targetColumn, sourceColumn,
                         defaultValueConstraints));
@@ -265,17 +278,25 @@ namespace DatabaseManager.Core
                         targetTable.Schema);
 
                     if (difference.DatabaseObjectType == DatabaseObjectType.PrimaryKey)
+                    {
                         scripts.AddRange(tableManager.GetPrimaryKeyAlterScripts(target as TablePrimaryKey,
                             clonedSource as TablePrimaryKey, false));
+                    }
                     else if (difference.DatabaseObjectType == DatabaseObjectType.ForeignKey)
+                    {
                         scripts.AddRange(tableManager.GetForeignKeyAlterScripts(target as TableForeignKey,
                             clonedSource as TableForeignKey));
+                    }
                     else if (difference.DatabaseObjectType == DatabaseObjectType.Index)
+                    {
                         scripts.AddRange(tableManager.GetIndexAlterScripts(target as TableIndex,
                             clonedSource as TableIndex));
+                    }
                     else if (difference.DatabaseObjectType == DatabaseObjectType.Constraint)
+                    {
                         scripts.AddRange(tableManager.GetConstraintAlterScripts(target as TableConstraint,
                             clonedSource as TableConstraint));
+                    }
                 }
             }
 
@@ -286,20 +307,34 @@ namespace DatabaseManager.Core
             string targetSchema)
         {
             if (databaseObjectType == DatabaseObjectType.PrimaryKey)
+            {
                 return CloneDbObject(tableChild as TablePrimaryKey, targetSchema);
+            }
+
             if (databaseObjectType == DatabaseObjectType.ForeignKey)
+            {
                 return CloneDbObject(tableChild as TableForeignKey, targetSchema);
+            }
+
             if (databaseObjectType == DatabaseObjectType.Index)
+            {
                 return CloneDbObject(tableChild as TableIndex, targetSchema);
+            }
+
             if (databaseObjectType == DatabaseObjectType.Constraint)
+            {
                 return CloneDbObject(tableChild as TableConstraint, targetSchema);
+            }
 
             return tableChild;
         }
 
         private T CloneDbObject<T>(T dbObject, string owner) where T : DatabaseObject
         {
-            if (dbObject == null) return null;
+            if (dbObject == null)
+            {
+                return null;
+            }
 
             var clonedObj = ObjectHelper.CloneObject<T>(dbObject);
             clonedObj.Schema = owner;
@@ -317,7 +352,10 @@ namespace DatabaseManager.Core
             var info = new FeedbackInfo
                 { Owner = this, InfoType = infoType, Message = StringHelper.ToSingleEmptyLine(message) };
 
-            if (observer != null) FeedbackHelper.Feedback(observer, info);
+            if (observer != null)
+            {
+                FeedbackHelper.Feedback(observer, info);
+            }
         }
 
         public void FeedbackInfo(string message)

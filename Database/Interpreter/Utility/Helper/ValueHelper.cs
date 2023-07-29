@@ -8,11 +8,21 @@ namespace DatabaseInterpreter.Utility
     {
         public static bool IsNullValue(object value, bool emptyAsNull = false)
         {
-            if (value == null) return true;
+            if (value == null)
+            {
+                return true;
+            }
 
-            if (value is DBNull) return true;
+            if (value is DBNull)
+            {
+                return true;
+            }
 
-            if (emptyAsNull && value.ToString().Length == 0) return true;
+            if (emptyAsNull && value.ToString().Length == 0)
+            {
+                return true;
+            }
+
             return false;
         }
 
@@ -29,7 +39,10 @@ namespace DatabaseInterpreter.Utility
 
         public static string BytesToHexString(byte[] value)
         {
-            if (value == null) return null;
+            if (value == null)
+            {
+                return null;
+            }
 
             var hex = "0x" + string.Concat(value.Select(item => item.ToString("X2")));
 
@@ -56,7 +69,10 @@ namespace DatabaseInterpreter.Utility
 
         public static bool IsStringEquals(string str1, string str2)
         {
-            if (string.IsNullOrEmpty(str1) && string.IsNullOrEmpty(str2)) return true;
+            if (string.IsNullOrEmpty(str1) && string.IsNullOrEmpty(str2))
+            {
+                return true;
+            }
 
             return str1 == str2;
         }
@@ -68,7 +84,10 @@ namespace DatabaseInterpreter.Utility
                 var isBeginAndEndWith =
                     value.EndsWith("\'") && (value.StartsWith("\'") || value.ToUpper().StartsWith("N\'"));
 
-                if (!isBeginAndEndWith) return false;
+                if (!isBeginAndEndWith)
+                {
+                    return false;
+                }
 
                 var firstIndex = value.IndexOf("'", StringComparison.Ordinal);
                 var lastIndex = value.LastIndexOf("'");
@@ -80,7 +99,10 @@ namespace DatabaseInterpreter.Utility
                     var count1 = innerContent.Count(item => item == '\'');
                     var count2 = Regex.Matches(innerContent, "''").Count;
 
-                    if (count1 != count2 * 2) return false;
+                    if (count1 != count2 * 2)
+                    {
+                        return false;
+                    }
 
                     return true;
                 }
@@ -94,7 +116,10 @@ namespace DatabaseInterpreter.Utility
         public static int BooleanToInteger(bool value)
         {
             if (value)
+            {
                 return 1;
+            }
+
             return 0;
         }
     }

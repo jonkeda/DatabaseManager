@@ -8,16 +8,14 @@ using SqlAnalyser.Core;
 namespace Databases.Handlers
 {
     public class SqlHandlerDictionary : Dictionary<DatabaseType, SqlHandler>
-    {
-    }
+    { }
 
     public abstract class SqlHandler
     {
         private static readonly SqlHandlerDictionary Handlers = new SqlHandlerDictionary();
 
         static SqlHandler()
-        {
-        }
+        { }
 
         protected SqlHandler(DatabaseType databaseType)
         {
@@ -42,7 +40,10 @@ namespace Databases.Handlers
 
         public static SqlHandler GetHandler(DatabaseType databaseType)
         {
-            if (Handlers.TryGetValue(databaseType, out var handler)) return handler;
+            if (Handlers.TryGetValue(databaseType, out var handler))
+            {
+                return handler;
+            }
 
             throw new KeyNotFoundException($"The handler for {databaseType} is not found.");
         }
@@ -53,7 +54,9 @@ namespace Databases.Handlers
             {
                 var provider = handler.CreateDbProviderFactory(providerName);
                 if (provider != null)
+                {
                     return provider;
+                }
             }
 
             return null;
@@ -69,8 +72,7 @@ namespace Databases.Handlers
         where TD : DbDiagnosis
     {
         protected SqlHandler(DatabaseType databaseType) : base(databaseType)
-        {
-        }
+        { }
 
         public override ScriptBuildFactory CreateScriptBuildFactory()
         {

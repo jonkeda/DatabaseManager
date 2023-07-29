@@ -9,7 +9,10 @@ namespace DatabaseManager.Helper
         {
             using (var proc = new Process())
             {
-                if (errorEventHandler != null) proc.ErrorDataReceived += errorEventHandler;
+                if (errorEventHandler != null)
+                {
+                    proc.ErrorDataReceived += errorEventHandler;
+                }
 
                 proc.StartInfo.UseShellExecute = false;
                 proc.StartInfo.RedirectStandardOutput = true;
@@ -21,8 +24,12 @@ namespace DatabaseManager.Helper
                 proc.Start();
 
                 if (inputs != null && inputs.Length > 0)
+                {
                     foreach (var cmd in inputs)
+                    {
                         proc.StandardInput.WriteLine(cmd);
+                    }
+                }
 
                 var output = proc.StandardOutput.ReadToEnd();
 

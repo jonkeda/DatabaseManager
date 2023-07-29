@@ -14,8 +14,7 @@ namespace DatabaseConverter.Model
     public class DataTypeMappingSource
     {
         public DataTypeMappingSource()
-        {
-        }
+        { }
 
         public DataTypeMappingSource(XElement element)
         {
@@ -31,8 +30,7 @@ namespace DatabaseConverter.Model
     public class DataTypeMappingTarget
     {
         public DataTypeMappingTarget()
-        {
-        }
+        { }
 
         public DataTypeMappingTarget(XElement element)
         {
@@ -63,8 +61,7 @@ namespace DatabaseConverter.Model
     public class DataTypeMappingSpecial
     {
         public DataTypeMappingSpecial()
-        {
-        }
+        { }
 
         public DataTypeMappingSpecial(XElement element)
         {

@@ -118,7 +118,10 @@ namespace DatabaseConverter.Core
 
         private bool NeedTranslate(DatabaseObjectType databaseObjectType, DatabaseObjectType currentDbType)
         {
-            if (databaseObjectType == DatabaseObjectType.None || databaseObjectType.HasFlag(currentDbType)) return true;
+            if (databaseObjectType == DatabaseObjectType.None || databaseObjectType.HasFlag(currentDbType))
+            {
+                return true;
+            }
 
             return false;
         }

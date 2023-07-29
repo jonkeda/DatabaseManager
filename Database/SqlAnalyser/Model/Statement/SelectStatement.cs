@@ -47,7 +47,10 @@ namespace SqlAnalyser.Model
             {
                 _alias = value;
 
-                if (value != null) _alias.Type = TokenType.TableAlias;
+                if (value != null)
+                {
+                    _alias.Type = TokenType.TableAlias;
+                }
             }
         }
 

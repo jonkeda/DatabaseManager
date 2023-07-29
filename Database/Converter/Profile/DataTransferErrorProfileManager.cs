@@ -14,10 +14,14 @@ namespace DatabaseConverter.Profile
 
         public static bool Save(DataTransferErrorProfile profile)
         {
-            if (!Directory.Exists(ProfileFolder)) Directory.CreateDirectory(ProfileFolder);
+            if (!Directory.Exists(ProfileFolder))
+            {
+                Directory.CreateDirectory(ProfileFolder);
+            }
 
             var filePath = ProfilePath;
             if (!File.Exists(filePath))
+            {
                 using (var sw = File.CreateText(filePath))
                 {
                     sw.WriteLine(
@@ -27,6 +31,7 @@ namespace DatabaseConverter.Profile
 ");
                     sw.Flush();
                 }
+            }
 
             lock (obj)
             {
@@ -67,7 +72,10 @@ namespace DatabaseConverter.Profile
         public static bool Remove(DataTransferErrorProfile profile)
         {
             var filePath = ProfilePath;
-            if (!File.Exists(filePath)) return false;
+            if (!File.Exists(filePath))
+            {
+                return false;
+            }
 
             var doc = XDocument.Load(filePath);
             var root = doc.Root;
@@ -94,7 +102,10 @@ namespace DatabaseConverter.Profile
         {
             DataTransferErrorProfile profile = null;
             var filePath = ProfilePath;
-            if (!File.Exists(filePath) || sourceConnectionInfo == null || targetConnectionInfo == null) return null;
+            if (!File.Exists(filePath) || sourceConnectionInfo == null || targetConnectionInfo == null)
+            {
+                return null;
+            }
 
             var doc = XDocument.Load(filePath);
             var root = doc.Root;
@@ -107,6 +118,7 @@ namespace DatabaseConverter.Profile
             );
 
             if (profileElement != null)
+            {
                 profile = new DataTransferErrorProfile
                 {
                     SourceServer = sourceConnectionInfo.Server,
@@ -117,6 +129,7 @@ namespace DatabaseConverter.Profile
                     TargetDatabase = targetConnectionInfo.Database,
                     TargetTableName = profileElement.Attribute("TargetTableName")?.Value
                 };
+            }
 
             return profile;
         }

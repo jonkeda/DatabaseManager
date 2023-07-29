@@ -12,7 +12,10 @@
         {
             get
             {
-                if (string.IsNullOrEmpty(_delimiter)) return ",";
+                if (string.IsNullOrEmpty(_delimiter))
+                {
+                    return ",";
+                }
 
                 return _delimiter;
             }

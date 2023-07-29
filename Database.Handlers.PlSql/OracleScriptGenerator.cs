@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
+using Databases.Interpreter.Builder;
 
 namespace DatabaseInterpreter.Core
 {

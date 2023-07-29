@@ -20,12 +20,17 @@ namespace DatabaseConverter.Core
             (DatabaseType sourceDbType, DatabaseType targetDbType) dbTypeMap = (sourceDatabaseType, targetDatabaseType);
 
             if (_dataTypeMappings != null && _dataTypeMappings.TryGetValue(dbTypeMap, out var typeMappings))
+            {
                 return typeMappings;
+            }
 
             var dataTypeMappingFilePath = Path.Combine(ConfigRootFolder,
                 $"DataTypeMapping/{sourceDatabaseType}2{targetDatabaseType}.xml");
 
-            if (!File.Exists(dataTypeMappingFilePath)) throw new Exception($"No such file:{dataTypeMappingFilePath}");
+            if (!File.Exists(dataTypeMappingFilePath))
+            {
+                throw new Exception($"No such file:{dataTypeMappingFilePath}");
+            }
 
             var dataTypeMappingDoc = XDocument.Load(dataTypeMappingFilePath);
 
@@ -39,8 +44,10 @@ namespace DatabaseConverter.Core
                 .ToList();
 
             if (_dataTypeMappings == null)
+            {
                 _dataTypeMappings =
                     new Dictionary<(DatabaseType SourceDbType, DatabaseType TargetDbType), List<DataTypeMapping>>();
+            }
 
             _dataTypeMappings.Add(dbTypeMap, mappings);
 

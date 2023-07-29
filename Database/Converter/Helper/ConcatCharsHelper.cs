@@ -44,7 +44,10 @@ namespace DatabaseConverter.Core
             var sourceConcatChars = sourceDbInterpreter.STR_CONCAT_CHARS;
             var targetConcatChars = targetDbInterpreter.STR_CONCAT_CHARS;
 
-            if (!symbol.Contains(sourceConcatChars)) return symbol;
+            if (!symbol.Contains(sourceConcatChars))
+            {
+                return symbol;
+            }
 
             var quotationChars = TranslateHelper.GetTrimChars(sourceDbInterpreter, targetDbInterpreter).ToArray();
             var hasParenthesis = symbol.Trim().StartsWith("(");
@@ -57,7 +60,10 @@ namespace DatabaseConverter.Core
 
             foreach (var item in items)
             {
-                if (item.Index > 0) sb.Append(" ");
+                if (item.Index > 0)
+                {
+                    sb.Append(" ");
+                }
 
                 if (item.Type == TokenSymbolItemType.Keyword || item.Content.Trim().Length == 0)
                 {
@@ -103,9 +109,13 @@ namespace DatabaseConverter.Core
                                                                quotationChars, charItems);
 
                                 if (currentContentIsMatched || nextContentIsMatched)
+                                {
                                     sb.Append(targetConcatChars);
+                                }
                                 else
+                                {
                                     sb.Append(sourceConcatChars);
+                                }
                             }
                         }
                     }
@@ -152,14 +162,21 @@ namespace DatabaseConverter.Core
                                 }
                             }
 
-                            if (hasStringValue) break;
+                            if (hasStringValue)
+                            {
+                                break;
+                            }
                         }
 
                         if (hasStringValue)
+                        {
                             sb.Append(
                                 $"{strAssign}CONCAT({string.Join(",", symbolItems.Select(item => item.Content))})");
+                        }
                         else
+                        {
                             sb.Append(result);
+                        }
                     }
 
                     result = sb.ToString();
@@ -173,9 +190,15 @@ namespace DatabaseConverter.Core
 
         private static string GetOriginalValue(string value, bool hasParenthesis)
         {
-            if (!hasParenthesis) return value;
+            if (!hasParenthesis)
+            {
+                return value;
+            }
 
-            if (!value.Trim().StartsWith("(")) return $"({value})";
+            if (!value.Trim().StartsWith("("))
+            {
+                return $"({value})";
+            }
 
             return value;
         }
@@ -186,7 +209,10 @@ namespace DatabaseConverter.Core
             var sourceConcatChars = sourceDbInterpreter.STR_CONCAT_CHARS;
             var targetConcatChars = targetDbInterpreter.STR_CONCAT_CHARS;
 
-            if (!symbol.Contains(sourceConcatChars)) return symbol;
+            if (!symbol.Contains(sourceConcatChars))
+            {
+                return symbol;
+            }
 
             var sourceDbType = sourceDbInterpreter.DatabaseType;
             var targetDbType = targetDbInterpreter.DatabaseType;
@@ -202,7 +228,10 @@ namespace DatabaseConverter.Core
             {
                 var content = symbolItems[0].Content;
 
-                if (!content.Contains("(")) return symbol;
+                if (!content.Contains("("))
+                {
+                    return symbol;
+                }
 
                 var equalMarkIndex = content.IndexOf("=", StringComparison.Ordinal);
                 var parenthesisIndex = content.IndexOf("(", StringComparison.Ordinal);
@@ -224,8 +253,10 @@ namespace DatabaseConverter.Core
                     .FirstOrDefault(item => item.Name.ToUpper() == functionName.Trim().ToUpper());
 
                 if (spec == null) //if no target function specification, use the source instead.
+                {
                     spec = FunctionManager.GetFunctionSpecifications(sourceDbType)
                         .FirstOrDefault(item => item.Name.ToUpper() == functionName.Trim().ToUpper());
+                }
 
                 if (spec != null)
                 {
@@ -238,7 +269,9 @@ namespace DatabaseConverter.Core
                         var results = new List<string>();
 
                         foreach (var arg in args)
+                        {
                             results.Add(ConvertConcatChars(sourceDbInterpreter, targetDbInterpreter, arg, charItems));
+                        }
 
                         var delimiter = spec.Delimiter == "," ? "," : $" {spec.Delimiter} ";
                         var strAssign = !string.IsNullOrEmpty(assignName) ? assignName + "=" : "";
@@ -251,13 +284,21 @@ namespace DatabaseConverter.Core
             }
 
             foreach (var item in symbolItems)
+            {
                 if (item.Content != symbol && item.Content.Contains("("))
+                {
                     item.Content =
                         ConvertConcatChars(sourceDbInterpreter, targetDbInterpreter, item.Content, charItems);
+                }
+            }
 
             if (sourceConcatChars == "+")
+            {
                 if (symbolItems.Any(item => decimal.TryParse(item.Content.Trim(',', ' '), out _)))
+                {
                     return symbol;
+                }
+            }
 
             Func<string, bool> isMatched = value =>
             {
@@ -307,7 +348,10 @@ namespace DatabaseConverter.Core
                             }
                         }
 
-                        if (i < items.Length - 1) sb.Append(",");
+                        if (i < items.Length - 1)
+                        {
+                            sb.Append(",");
+                        }
                     }
 
                     if (!hasInvalid)
@@ -325,15 +369,21 @@ namespace DatabaseConverter.Core
             if (symbol.Trim().EndsWith(sourceConcatChars))
             {
                 if (!string.IsNullOrEmpty(targetConcatChars))
+                {
                     sb.Append(targetConcatChars);
+                }
                 else
+                {
                     sb.Append(sourceConcatChars);
+                }
             }
 
             var result = sb.ToString().Trim();
 
             if (result.Length > 0 && StringHelper.IsParenthesisBalanced(result))
+            {
                 return GetOriginalValue(result, hasParenthesis);
+            }
 
             return symbol;
         }
@@ -374,11 +424,17 @@ namespace DatabaseConverter.Core
 
                 if (match.Index > 0)
                 {
-                    if ("@" + match.Value == value.Substring(match.Index - 1, match.Length + 1)) continue;
+                    if ("@" + match.Value == value.Substring(match.Index - 1, match.Length + 1))
+                    {
+                        continue;
+                    }
 
                     var singleQuotationCharCount = value.Substring(0, match.Index).Count(item => item == '\'');
 
-                    if (singleQuotationCharCount % 2 != 0) continue;
+                    if (singleQuotationCharCount % 2 != 0)
+                    {
+                        continue;
+                    }
                 }
 
                 matchList.Add(match);
@@ -391,15 +447,21 @@ namespace DatabaseConverter.Core
                 var index = match.Index;
 
                 if (index > 0)
+                {
                     if ("@" + match.Value == value.Substring(match.Index - 1, match.Length + 1))
+                    {
                         continue;
+                    }
+                }
 
                 var singleQuotaionCharCount = value.Substring(0, index).Count(item => item == '\'');
 
                 if (singleQuotaionCharCount % 2 == 0)
                 {
                     if (i == 0 && match.Index > 0)
+                    {
                         addItem(value.Substring(0, match.Index), TokenSymbolItemType.Content);
+                    }
 
                     addItem(match.Value, TokenSymbolItemType.Keyword);
 
@@ -425,7 +487,10 @@ namespace DatabaseConverter.Core
                 }
             }
 
-            if (tokenSymbolItems.Count == 0) addItem(value, TokenSymbolItemType.Content);
+            if (tokenSymbolItems.Count == 0)
+            {
+                addItem(value, TokenSymbolItemType.Content);
+            }
 
             return tokenSymbolItems;
         }
@@ -439,7 +504,10 @@ namespace DatabaseConverter.Core
             if (specification != null)
             {
                 if (specification.IsString)
+                {
                     return true;
+                }
+
                 return IsStringConvertFunction(databaseType, specification, value);
             }
 
@@ -451,7 +519,10 @@ namespace DatabaseConverter.Core
         {
             var name = specification.Name.Trim().ToUpper();
 
-            if (name != "CONVERT" && name != "CAST") return false;
+            if (name != "CONVERT" && name != "CAST")
+            {
+                return false;
+            }
 
             if (!string.IsNullOrEmpty(specification.Args))
             {
@@ -466,16 +537,23 @@ namespace DatabaseConverter.Core
                 if (name == "CONVERT")
                 {
                     if (databaseType == DatabaseType.MySql)
+                    {
                         dataType = items.LastOrDefault()?.Trim();
+                    }
                     else
+                    {
                         dataType = items.FirstOrDefault()?.Trim();
+                    }
                 }
                 else if (name == "CAST")
                 {
                     dataType = items.LastOrDefault()?.Trim();
                 }
 
-                if (dataType != null && DataTypeHelper.IsCharType(dataType)) return true;
+                if (dataType != null && DataTypeHelper.IsCharType(dataType))
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -503,11 +581,17 @@ namespace DatabaseConverter.Core
                 }
                 else if (c == '(')
                 {
-                    if (singleQuotationCharCount % 2 == 0) leftParenthesisCount++;
+                    if (singleQuotationCharCount % 2 == 0)
+                    {
+                        leftParenthesisCount++;
+                    }
                 }
                 else if (c == ')')
                 {
-                    if (singleQuotationCharCount % 2 == 0) rightParenthesisCount++;
+                    if (singleQuotationCharCount % 2 == 0)
+                    {
+                        rightParenthesisCount++;
+                    }
                 }
 
                 if (c == concatFirstChar)
@@ -517,6 +601,7 @@ namespace DatabaseConverter.Core
                         : value.Substring(i);
 
                     if (fowardChars == concatChars)
+                    {
                         if (singleQuotationCharCount % 2 == 0 && leftParenthesisCount == rightParenthesisCount)
                         {
                             var item = new TokenSymbolItemInfo
@@ -533,6 +618,7 @@ namespace DatabaseConverter.Core
 
                             continue;
                         }
+                    }
                 }
 
                 sb.Append(c);

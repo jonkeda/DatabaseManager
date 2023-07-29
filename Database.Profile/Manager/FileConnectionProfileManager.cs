@@ -6,6 +6,7 @@ using Dapper;
 using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Utility;
 using DatabaseManager.Model;
+using Databases.Interpreter.Builder;
 
 namespace DatabaseManager.Profile
 {

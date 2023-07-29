@@ -106,8 +106,12 @@ namespace DatabaseManager.Core
 
             //use default schema
             if (scriptDbObjects != null)
+            {
                 foreach (var sdo in scriptDbObjects)
+                {
                     sdo.Schema = targetDbInterpreter.DefaultSchema;
+                }
+            }
 
             if (translator != null)
             {

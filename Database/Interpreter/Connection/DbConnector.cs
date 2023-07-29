@@ -1,6 +1,7 @@
 ﻿using System.Data.Common;
 using DatabaseInterpreter.Model;
 using Databases.Handlers;
+using Databases.Interpreter.Builder;
 
 namespace DatabaseInterpreter.Core
 {

@@ -30,7 +30,10 @@ namespace DatabaseConverter.Model
                 {
                     var firstParenthesesIndex = Expression.IndexOf('(');
 
-                    if (firstParenthesesIndex > 0) _name = _expression.Substring(0, firstParenthesesIndex);
+                    if (firstParenthesesIndex > 0)
+                    {
+                        _name = _expression.Substring(0, firstParenthesesIndex);
+                    }
                 }
 
                 return _name;
@@ -53,6 +56,7 @@ namespace DatabaseConverter.Model
             get
             {
                 if (string.IsNullOrEmpty(_body))
+                {
                     if (!string.IsNullOrEmpty(Expression))
                     {
                         var firstParenthesesIndexIndex = Expression.IndexOf('(');
@@ -60,9 +64,12 @@ namespace DatabaseConverter.Model
 
                         if (firstParenthesesIndexIndex > 0 && lastParenthesesIndex > 0 &&
                             lastParenthesesIndex > firstParenthesesIndexIndex)
+                        {
                             _body = Expression.Substring(firstParenthesesIndexIndex + 1,
                                 lastParenthesesIndex - firstParenthesesIndexIndex - 1);
+                        }
                     }
+                }
 
                 return _body ?? string.Empty;
             }
@@ -74,7 +81,10 @@ namespace DatabaseConverter.Model
 
             var body = Body;
 
-            if (string.IsNullOrEmpty(body)) return args;
+            if (string.IsNullOrEmpty(body))
+            {
+                return args;
+            }
 
             var delimiterIndexes = new List<int>();
 
@@ -90,20 +100,33 @@ namespace DatabaseConverter.Model
 
                 foreach (var c in body)
                 {
-                    if (c == '\'') singleQuotationCharCount++;
+                    if (c == '\'')
+                    {
+                        singleQuotationCharCount++;
+                    }
 
                     if (c == '(')
                     {
-                        if (singleQuotationCharCount % 2 == 0) leftParenthesesCount++;
+                        if (singleQuotationCharCount % 2 == 0)
+                        {
+                            leftParenthesesCount++;
+                        }
                     }
                     else if (c == ')')
                     {
-                        if (singleQuotationCharCount % 2 == 0) rightParenthesesCount++;
+                        if (singleQuotationCharCount % 2 == 0)
+                        {
+                            rightParenthesesCount++;
+                        }
                     }
 
                     if (c == delimiterChar)
+                    {
                         if (leftParenthesesCount == rightParenthesesCount && singleQuotationCharCount % 2 == 0)
+                        {
                             delimiterIndexes.Add(i);
+                        }
+                    }
 
                     i++;
                 }
@@ -125,7 +148,10 @@ namespace DatabaseConverter.Model
                     lastDelimiterIndex = delimiterIndex;
                 }
 
-                if (lastDelimiterIndex < body.Length - 1) args.Add(body.Substring(lastDelimiterIndex + 1).Trim());
+                if (lastDelimiterIndex < body.Length - 1)
+                {
+                    args.Add(body.Substring(lastDelimiterIndex + 1).Trim());
+                }
             }
             else
             {

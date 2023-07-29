@@ -67,8 +67,7 @@ namespace SqlAnalyser.Core
         }
 
         protected virtual void PreHandleStatements(List<Statement> statements)
-        {
-        }
+        { }
 
         protected void AppendChildStatements(IEnumerable<Statement> statements, bool needSeparator = true)
         {
@@ -80,11 +79,20 @@ namespace SqlAnalyser.Core
 
             var childCount = statementList.Count();
 
-            if (childCount > 0) IncreaseLevel();
+            if (childCount > 0)
+            {
+                IncreaseLevel();
+            }
 
-            foreach (var statement in statementList) Build(statement, needSeparator);
+            foreach (var statement in statementList)
+            {
+                Build(statement, needSeparator);
+            }
 
-            if (childCount > 0) DecreaseLevel();
+            if (childCount > 0)
+            {
+                DecreaseLevel();
+            }
         }
 
         public virtual StatementScriptBuilder Build(Statement statement, bool appendSeparator = true)
@@ -105,8 +113,12 @@ namespace SqlAnalyser.Core
         public void TrimEnd(params char[] characters)
         {
             if (characters != null && characters.Length > 0)
+            {
                 while (Script.Length > 0 && characters.Contains(Script[Script.Length - 1]))
+                {
                     Script.Remove(Script.Length - 1, 1);
+                }
+            }
         }
 
         public void TrimSeparator()
@@ -125,8 +137,7 @@ namespace SqlAnalyser.Core
         }
 
         protected virtual void BuildSelectStatement(SelectStatement select, bool appendSeparator = true)
-        {
-        }
+        { }
 
         protected void BuildSelectStatementFromItems(SelectStatement selectStatement)
         {
@@ -146,25 +157,38 @@ namespace SqlAnalyser.Core
                 NameToken fromTableName = fromItem.TableName;
 
                 if (fromTableName == null && selectStatement?.TableName != null)
+                {
                     fromTableName = selectStatement.TableName;
+                }
 
                 var alias = fromItem.Alias;
 
                 var isInvalidTableName = IsInvalidTableName(fromTableName?.Symbol);
 
                 if (i == 0)
+                {
                     if (!isInvalidTableName)
+                    {
                         Append("FROM ");
+                    }
+                }
 
                 hasJoins = fromItem.HasJoinItems;
 
-                if (i > 0 && !hasJoins) Append(",", false);
+                if (i > 0 && !hasJoins)
+                {
+                    Append(",", false);
+                }
 
                 var nameWithAlias = GetNameWithAlias(fromTableName);
 
                 if (!isInvalidTableName)
+                {
                     if (nameWithAlias?.Trim() != alias?.Symbol?.Trim())
+                    {
                         Append($"{nameWithAlias}{(hasJoins ? Environment.NewLine : "")}", false);
+                    }
+                }
 
                 var hasSubSelect = false;
 
@@ -176,12 +200,18 @@ namespace SqlAnalyser.Core
                     BuildSelectStatement(fromItem.SubSelectStatement, false);
                     Append(")");
 
-                    if (alias != null) Append($"{alias}", false);
+                    if (alias != null)
+                    {
+                        Append($"{alias}", false);
+                    }
                 }
 
                 if (fromItem.JoinItems.Count > 0)
                 {
-                    if (hasSubSelect) AppendLine();
+                    if (hasSubSelect)
+                    {
+                        AppendLine();
+                    }
 
                     var j = 0;
 
@@ -190,13 +220,22 @@ namespace SqlAnalyser.Core
                         if (joinItem.Type == JoinType.PIVOT || joinItem.Type == JoinType.UNPIVOT)
                         {
                             if (joinItem.PivotItem != null)
+                            {
                                 BuildPivotItem(joinItem.PivotItem);
-                            else if (joinItem.UnPivotItem != null) BuildUnPivotItem(joinItem.UnPivotItem);
+                            }
+                            else if (joinItem.UnPivotItem != null)
+                            {
+                                BuildUnPivotItem(joinItem.UnPivotItem);
+                            }
 
                             if (joinItem.Alias != null)
+                            {
                                 AppendLine(joinItem.Alias.Symbol);
+                            }
                             else
+                            {
                                 AppendLine(joinItem.Type + "_");
+                            }
                         }
                         else
                         {
@@ -215,10 +254,14 @@ namespace SqlAnalyser.Core
                             var isSubquery = AnalyserHelper.IsSubQuery(tableName.Symbol);
 
                             if (!isSubquery)
+                            {
                                 joinTableName = GetNameWithAlias(tableName);
+                            }
                             else
+                            {
                                 joinTableName =
                                     $"{StringHelper.GetParenthesisedString(tableName.Symbol)}{(tableName.Alias == null ? "" : $" {tableName.Alias}")}";
+                            }
 
                             AppendLine($"{joinKeyword}{joinTableName}{condition}");
                         }
@@ -230,7 +273,10 @@ namespace SqlAnalyser.Core
                 i++;
             }
 
-            if (!hasJoins) AppendLine("", false);
+            if (!hasJoins)
+            {
+                AppendLine("", false);
+            }
         }
 
         protected void BuildIfCondition(IfStatementItem item)
@@ -242,9 +288,13 @@ namespace SqlAnalyser.Core
             else if (item.CondtionStatement != null)
             {
                 if (item.ConditionType == IfConditionType.NotExists)
+                {
                     Append("NOT EXISTS");
+                }
                 else if (item.ConditionType == IfConditionType.Exists)
+                {
                     Append("EXISTS");
+                }
 
                 AppendSubquery(item.CondtionStatement);
             }
@@ -253,8 +303,13 @@ namespace SqlAnalyser.Core
         protected void BuildUpdateSetValue(NameValueItem item)
         {
             if (item.Value != null)
+            {
                 Append(item.Value.Symbol);
-            else if (item.ValueStatement != null) AppendSubquery(item.ValueStatement);
+            }
+            else if (item.ValueStatement != null)
+            {
+                AppendSubquery(item.ValueStatement);
+            }
         }
 
         public void AppendSubquery(SelectStatement statement)
@@ -276,11 +331,17 @@ namespace SqlAnalyser.Core
 
         protected virtual bool IsInvalidTableName(string tableName)
         {
-            if (tableName == null) return false;
+            if (tableName == null)
+            {
+                return false;
+            }
 
             tableName = GetTrimedQuotationValue(tableName);
 
-            if (tableName.ToUpper() == "DUAL") return true;
+            if (tableName.ToUpper() == "DUAL")
+            {
+                return true;
+            }
 
             return false;
         }
@@ -314,7 +375,10 @@ namespace SqlAnalyser.Core
         {
             var columns = statement.Columns;
 
-            if (columns.Any(item => AnalyserHelper.IsAssignNameColumn(item))) return true;
+            if (columns.Any(item => AnalyserHelper.IsAssignNameColumn(item)))
+            {
+                return true;
+            }
 
             return false;
         }
@@ -331,7 +395,10 @@ namespace SqlAnalyser.Core
 
         protected string GetConstraints(List<ConstraintInfo> constraints, bool isForColumn = false)
         {
-            if (constraints == null || constraints.Count == 0) return string.Empty;
+            if (constraints == null || constraints.Count == 0)
+            {
+                return string.Empty;
+            }
 
             var sb = new StringBuilder();
 
@@ -350,13 +417,19 @@ namespace SqlAnalyser.Core
                     case ConstraintType.PrimaryKey:
                         definition = "PRIMARY KEY";
 
-                        if (!isForColumn) definition += $" ({string.Join(",", constraint.ColumnNames)})";
+                        if (!isForColumn)
+                        {
+                            definition += $" ({string.Join(",", constraint.ColumnNames)})";
+                        }
 
                         break;
                     case ConstraintType.UniqueIndex:
                         definition = "UNIQUE";
 
-                        if (!isForColumn) definition += $"({string.Join(",", constraint.ColumnNames)})";
+                        if (!isForColumn)
+                        {
+                            definition += $"({string.Join(",", constraint.ColumnNames)})";
+                        }
 
                         break;
                     case ConstraintType.Check:
@@ -367,13 +440,22 @@ namespace SqlAnalyser.Core
 
                         if (fki != null)
                         {
-                            if (!isForColumn) definition = $" FOREIGN KEY ({string.Join(",", fki.ColumnNames)})";
+                            if (!isForColumn)
+                            {
+                                definition = $" FOREIGN KEY ({string.Join(",", fki.ColumnNames)})";
+                            }
 
                             definition += $" REFERENCES {fki.RefTableName}({string.Join(",", fki.RefColumnNames)})";
 
-                            if (fki.UpdateCascade) definition += " UPDATE CASCADE";
+                            if (fki.UpdateCascade)
+                            {
+                                definition += " UPDATE CASCADE";
+                            }
 
-                            if (fki.DeleteCascade) definition += " DELETE CASCADE";
+                            if (fki.DeleteCascade)
+                            {
+                                definition += " DELETE CASCADE";
+                            }
                         }
 
                         break;
@@ -381,7 +463,10 @@ namespace SqlAnalyser.Core
 
                 AddConstraintDefinition(isForColumn, name, sb, definition);
 
-                if (i < constraints.Count - 1) sb.AppendLine(",");
+                if (i < constraints.Count - 1)
+                {
+                    sb.AppendLine(",");
+                }
 
                 i++;
             }
@@ -395,9 +480,13 @@ namespace SqlAnalyser.Core
             var hasName = !string.IsNullOrEmpty(name);
 
             if (hasName && isForColumn)
+            {
                 sb.Append($" {definition}");
+            }
             else
+            {
                 sb.Append($"{(hasName ? "CONSTRAINT" : "")} {(!hasName ? "" : $"{name} ")}{definition}".Trim());
+            }
         }
     }
 }

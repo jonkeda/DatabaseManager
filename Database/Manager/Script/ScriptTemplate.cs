@@ -29,10 +29,15 @@ namespace DatabaseManager.Core
                 Path.Combine(scriptTypeFolder, dbInterpreter.DatabaseType + commonTemplateFileExtension);
 
             if (!File.Exists(scriptTemplateFilePath))
+            {
                 scriptTemplateFilePath =
                     Path.Combine(scriptTypeFolder, commonTemplateFileName + commonTemplateFileExtension);
+            }
 
-            if (!File.Exists(scriptTemplateFilePath)) return string.Empty;
+            if (!File.Exists(scriptTemplateFilePath))
+            {
+                return string.Empty;
+            }
 
             var templateContent = File.ReadAllText(scriptTemplateFilePath);
 

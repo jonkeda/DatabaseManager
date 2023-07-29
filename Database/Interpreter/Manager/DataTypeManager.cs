@@ -17,11 +17,16 @@ namespace DatabaseInterpreter.Core
         {
             if (_dataTypeSpecifications != null &&
                 _dataTypeSpecifications.TryGetValue(databaseType, out var specifications))
+            {
                 return specifications;
+            }
 
             var filePath = Path.Combine(ConfigRootFolder, $"DataTypeSpecification/{databaseType}.xml");
 
-            if (!File.Exists(filePath)) return Enumerable.Empty<DataTypeSpecification>();
+            if (!File.Exists(filePath))
+            {
+                return Enumerable.Empty<DataTypeSpecification>();
+            }
 
             var doc = XDocument.Load(filePath);
 
@@ -43,7 +48,9 @@ namespace DatabaseInterpreter.Core
             functionSpecs.ForEach(item => ParseArgument(item));
 
             if (_dataTypeSpecifications == null)
+            {
                 _dataTypeSpecifications = new Dictionary<DatabaseType, List<DataTypeSpecification>>();
+            }
 
             _dataTypeSpecifications.Add(databaseType, functionSpecs);
 
@@ -64,7 +71,9 @@ namespace DatabaseInterpreter.Core
         public static DataTypeSpecification ParseArgument(DataTypeSpecification dataTypeSpecification)
         {
             if (string.IsNullOrEmpty(dataTypeSpecification.Args) || dataTypeSpecification.Arguments.Count > 0)
+            {
                 return dataTypeSpecification;
+            }
 
             if (!string.IsNullOrEmpty(dataTypeSpecification.Range))
             {
@@ -85,9 +94,13 @@ namespace DatabaseInterpreter.Core
                         range.Min = int.Parse(rangeValues[0]);
 
                         if (rangeValues.Length > 1)
+                        {
                             range.Max = int.Parse(rangeValues[1]);
+                        }
                         else
+                        {
                             range.Max = range.Min;
+                        }
 
                         argument.Range = range;
                     }
@@ -106,8 +119,10 @@ namespace DatabaseInterpreter.Core
             var range = default(ArgumentRange?);
 
             if (dataTypeSpecification.Arguments.Any(item => item.Name.ToLower() == argumentName.ToLower()))
+            {
                 return dataTypeSpecification.Arguments
                     .FirstOrDefault(item => item.Name.ToLower() == argumentName.ToLower()).Range;
+            }
 
             return range;
         }

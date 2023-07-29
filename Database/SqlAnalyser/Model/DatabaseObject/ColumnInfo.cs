@@ -16,7 +16,10 @@ namespace SqlAnalyser.Model
             {
                 _dataType = value;
 
-                if (value != null) _dataType.Type = TokenType.DataType;
+                if (value != null)
+                {
+                    _dataType.Type = TokenType.DataType;
+                }
             }
         }
 

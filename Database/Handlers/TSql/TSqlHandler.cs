@@ -15,8 +15,7 @@ namespace Databases.Handlers.TSql
         SqlServerDiagnosis>
     {
         public TSqlHandler() : base(DatabaseType.SqlServer)
-        {
-        }
+        { }
 
 
         public override SqlAnalyserBase GetSqlAnalyser(string content)
@@ -44,7 +43,10 @@ namespace Databases.Handlers.TSql
         protected override DbProviderFactory CreateDbProviderFactory(string providerName)
         {
             if (providerName.Contains("sqlclient"))
+            {
                 return SqlClientFactory.Instance;
+            }
+
             return null;
         }
     }

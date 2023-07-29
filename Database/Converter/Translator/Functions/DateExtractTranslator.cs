@@ -8,8 +8,7 @@ namespace DatabaseConverter.Core.Functions
     {
         public DateExtractTranslator(FunctionSpecification sourceSpecification,
             FunctionSpecification targetSpecification) : base(sourceSpecification, targetSpecification)
-        {
-        }
+        { }
 
 
         public override string Translate(FunctionFormula formula)
@@ -38,7 +37,10 @@ namespace DatabaseConverter.Core.Functions
                 var date = dateExtract.Value.Date;
                 var format = DatetimeHelper.GetSqliteStrfTimeFormat(SourceDbType, dateExtract.Value.Unit);
 
-                if (TargetDbType == DatabaseType.Sqlite) newExpression = $"STRFTIME('%{format}',{date})";
+                if (TargetDbType == DatabaseType.Sqlite)
+                {
+                    newExpression = $"STRFTIME('%{format}',{date})";
+                }
             }
 
             return newExpression;

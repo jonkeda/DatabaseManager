@@ -23,24 +23,19 @@ namespace SqlAnalyser.Model
         //}
 
         public ColumnName(string symbol) : base(symbol)
-        {
-        }
+        { }
 
         public ColumnName(ParserRuleContext context) : base(context)
-        {
-        }
+        { }
 
         public ColumnName(string symbol, ParserRuleContext context) : base(symbol, context)
-        {
-        }
+        { }
 
         public ColumnName(ITerminalNode node) : base(node)
-        {
-        }
+        { }
 
         public ColumnName(string symbol, ITerminalNode node) : base(symbol, node)
-        {
-        }
+        { }
 
         public override TokenType Type => TokenType.ColumnName;
 
@@ -60,7 +55,10 @@ namespace SqlAnalyser.Model
         {
             get
             {
-                if (alias != null) return alias.Symbol;
+                if (alias != null)
+                {
+                    return alias.Symbol;
+                }
 
                 return Symbol;
             }

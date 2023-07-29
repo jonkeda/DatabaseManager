@@ -45,7 +45,10 @@ namespace DatabaseManager.Core
 
                 columnDesingerInfo.ExtraPropertyInfo = new TableColumnExtraPropertyInfo();
 
-                if (column.IsComputed) columnDesingerInfo.ExtraPropertyInfo.Expression = column.ComputeExp;
+                if (column.IsComputed)
+                {
+                    columnDesingerInfo.ExtraPropertyInfo.Expression = column.ComputeExp;
+                }
 
                 if (table.IdentitySeed.HasValue)
                 {
@@ -82,7 +85,10 @@ namespace DatabaseManager.Core
         {
             message = "";
 
-            if (DataTypeHelper.IsUserDefinedType(columnDesingerInfo)) return true;
+            if (DataTypeHelper.IsUserDefinedType(columnDesingerInfo))
+            {
+                return true;
+            }
 
             var columName = columnDesingerInfo.Name;
             var dataType = columnDesingerInfo.DataType;
@@ -99,9 +105,15 @@ namespace DatabaseManager.Core
             {
                 var length = columnDesingerInfo?.Length?.Trim();
 
-                if (string.IsNullOrEmpty(length) && dataTypeSpec.Optional) return true;
+                if (string.IsNullOrEmpty(length) && dataTypeSpec.Optional)
+                {
+                    return true;
+                }
 
-                if (dataTypeSpec.AllowMax && !string.IsNullOrEmpty(length) && length.ToLower() == "max") return true;
+                if (dataTypeSpec.AllowMax && !string.IsNullOrEmpty(length) && length.ToLower() == "max")
+                {
+                    return true;
+                }
 
                 var args = dataTypeSpec.Args;
 
@@ -173,9 +185,15 @@ namespace DatabaseManager.Core
 
             var args = dataTypeSpec.Args;
 
-            if (string.IsNullOrEmpty(args)) return;
+            if (string.IsNullOrEmpty(args))
+            {
+                return;
+            }
 
-            if (string.IsNullOrEmpty(length) && dataTypeSpec.Optional) return;
+            if (string.IsNullOrEmpty(length) && dataTypeSpec.Optional)
+            {
+                return;
+            }
 
             var argsNames = args.Split(',');
             var lengthItems = length?.Split(',');
@@ -184,7 +202,10 @@ namespace DatabaseManager.Core
 
             foreach (var argName in argsNames)
             {
-                if (lengthItems == null || i > lengthItems.Length - 1) continue;
+                if (lengthItems == null || i > lengthItems.Length - 1)
+                {
+                    continue;
+                }
 
                 var lengthItem = lengthItems[i];
 
@@ -195,16 +216,24 @@ namespace DatabaseManager.Core
                     if (isChar)
                     {
                         if (dataTypeSpec.AllowMax && lengthItem.ToLower() == "max")
+                        {
                             column.MaxLength = -1;
+                        }
                         else
+                        {
                             column.MaxLength = long.Parse(lengthItem) * (DataTypeHelper.StartsWithN(dataType) ? 2 : 1);
+                        }
                     }
                     else
                     {
                         if (lengthItem != "max")
+                        {
                             column.MaxLength = long.Parse(lengthItem);
+                        }
                         else
+                        {
                             column.MaxLength = -1;
+                        }
                     }
                 }
                 else if (argName == "precision" || argName == "dayScale")

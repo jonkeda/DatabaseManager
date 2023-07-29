@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
+using Databases.Interpreter.Builder;
 using Microsoft.SqlServer.Types;
 using NpgsqlTypes;
 using PgGeom = NetTopologySuite.Geometries;
@@ -52,7 +53,10 @@ namespace DatabaseInterpreter.Core
 
                 if (!hasNewLine)
                 {
-                    if (!definition.EndsWith(scriptsDelimiter)) scripts.Add(new SpliterScript(scriptsDelimiter));
+                    if (!definition.EndsWith(scriptsDelimiter))
+                    {
+                        scripts.Add(new SpliterScript(scriptsDelimiter));
+                    }
                 }
                 else
                 {
@@ -77,7 +81,9 @@ namespace DatabaseInterpreter.Core
             var sb = new StringBuilder();
 
             if (option.ScriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToFile))
+            {
                 ClearScriptFile(GenerateScriptMode.Data);
+            }
 
             using (var connection = dbInterpreter.CreateConnection())
             {
@@ -86,7 +92,10 @@ namespace DatabaseInterpreter.Core
 
                 foreach (var table in schemaInfo.Tables)
                 {
-                    if (dbInterpreter.CancelRequested) break;
+                    if (dbInterpreter.CancelRequested)
+                    {
+                        break;
+                    }
 
                     count++;
 
@@ -152,17 +161,27 @@ namespace DatabaseInterpreter.Core
 
                     if (count > 1)
                     {
-                        if (scriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToString)) sb.AppendLine();
+                        if (scriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToString))
+                        {
+                            sb.AppendLine();
+                        }
 
                         if (scriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToFile))
+                        {
                             AppendScriptsToFile(Environment.NewLine, GenerateScriptMode.Data);
+                        }
                     }
 
                     if (option.BulkCopy && dbInterpreter.SupportBulkCopy &&
-                        !scriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToFile)) continue;
+                        !scriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToFile))
+                    {
+                        continue;
+                    }
 
                     if (scriptOutputMode != GenerateScriptOutputMode.None)
+                    {
                         AppendDataScripts(sb, table, columns, dictPagedData);
+                    }
                 }
             }
 
@@ -291,15 +310,20 @@ namespace DatabaseInterpreter.Core
             }
             else
             {
-                if (option.TableScriptsGenerateOption.GenerateIdentity) excludeIdentityColumn = true;
+                if (option.TableScriptsGenerateOption.GenerateIdentity)
+                {
+                    excludeIdentityColumn = true;
+                }
             }
 
             excludeColumnNames.AddRange(columns.Where(item => item.IsIdentity && excludeIdentityColumn)
                 .Select(item => item.Name));
 
             if (option.ExcludeGeometryForData)
+            {
                 excludeColumnNames.AddRange(columns.Where(item => DataTypeHelper.IsGeometryType(item.DataType))
                     .Select(item => item.Name));
+            }
 
             excludeColumnNames.AddRange(columns.Where(item => item.IsComputed).Select(item => item.Name));
 
@@ -310,12 +334,19 @@ namespace DatabaseInterpreter.Core
             var canBatchInsert = true;
 
             if (databaseType == DatabaseType.Oracle)
+            {
                 if (identityColumnHasBeenExcluded)
+                {
                     canBatchInsert = false;
+                }
+            }
 
             foreach (var kp in dictPagedData)
             {
-                if (kp.Value.Count == 0) continue;
+                if (kp.Value.Count == 0)
+                {
+                    continue;
+                }
 
                 var sbFilePage = new StringBuilder();
 
@@ -327,16 +358,28 @@ namespace DatabaseInterpreter.Core
 
                 if (appendString)
                 {
-                    if (kp.Key > 1) sb.AppendLine();
+                    if (kp.Key > 1)
+                    {
+                        sb.AppendLine();
+                    }
 
-                    if (!string.IsNullOrEmpty(insert)) sb.AppendLine(insert);
+                    if (!string.IsNullOrEmpty(insert))
+                    {
+                        sb.AppendLine(insert);
+                    }
                 }
 
                 if (appendFile)
                 {
-                    if (kp.Key > 1) sbFilePage.AppendLine();
+                    if (kp.Key > 1)
+                    {
+                        sbFilePage.AppendLine();
+                    }
 
-                    if (!string.IsNullOrEmpty(insert)) sbFilePage.AppendLine(insert);
+                    if (!string.IsNullOrEmpty(insert))
+                    {
+                        sbFilePage.AppendLine(insert);
+                    }
                 }
 
                 var rowCount = 0;
@@ -351,8 +394,12 @@ namespace DatabaseInterpreter.Core
                     var values = $"({string.Join(",", rowValues.Select(item => item == null ? "NULL" : item))})";
 
                     if (insertParameters != null)
+                    {
                         foreach (var para in insertParameters)
+                        {
                             parameters.Add(para.Key, para.Value);
+                        }
+                    }
 
                     var isAllEnd = rowCount == kp.Value.Count;
 
@@ -367,9 +414,15 @@ namespace DatabaseInterpreter.Core
 
                     values = $"{beginChar}{values}{endChar}";
 
-                    if (option.RemoveEmoji) values = StringHelper.RemoveEmoji(values);
+                    if (option.RemoveEmoji)
+                    {
+                        values = StringHelper.RemoveEmoji(values);
+                    }
 
-                    if (appendString) sb.AppendLine(values);
+                    if (appendString)
+                    {
+                        sb.AppendLine(values);
+                    }
 
                     if (appendFile)
                     {
@@ -382,7 +435,10 @@ namespace DatabaseInterpreter.Core
                     }
                 }
 
-                if (appendFile) AppendScriptsToFile(sbFilePage.ToString(), GenerateScriptMode.Data);
+                if (appendFile)
+                {
+                    AppendScriptsToFile(sbFilePage.ToString(), GenerateScriptMode.Data);
+                }
             }
 
             return parameters;
@@ -415,7 +471,10 @@ namespace DatabaseInterpreter.Core
             {
                 var columnName = column.Name;
 
-                if (!row.ContainsKey(columnName)) continue;
+                if (!row.ContainsKey(columnName))
+                {
+                    continue;
+                }
 
                 if (!excludeColumnNames.Contains(column.Name))
                 {
@@ -460,9 +519,13 @@ namespace DatabaseInterpreter.Core
                             if (isBytes)
                             {
                                 if (option.TreatBytesAsHexStringForFile)
+                                {
                                     parsedValue = GetBytesConvertHexString(parsedValue, column.DataType);
+                                }
                                 else
+                                {
                                     parsedValue = null;
+                                }
                             }
                         }
                     }
@@ -470,9 +533,13 @@ namespace DatabaseInterpreter.Core
                     if (DataTypeHelper.IsUserDefinedType(column))
                     {
                         if (databaseType == DatabaseType.Postgres)
+                        {
                             parsedValue = $"row({parsedValue})";
+                        }
                         else if (databaseType == DatabaseType.Oracle)
+                        {
                             parsedValue = $"{GetQuotedString(column.DataType)}({parsedValue})";
+                        }
                     }
 
                     values.Add(parsedValue);
@@ -502,11 +569,20 @@ namespace DatabaseInterpreter.Core
                 var needQuotated = false;
                 var strValue = "";
 
-                if (type == typeof(DBNull)) return "NULL";
+                if (type == typeof(DBNull))
+                {
+                    return "NULL";
+                }
 
-                if (value is SqlGeography sgg && sgg.IsNull) return "NULL";
+                if (value is SqlGeography sgg && sgg.IsNull)
+                {
+                    return "NULL";
+                }
 
-                if (value is SqlGeometry sgm && sgm.IsNull) return "NULL";
+                if (value is SqlGeometry sgm && sgm.IsNull)
+                {
+                    return "NULL";
+                }
 
                 if (type == typeof(byte[]))
                 {
@@ -540,9 +616,14 @@ namespace DatabaseInterpreter.Core
 
                         needQuotated = true;
                         if (databaseType == DatabaseType.Oracle && dataType == "raw" && column.MaxLength == 16)
+                        {
                             strValue = StringHelper.GuidToRaw(value.ToString());
+                        }
                         else
+                        {
                             strValue = value.ToString();
+                        }
+
                         break;
 
                     case nameof(String):
@@ -551,8 +632,13 @@ namespace DatabaseInterpreter.Core
                         strValue = value.ToString();
 
                         if (databaseType == DatabaseType.Oracle)
+                        {
                             if (strValue.Contains(";"))
+                            {
                                 oracleSemicolon = true;
+                            }
+                        }
+
                         /*                            else if (DataTypeHelper.IsGeometryType(dataType))
                             {
                                 needQuotated = false;
@@ -602,14 +688,18 @@ namespace DatabaseInterpreter.Core
                                 var dt = (DateTime)value;
 
                                 if (dt > MySqlInterpreterTimestamp_Max_Value.ToLocalTime())
+                                {
                                     value = MySqlInterpreterTimestamp_Max_Value.ToLocalTime();
+                                }
                             }
                             else if (type.Name == nameof(DateTimeOffset))
                             {
                                 var dtOffset = DateTimeOffset.Parse(value.ToString());
 
                                 if (dtOffset > MySqlInterpreterTimestamp_Max_Value.ToLocalTime())
+                                {
                                     dtOffset = MySqlInterpreterTimestamp_Max_Value.ToLocalTime();
+                                }
 
                                 strValue =
                                     $"'{dtOffset.DateTime.Add(dtOffset.Offset).ToString("yyyy-MM-dd HH:mm:ss.ffffff")}'";
@@ -627,13 +717,21 @@ namespace DatabaseInterpreter.Core
                     case nameof(Boolean):
 
                         if (databaseType == DatabaseType.Postgres)
+                        {
                             strValue = value.ToString().ToLower();
+                        }
                         else
+                        {
                             strValue = value.ToString() == "True" ? "1" : "0";
+                        }
+
                         break;
                     case nameof(TimeSpan):
 
-                        if (databaseType == DatabaseType.Oracle) return value;
+                        if (databaseType == DatabaseType.Oracle)
+                        {
+                            return value;
+                        }
 
                         needQuotated = true;
 
@@ -711,7 +809,11 @@ namespace DatabaseInterpreter.Core
                                             break;
                     */
                     default:
-                        if (string.IsNullOrEmpty(strValue)) strValue = value.ToString();
+                        if (string.IsNullOrEmpty(strValue))
+                        {
+                            strValue = value.ToString();
+                        }
+
                         break;
                 }
 
@@ -720,8 +822,10 @@ namespace DatabaseInterpreter.Core
                     strValue = $"{dbInterpreter.UnicodeLeadingFlag}'{ValueHelper.TransferSingleQuotation(strValue)}'";
 
                     if (oracleSemicolon)
+                    {
                         strValue = strValue.Replace(";",
                             $"'{dbInterpreter.STR_CONCAT_CHARS}{OracleInterpreter_SEMICOLON_FUNC}{dbInterpreter.STR_CONCAT_CHARS}'");
+                    }
 
                     return strValue;
                 }
@@ -743,18 +847,24 @@ namespace DatabaseInterpreter.Core
             {
                 if (databaseType == DatabaseType.SqlServer
                     && string.Equals(dataType, "uniqueidentifier", StringComparison.OrdinalIgnoreCase))
+                {
                     strValue = new Guid(value).ToString();
+                }
 
                 else if (databaseType == DatabaseType.MySql
                          && dataType == "char"
                          && length == 36)
+                {
                     strValue = new Guid(value).ToString();
+                }
 
                 else if (bytesAsString
                          && databaseType == DatabaseType.Oracle
                          && dataType.ToLower() == "raw"
                          && length == 16)
+                {
                     strValue = StringHelper.GuidToRaw(new Guid(value).ToString());
+                }
             }
 
             return strValue;
@@ -854,25 +964,38 @@ namespace DatabaseInterpreter.Core
         public virtual void AppendScriptsToFile(string content, GenerateScriptMode generateScriptMode,
             bool overwrite = false)
         {
-            if (generateScriptMode == GenerateScriptMode.Schema) content = StringHelper.ToSingleEmptyLine(content);
+            if (generateScriptMode == GenerateScriptMode.Schema)
+            {
+                content = StringHelper.ToSingleEmptyLine(content);
+            }
 
             var filePath = GetScriptOutputFilePath(generateScriptMode);
 
             var directoryName = Path.GetDirectoryName(filePath);
 
-            if (!Directory.Exists(directoryName)) Directory.CreateDirectory(directoryName);
+            if (!Directory.Exists(directoryName))
+            {
+                Directory.CreateDirectory(directoryName);
+            }
 
             if (!overwrite)
+            {
                 File.AppendAllText(filePath, content, Encoding.UTF8);
+            }
             else
+            {
                 File.WriteAllText(filePath, content, Encoding.UTF8);
+            }
         }
 
         public void ClearScriptFile(GenerateScriptMode generateScriptMode)
         {
             var filePath = GetScriptOutputFilePath(generateScriptMode);
 
-            if (File.Exists(filePath)) File.WriteAllText(filePath, "", Encoding.UTF8);
+            if (File.Exists(filePath))
+            {
+                File.WriteAllText(filePath, "", Encoding.UTF8);
+            }
         }
 
         #endregion
@@ -937,19 +1060,39 @@ namespace DatabaseInterpreter.Core
         public virtual Script Create(DatabaseObject dbObject)
         {
             if (dbObject is TableColumn column)
+            {
                 return AddTableColumn(new Table { Schema = column.Schema, Name = column.TableName }, column);
+            }
+
             if (dbObject is TablePrimaryKey primaryKey)
+            {
                 return AddPrimaryKey(primaryKey);
+            }
+
             if (dbObject is TableForeignKey foreignKey)
+            {
                 return AddForeignKey(foreignKey);
+            }
+
             if (dbObject is TableIndex index)
+            {
                 return AddIndex(index);
+            }
+
             if (dbObject is TableConstraint constraint)
+            {
                 return AddCheckConstraint(constraint);
+            }
+
             if (dbObject is UserDefinedType userDefinedType)
+            {
                 return CreateUserDefinedType(userDefinedType);
+            }
+
             if (dbObject is ScriptDbObject scriptDbObject)
+            {
                 return new CreateDbObjectScript<ScriptDbObject>(scriptDbObject.Definition);
+            }
 
             throw new NotSupportedException($"Not support to add {dbObject.GetType().Name} using this method.");
         }
@@ -957,28 +1100,64 @@ namespace DatabaseInterpreter.Core
         public virtual Script Drop(DatabaseObject dbObject)
         {
             if (dbObject is TableColumn column)
+            {
                 return DropTableColumn(column);
+            }
+
             if (dbObject is TablePrimaryKey primaryKey)
+            {
                 return DropPrimaryKey(primaryKey);
+            }
+
             if (dbObject is TableForeignKey foreignKey)
+            {
                 return DropForeignKey(foreignKey);
+            }
+
             if (dbObject is TableIndex index)
+            {
                 return DropIndex(index);
+            }
+
             if (dbObject is TableConstraint constraint)
+            {
                 return DropCheckConstraint(constraint);
+            }
+
             if (dbObject is TableTrigger trigger)
+            {
                 return DropTrigger(trigger);
+            }
+
             if (dbObject is View view)
+            {
                 return DropView(view);
+            }
+
             if (dbObject is Function function)
+            {
                 return DropFunction(function);
+            }
+
             if (dbObject is Procedure procedure)
+            {
                 return DropProcedure(procedure);
+            }
+
             if (dbObject is Table table)
+            {
                 return DropTable(table);
+            }
+
             if (dbObject is UserDefinedType userDefinedType)
+            {
                 return DropUserDefinedType(userDefinedType);
-            if (dbObject is Sequence sequence) return DropSequence(sequence);
+            }
+
+            if (dbObject is Sequence sequence)
+            {
+                return DropSequence(sequence);
+            }
 
             throw new NotSupportedException($"Not support to drop {dbObject.GetType().Name}.");
         }
@@ -1015,7 +1194,10 @@ namespace DatabaseInterpreter.Core
         public string GetQuotedFullTableName(TableChild tableChild)
         {
             if (string.IsNullOrEmpty(tableChild.Schema))
+            {
                 return GetQuotedString(tableChild.TableName);
+            }
+
             return $"{GetQuotedString(tableChild.Schema)}.{GetQuotedString(tableChild.TableName)}";
         }
 
@@ -1027,7 +1209,10 @@ namespace DatabaseInterpreter.Core
 
         public string TransferSingleQuotationString(string comment)
         {
-            if (string.IsNullOrEmpty(comment)) return comment;
+            if (string.IsNullOrEmpty(comment))
+            {
+                return comment;
+            }
 
             return ValueHelper.TransferSingleQuotation(comment);
         }
@@ -1036,7 +1221,10 @@ namespace DatabaseInterpreter.Core
         {
             var option = CreateTableOptionManager.GetCreateTableOption(databaseType);
 
-            if (option == null) return string.Empty;
+            if (option == null)
+            {
+                return string.Empty;
+            }
 
             var sb = new StringBuilder();
 
@@ -1044,19 +1232,27 @@ namespace DatabaseInterpreter.Core
             {
                 if (!string.IsNullOrEmpty(value))
                 {
-                    if (sb.Length > 0) sb.AppendLine();
+                    if (sb.Length > 0)
+                    {
+                        sb.AppendLine();
+                    }
 
                     sb.Append(value);
                 }
             }
 
             foreach (var item in option.Items)
+            {
                 if (!string.IsNullOrEmpty(item))
                 {
                     var items = item.Split(CreateTableOptionManager.OptionValueItemsSeperator);
 
-                    foreach (var subItem in items) AppendValue(subItem);
+                    foreach (var subItem in items)
+                    {
+                        AppendValue(subItem);
+                    }
                 }
+            }
 
             return sb.ToString();
         }

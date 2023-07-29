@@ -32,15 +32,25 @@ namespace SqlAnalyser.Core
             else
             {
                 if (typeof(T) == typeof(Procedure))
+                {
                     result = AnalyseProcedure();
+                }
                 else if (typeof(T) == typeof(Function))
+                {
                     result = AnalyseFunction();
+                }
                 else if (typeof(T) == typeof(View))
+                {
                     result = AnalyseView();
+                }
                 else if (typeof(T) == typeof(TableTrigger))
+                {
                     result = AnalyseTrigger();
+                }
                 else
+                {
                     throw new NotSupportedException($"Not support analyse for type:{typeof(T).Name}");
+                }
             }
 
             return result;

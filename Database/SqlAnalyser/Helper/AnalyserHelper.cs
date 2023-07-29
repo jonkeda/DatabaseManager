@@ -26,7 +26,10 @@ namespace SqlAnalyser.Core
         public static bool IsSubQuery(ParserRuleContext node)
         {
             if (node != null)
+            {
                 return IsSubQuery(node.GetText());
+            }
+
             return false;
         }
 
@@ -40,7 +43,10 @@ namespace SqlAnalyser.Core
 
                 var singleQuotationCharCount = query.Substring(0, index).Count(item => item == '\'');
 
-                if (singleQuotationCharCount % 2 == 0) return true;
+                if (singleQuotationCharCount % 2 == 0)
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -50,9 +56,13 @@ namespace SqlAnalyser.Core
         {
             string pattern;
             if (RegexHelper.NameRegex.IsMatch(oldValue))
+            {
                 pattern = $"\\b{oldValue}\\b";
+            }
             else
+            {
                 pattern = $"({oldValue})";
+            }
 
             return Regex.Replace(symbol, pattern, newValue, RegexOptions.Multiline);
         }
@@ -68,17 +78,35 @@ namespace SqlAnalyser.Core
             var types = new[] { typeof(BreakStatement), typeof(LoopExitStatement) };
 
             foreach (var st in statement.Statements)
+            {
                 if (types.Contains(st.GetType()))
+                {
                     return true;
-                else if (st is IfStatement @if)
+                }
+
+                if (st is IfStatement @if)
+                {
                     foreach (var item in @if.Items)
                     {
                         foreach (var ist in item.Statements)
+                        {
                             if (types.Contains(ist.GetType()))
+                            {
                                 return true;
-                            else if (ist is WhileStatement @while) return HasExitStatement(@while);
+                            }
+
+                            if (ist is WhileStatement @while)
+                            {
+                                return HasExitStatement(@while);
+                            }
+                        }
                     }
-                else if (st is WhileStatement @while) return HasExitStatement(@while);
+                }
+                else if (st is WhileStatement @while)
+                {
+                    return HasExitStatement(@while);
+                }
+            }
 
             return false;
         }
@@ -93,7 +121,10 @@ namespace SqlAnalyser.Core
 
                 var assignName = items[0].Trim(TrimChars).Trim();
 
-                if (RegexHelper.NameRegex.IsMatch(assignName)) return true;
+                if (RegexHelper.NameRegex.IsMatch(assignName))
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -103,7 +134,10 @@ namespace SqlAnalyser.Core
         {
             var symbol = token.Symbol;
 
-            if (string.IsNullOrEmpty(symbol)) return false;
+            if (string.IsNullOrEmpty(symbol))
+            {
+                return false;
+            }
 
             var items = symbol.Split('.');
 
@@ -115,7 +149,10 @@ namespace SqlAnalyser.Core
             var trimmedName = name.Trim(TrimChars).Trim();
 
             if (trimmedName.Contains(" ") && IsNameQuoted(name.Trim()))
+            {
                 return true;
+            }
+
             return RegexHelper.NameRegex.IsMatch(trimmedName);
         }
 
@@ -126,7 +163,10 @@ namespace SqlAnalyser.Core
 
         public static TokenInfo GetIntoTableName(SelectStatement statement)
         {
-            if (statement.Intos == null || statement.Intos.Count == 0) return null;
+            if (statement.Intos == null || statement.Intos.Count == 0)
+            {
+                return null;
+            }
 
             return statement.Intos.FirstOrDefault(item => item.Type == TokenType.TableName);
         }

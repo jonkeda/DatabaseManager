@@ -16,7 +16,10 @@ namespace DatabaseConverter.Core
         {
             get
             {
-                if (_variableMappings == null) _variableMappings = GetVariableMappings();
+                if (_variableMappings == null)
+                {
+                    _variableMappings = GetVariableMappings();
+                }
 
                 return _variableMappings;
             }

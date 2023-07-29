@@ -28,8 +28,12 @@ namespace DatabaseManager.Core
             var typeConvert = "";
 
             if (item.NeedQuoted)
+            {
                 if (DatabaseType == DatabaseType.Postgres)
+                {
                     typeConvert = "::CHARACTER VARYING ";
+                }
+            }
 
             var value = $"{QuotationLeftChar}{item.ColumnName}{QuotationRightChar}{typeConvert}{item}";
 

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace DatabaseConverter.Core
+namespace Databases.Exceptions
 {
     public abstract class ConvertException : Exception
     {
@@ -33,14 +33,23 @@ namespace DatabaseConverter.Core
                 sb.AppendLine($"SourceServer:{SourceServer}");
                 sb.AppendLine($"SourceDatabase:{SourceDatabase}");
 
-                if (!string.IsNullOrEmpty(SourceObject)) sb.AppendLine($"SourceObject:{SourceObject}");
+                if (!string.IsNullOrEmpty(SourceObject))
+                {
+                    sb.AppendLine($"SourceObject:{SourceObject}");
+                }
 
                 sb.AppendLine($"TargetServer:{TargetServer}");
                 sb.AppendLine($"TargetDatabase:{TargetDatabase}");
 
-                if (!string.IsNullOrEmpty(TargetObject)) sb.AppendLine($"TargetObject:{TargetObject}");
+                if (!string.IsNullOrEmpty(TargetObject))
+                {
+                    sb.AppendLine($"TargetObject:{TargetObject}");
+                }
 
-                if (!string.IsNullOrEmpty(BaseException?.StackTrace)) sb.AppendLine(BaseException?.StackTrace);
+                if (!string.IsNullOrEmpty(BaseException?.StackTrace))
+                {
+                    sb.AppendLine(BaseException?.StackTrace);
+                }
 
                 return sb.ToString();
             }

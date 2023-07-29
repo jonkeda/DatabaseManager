@@ -10,13 +10,19 @@ namespace DatabaseManager.Helper
         public static DatabaseType GetDatabaseType(string dbType)
         {
             if (!string.IsNullOrEmpty(dbType))
+            {
                 return (DatabaseType)Enum.Parse(typeof(DatabaseType), dbType);
+            }
+
             return DatabaseType.Unknown;
         }
 
         public static bool IsFileConnection(DatabaseType databaseType)
         {
-            if (databaseType == DatabaseType.Sqlite) return true;
+            if (databaseType == DatabaseType.Sqlite)
+            {
+                return true;
+            }
 
             return false;
         }
@@ -40,7 +46,10 @@ namespace DatabaseManager.Helper
 
         public static bool SupportComment(DatabaseType databaseType)
         {
-            if (databaseType == DatabaseType.Sqlite) return false;
+            if (databaseType == DatabaseType.Sqlite)
+            {
+                return false;
+            }
 
             return true;
         }

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
+using Databases.Interpreter.Builder;
 using Microsoft.Data.SqlClient;
 using Microsoft.SqlServer.Types;
 using Newtonsoft.Json;
@@ -204,17 +205,21 @@ namespace DatabaseInterpreter.Core
             var condition = "WHERE t.is_ms_shipped=0";
 
             if (IsObjectFectchSimpleMode())
+            {
                 sb.Append($@"SELECT schema_name(t.schema_id) AS [Schema], t.name AS [Name],
                          IDENT_SEED(schema_name(t.schema_id)+'.'+t.name) AS [IdentitySeed],IDENT_INCR(schema_name(t.schema_id)+'.'+t.name) AS [IdentityIncrement]
                          FROM sys.tables t
                          {condition}");
+            }
             else
+            {
                 sb.Append($@"SELECT schema_name(t.schema_id) AS [Schema], t.name AS [Name], ext2.value AS [Comment],
                         IDENT_SEED(schema_name(t.schema_id)+'.'+t.name) AS [IdentitySeed],IDENT_INCR(schema_name(t.schema_id)+'.'+t.name) AS [IdentityIncrement]
                         FROM sys.tables t
                         LEFT JOIN sys.extended_properties ext ON t.object_id=ext.major_id AND ext.minor_id=0 AND ext.class=1 AND ext.name='microsoft_database_tools_support'
                         LEFT JOIN sys.extended_properties ext2 ON t.object_id=ext2.major_id and ext2.minor_id=0 AND ext2.class_desc='OBJECT_OR_COLUMN' AND ext2.name='MS_Description'
                         {condition} AND ext.class is null");
+            }
 
             sb.Append(GetFilterSchemaCondition(filter, "schema_name(t.schema_id)"));
             sb.Append(GetFilterNamesCondition(filter, filter?.TableNames, "t.name"));
@@ -269,11 +274,14 @@ namespace DatabaseInterpreter.Core
                             cc.definition as [ComputeExp]";
 
             if (IsObjectFectchSimpleMode())
+            {
                 sb.Append($@"SELECT {simpleColumns}                  
                             FROM sys.columns c 
                             JOIN sys.systypes st ON c.user_type_id = st.xusertype
                             {joinTable}");
+            }
             else
+            {
                 sb.Append($@"SELECT {simpleColumns},
                            {detailsColumns}
                             FROM sys.columns c 
@@ -283,6 +291,7 @@ namespace DatabaseInterpreter.Core
                             LEFT JOIN sys.extended_properties ext on c.column_id=ext.minor_id AND c.object_id=ext.major_id AND ext.class_desc='OBJECT_OR_COLUMN' AND ext.name='MS_Description'
 						    LEFT JOIN sys.types sty on c.user_type_id = sty.user_type_id
                             LEFT JOIN sys.computed_columns cc on cc.object_id=c.object_id AND c.column_id= cc.column_id");
+            }
 
             sb.Append("WHERE 1=1");
             sb.Append(GetFilterSchemaCondition(filter, $"schema_name({tableAlias}.schema_id)"));
@@ -411,8 +420,10 @@ namespace DatabaseInterpreter.Core
             var tableOrViewName = filter?.IsForView != true ? "tables" : "views";
 
             if (!isSimpleMode && includePrimaryKey)
+            {
                 commentJoin += Environment.NewLine +
                                "LEFT JOIN sys.extended_properties ext2 on object_id(i.name, 'PK')=ext2.major_id  AND ext2.class_desc='OBJECT_OR_COLUMN' AND ext2.name='MS_Description'";
+            }
 
             var sb = CreateSqlBuilder();
 
@@ -796,8 +807,10 @@ namespace DatabaseInterpreter.Core
                         WHERE o.type IN ('P','FN','TF','U','V') AND ro.type IN ('P','FN','TF','U','V')");
 
             if (!includeViewTableUsages)
+            {
                 sb.Append(
                     "AND NOT (o.type= 'U' AND ro.type='U') AND NOT (o.type= 'V' AND ro.type='U') AND NOT (o.type= 'V' AND ro.type='V')");
+            }
 
             var referenceTable = !isFilterForReferenced ? "o" : "ro";
             string type = null;
@@ -824,7 +837,10 @@ namespace DatabaseInterpreter.Core
                 filterNames = filter?.TableNames;
             }
 
-            if (type != null) sb.Append($"AND {referenceTable}.type in({type})");
+            if (type != null)
+            {
+                sb.Append($"AND {referenceTable}.type in({type})");
+            }
 
             sb.Append(GetFilterNamesCondition(filter, filterNames, $"{referenceTable}.name"));
 
@@ -845,7 +861,9 @@ namespace DatabaseInterpreter.Core
             var bulkCopy = await GetBulkCopy(connection, bulkCopyInfo);
             {
                 foreach (DataColumn column in dataTable.Columns)
+                {
                     bulkCopy.ColumnMappings.Add(column.ColumnName, column.ColumnName);
+                }
 
                 await bulkCopy.WriteToServerAsync(ConvertDataTable(dataTable, bulkCopyInfo),
                     bulkCopyInfo.CancellationToken);
@@ -873,7 +891,9 @@ namespace DatabaseInterpreter.Core
                     //|| item.DataType == typeof(StGeometry)
                 )
                )
+            {
                 return dataTable;
+            }
 
             var changedColumns = new Dictionary<int, DataTableColumnChangeInfo>();
             var changedValues = new Dictionary<(int RowIndex, int ColumnIndex), dynamic>();
@@ -983,13 +1003,19 @@ namespace DatabaseInterpreter.Core
                                 {
                                     newColumnType = typeof(int);
 
-                                    if ((decimal)value > int.MaxValue) newColumnType = typeof(long);
+                                    if ((decimal)value > int.MaxValue)
+                                    {
+                                        newColumnType = typeof(long);
+                                    }
                                 }
                                 else if (dataType == "smallint")
                                 {
                                     newColumnType = typeof(short);
 
-                                    if ((decimal)value > short.MaxValue) newColumnType = typeof(int);
+                                    if ((decimal)value > short.MaxValue)
+                                    {
+                                        newColumnType = typeof(int);
+                                    }
                                 }
                             }
                             else if (type.Name.EndsWith("[]")) //array type
@@ -1048,10 +1074,15 @@ namespace DatabaseInterpreter.Core
                             }*/
 
                             if (newColumnType != null && !changedColumns.ContainsKey(i))
+                            {
                                 changedColumns.Add(i,
                                     new DataTableColumnChangeInfo { Type = newColumnType, MaxLength = newMaxLength });
+                            }
 
-                            if (newValue != null) changedValues.Add((rowIndex, i), newValue);
+                            if (newValue != null)
+                            {
+                                changedValues.Add((rowIndex, i), newValue);
+                            }
                         }
                     }
                 }
@@ -1059,7 +1090,10 @@ namespace DatabaseInterpreter.Core
                 rowIndex++;
             }
 
-            if (changedColumns.Count == 0) return dataTable;
+            if (changedColumns.Count == 0)
+            {
+                return dataTable;
+            }
 
             var dtChanged = DataTableHelper.GetChangedDataTable(dataTable, changedColumns, changedValues);
 
@@ -1075,18 +1109,24 @@ namespace DatabaseInterpreter.Core
             {
                 if (databaseType == DatabaseType.SqlServer
                     && string.Equals(dataType, "uniqueidentifier", StringComparison.OrdinalIgnoreCase))
+                {
                     strValue = new Guid(value).ToString();
+                }
 
                 else if (databaseType == DatabaseType.MySql
                          && dataType == "char"
                          && length == 36)
+                {
                     strValue = new Guid(value).ToString();
+                }
 
                 else if (bytesAsString
                          && databaseType == DatabaseType.Oracle
                          && dataType.ToLower() == "raw"
                          && length == 16)
+                {
                     strValue = StringHelper.GuidToRaw(new Guid(value).ToString());
+                }
             }
 
             return strValue;
@@ -1096,12 +1136,18 @@ namespace DatabaseInterpreter.Core
         {
             var option = SqlBulkCopyOptions.Default;
 
-            if (bulkCopyInfo.KeepIdentity) option = SqlBulkCopyOptions.KeepIdentity;
+            if (bulkCopyInfo.KeepIdentity)
+            {
+                option = SqlBulkCopyOptions.KeepIdentity;
+            }
 
             var bulkCopy = new SqlBulkCopy(connection as SqlConnection, option,
                 bulkCopyInfo.Transaction as SqlTransaction);
 
-            if (connection.State != ConnectionState.Open) await OpenConnectionAsync(connection);
+            if (connection.State != ConnectionState.Open)
+            {
+                await OpenConnectionAsync(connection);
+            }
 
             var tableName = GetQuotedDbObjectNameWithSchema(bulkCopyInfo.DestinationTableSchema,
                 bulkCopyInfo.DestinationTableName);
@@ -1131,7 +1177,10 @@ namespace DatabaseInterpreter.Core
 
             var isComputed = column.IsComputed;
 
-            if (isComputed) return $"{GetQuotedString(column.Name)} AS {GetColumnComputeExpression(column)}";
+            if (isComputed)
+            {
+                return $"{GetQuotedString(column.Name)} AS {GetColumnComputeExpression(column)}";
+            }
 
             {
                 var dataType = ParseDataType(column);
@@ -1151,7 +1200,10 @@ namespace DatabaseInterpreter.Core
         {
             var dataLength = GetColumnDataLength(column);
 
-            if (!string.IsNullOrEmpty(dataLength)) dataLength = $"({dataLength})";
+            if (!string.IsNullOrEmpty(dataLength))
+            {
+                dataLength = $"({dataLength})";
+            }
 
             var dataType = $"{column.DataType} {dataLength}";
 
@@ -1172,11 +1224,17 @@ namespace DatabaseInterpreter.Core
             {
                 var args = dataTypeSpec.Args.ToLower().Trim();
 
-                if (string.IsNullOrEmpty(args)) return string.Empty;
+                if (string.IsNullOrEmpty(args))
+                {
+                    return string.Empty;
+                }
 
                 if (isChar && DataTypeHelper.StartsWithN(dataType)) //ie. nchar, nvarchar
                 {
-                    if (column.MaxLength == -1 || column.MaxLength == null) return "max";
+                    if (column.MaxLength == -1 || column.MaxLength == null)
+                    {
+                        return "max";
+                    }
 
                     return ((column.MaxLength ?? 0) / 2).ToString();
                 }
@@ -1186,7 +1244,10 @@ namespace DatabaseInterpreter.Core
                     if (column.MaxLength == -1 || column.MaxLength == null)
                     {
                         if (isChar || dataType.ToLower() == "varbinary")
+                        {
                             return "max";
+                        }
+
                         return dataTypeSpec.Range.Split('~')[1];
                     }
 
@@ -1202,8 +1263,14 @@ namespace DatabaseInterpreter.Core
                 }
 
                 if (args == "precision" || args == "scale") //ie. datetime2,datetimeoffset
+                {
                     return column.Scale == null ? "0" : column.Scale.ToString();
-                if (args == "length") return column.MaxLength == null ? "0" : column.MaxLength.ToString();
+                }
+
+                if (args == "length")
+                {
+                    return column.MaxLength == null ? "0" : column.MaxLength.ToString();
+                }
             }
 
             return string.Empty;

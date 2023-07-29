@@ -18,12 +18,10 @@ namespace DatabaseConverter.Core
         private List<FunctionSpecification> targetFuncSpecs;
 
         public DbObjectTokenTranslator(DbInterpreter source, DbInterpreter target) : base(source, target)
-        {
-        }
+        { }
 
         public override void Translate()
-        {
-        }
+        { }
 
         public virtual string ParseDefinition(string definition)
         {
@@ -31,7 +29,10 @@ namespace DatabaseConverter.Core
 
             definition = HandleDefinition(definition, tokens, out var changed);
 
-            if (changed) tokens = GetTokens(definition);
+            if (changed)
+            {
+                tokens = GetTokens(definition);
+            }
 
             definition = BuildDefinition(tokens);
 
@@ -58,7 +59,9 @@ namespace DatabaseConverter.Core
                     case TSQLTokenType.Identifier:
 
                         if (sourceFuncSpecs.Any(item => item.Name == text.ToUpper()))
+                        {
                             functionExpression = GetFunctionExpression(token, definition);
+                        }
 
                         break;
                     case TSQLTokenType.Keyword:
@@ -74,7 +77,10 @@ namespace DatabaseConverter.Core
 
                     Dictionary<string, string> dictDataType = null;
 
-                    if (formula.Name == null) continue;
+                    if (formula.Name == null)
+                    {
+                        continue;
+                    }
 
                     var newExpression = ParseFormula(sourceFuncSpecs, targetFuncSpecs, formula, targetFunctionInfo,
                         out dictDataType);
@@ -86,11 +92,18 @@ namespace DatabaseConverter.Core
                         changed = true;
                     }
 
-                    if (dictDataType != null) convertedDataTypes.AddRange(dictDataType.Values);
+                    if (dictDataType != null)
+                    {
+                        convertedDataTypes.AddRange(dictDataType.Values);
+                    }
 
                     if (!string.IsNullOrEmpty(targetFunctionInfo.Args) && changed)
+                    {
                         if (!convertedFunctions.Contains(targetFunctionInfo.Name))
+                        {
                             convertedFunctions.Add(targetFunctionInfo.Name);
+                        }
+                    }
                 }
             }
 
@@ -105,7 +118,9 @@ namespace DatabaseConverter.Core
             string functionExpression = null;
 
             if (functionEndIndex != -1)
+            {
                 functionExpression = definition.Substring(startIndex, functionEndIndex - startIndex + 1);
+            }
 
             return functionExpression;
         }
@@ -119,8 +134,13 @@ namespace DatabaseConverter.Core
             for (var i = startIndex; i < definition.Length; i++)
             {
                 if (definition[i] == '(')
+                {
                     leftBracketCount++;
-                else if (definition[i] == ')') rightBracketCount++;
+                }
+                else if (definition[i] == ')')
+                {
+                    rightBracketCount++;
+                }
 
                 if (rightBracketCount == leftBracketCount)
                 {
@@ -195,37 +215,57 @@ namespace DatabaseConverter.Core
                                 var targetFunction = targetFunctionInfo.Name;
 
                                 if (!string.IsNullOrEmpty(targetFunction))
+                                {
                                     sb.Append(targetFunction);
+                                }
                                 else
+                                {
                                     sb.Append(text); //reserve original function name
+                                }
 
-                                if (useBrackets) ignoreCount += 2;
+                                if (useBrackets)
+                                {
+                                    ignoreCount += 2;
+                                }
                             }
                             else
                             {
                                 if (text.StartsWith(sourceDbInterpreter.QuotationLeftChar.ToString()) &&
                                     text.EndsWith(sourceDbInterpreter.QuotationRightChar.ToString()))
+                                {
                                     sb.Append(GetQuotedString(text.Trim(sourceDbInterpreter.QuotationLeftChar,
                                         sourceDbInterpreter.QuotationRightChar)));
+                                }
                                 else
+                                {
                                     sb.Append(text);
+                                }
                             }
                         }
                         else
                         {
                             if ((sourceDataTypeSpecs != null && sourceDataTypeSpecs.Any(item => item.Name == text))
                                 || (targetDataTypeSpecs != null && targetDataTypeSpecs.Any(item => item.Name == text)))
+                            {
                                 sb.Append(text);
+                            }
                             else
+                            {
                                 sb.Append(GetQuotedString(text));
+                            }
                         }
 
                         break;
                     case TSQLTokenType.StringLiteral:
                         if (previousType != TSQLTokenType.Whitespace && previousText.ToLower() == "as")
+                        {
                             sb.Append(GetQuotedString(text));
+                        }
                         else
+                        {
                             sb.Append(text);
+                        }
+
                         break;
                     case TSQLTokenType.SingleLineComment:
                     case TSQLTokenType.MultilineComment:
@@ -240,7 +280,10 @@ namespace DatabaseConverter.Core
                                         (from t in tokens
                                             where t.Type == TSQLTokenType.Keyword && t.EndPosition < token.BeginPosition
                                             select t).LastOrDefault();
-                                    if (previousKeyword != null && previousKeyword.Text.ToUpper() == "FROM") continue;
+                                    if (previousKeyword != null && previousKeyword.Text.ToUpper() == "FROM")
+                                    {
+                                        continue;
+                                    }
                                 }
 
                                 break;
@@ -267,8 +310,10 @@ namespace DatabaseConverter.Core
         {
             if (!text.StartsWith(targetDbInterpreter.QuotationLeftChar.ToString()) &&
                 !text.EndsWith(targetDbInterpreter.QuotationRightChar.ToString()))
+            {
                 return targetDbInterpreter.GetQuotedString(text.Trim('\'', '"', sourceDbInterpreter.QuotationLeftChar,
                     sourceDbInterpreter.QuotationRightChar));
+            }
 
             return text;
         }

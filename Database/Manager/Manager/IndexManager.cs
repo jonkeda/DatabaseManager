@@ -38,17 +38,26 @@ namespace DatabaseManager.Core
 
                 var type = index.Type;
 
-                if (!string.IsNullOrEmpty(type)) indexDesignerInfo.Type = type;
+                if (!string.IsNullOrEmpty(type))
+                {
+                    indexDesignerInfo.Type = type;
+                }
 
                 if (index.IsPrimary)
                 {
                     if (databaseType == DatabaseType.Oracle)
+                    {
                         indexDesignerInfo.Type = IndexType.Unique.ToString();
+                    }
                     else
+                    {
                         indexDesignerInfo.Type = IndexType.Primary.ToString();
+                    }
 
                     if (indexDesignerInfo.ExtraPropertyInfo == null)
+                    {
                         indexDesignerInfo.ExtraPropertyInfo = new TableIndexExtraPropertyInfo();
+                    }
 
                     indexDesignerInfo.ExtraPropertyInfo.Clustered = index.Clustered;
                 }
@@ -62,7 +71,9 @@ namespace DatabaseManager.Core
                 }
 
                 if (string.IsNullOrEmpty(indexDesignerInfo.OldType) && !string.IsNullOrEmpty(indexDesignerInfo.Type))
+                {
                     indexDesignerInfo.OldType = indexDesignerInfo.Type;
+                }
 
                 indexDesignerInfo.Columns.AddRange(index.Columns);
 

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Dapper;
 using DatabaseInterpreter.Core;
 using DatabaseManager.Model;
+using Databases.Interpreter.Builder;
 using Microsoft.Data.Sqlite;
 
 namespace DatabaseManager.Profile

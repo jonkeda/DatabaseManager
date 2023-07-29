@@ -13,8 +13,14 @@ namespace SqlAnalyser.Core
         public static TableName GetSelectStatementTableName(SelectStatement statement)
         {
             if (statement.TableName != null)
+            {
                 return statement.TableName;
-            if (statement.HasFromItems) return statement.FromItems.FirstOrDefault()?.TableName;
+            }
+
+            if (statement.HasFromItems)
+            {
+                return statement.FromItems.FirstOrDefault()?.TableName;
+            }
 
             return null;
         }
@@ -32,22 +38,30 @@ namespace SqlAnalyser.Core
             var tableNameOrAliases = new List<string>();
 
             foreach (var setName in setItems)
+            {
                 if (setName.Name.Symbol.Contains("."))
+                {
                     tableNameOrAliases.Add(setName.Name.Symbol.Split('.')[0].Trim().ToLower());
+                }
+            }
 
             if (fromItems != null)
+            {
                 tableName = fromItems.FirstOrDefault(item => item.TableName != null &&
                                                              (tableNameOrAliases.Contains(
                                                                   item.TableName.Symbol.ToLower())
                                                               || (item.TableName.Alias != null &&
                                                                   tableNameOrAliases.Contains(item.TableName.Alias
                                                                       .Symbol.ToLower()))))?.TableName;
+            }
 
             if (tableName == null && tableNames != null)
+            {
                 tableName = tableNames.FirstOrDefault(item => tableNameOrAliases.Contains(item.Symbol.ToLower())
                                                               || (item.Alias != null &&
                                                                   tableNameOrAliases.Contains(
                                                                       item.Alias.Symbol.ToLower())));
+            }
 
             return tableName;
         }
@@ -68,7 +82,10 @@ namespace SqlAnalyser.Core
             var setItem = statement.SetItems.FirstOrDefault();
             var valueStatement = setItem.ValueStatement;
 
-            if (valueStatement == null) return string.Empty;
+            if (valueStatement == null)
+            {
+                return string.Empty;
+            }
 
             var where = valueStatement.Where;
 
@@ -82,21 +99,29 @@ namespace SqlAnalyser.Core
                 {
                     sb.Append($"{colNames[i].Trim()}={colValues[i].Trim()}{(i < colNames.Length - 1 ? ", " : "")}");
 
-                    if (i == colNames.Length - 1) sb.AppendLine();
+                    if (i == colNames.Length - 1)
+                    {
+                        sb.AppendLine();
+                    }
                 }
             };
 
             Func<string> getFromTables = () =>
             {
                 if (valueStatement.HasFromItems)
+                {
                     return string.Join(",", valueStatement.FromItems.Select(item => item.TableName.NameWithAlias));
+                }
 
                 return string.Empty;
             };
 
             Action buildWhere = () =>
             {
-                if (where != null) sb.AppendLine($"WHERE {where.Symbol}");
+                if (where != null)
+                {
+                    sb.AppendLine($"WHERE {where.Symbol}");
+                }
             };
 
             Action buildFromAndWhere = () =>
@@ -129,8 +154,12 @@ namespace SqlAnalyser.Core
             else if (builder == DatabaseType.Postgres)
             {
                 for (var i = 0; i < colNames.Length; i++)
+                {
                     if (colNames[i].Contains("."))
+                    {
                         colNames[i] = colNames[i].Split('.').Last().Trim();
+                    }
+                }
 
                 buildSet();
 
@@ -149,7 +178,10 @@ namespace SqlAnalyser.Core
                     {
                         var items = fromTable.Split(' ').Select(item => item.Trim());
 
-                        if (!items.Any(item => item == strTableName || item == alias)) fromTableList.Add(fromTable);
+                        if (!items.Any(item => item == strTableName || item == alias))
+                        {
+                            fromTableList.Add(fromTable);
+                        }
                     }
 
                     sb.AppendLine($"FROM {string.Join(",", fromTableList)}");
@@ -166,11 +198,16 @@ namespace SqlAnalyser.Core
             value = value.Trim();
 
             if (value.StartsWith("(") && value.EndsWith(")"))
+            {
                 value = StringHelper.GetBalanceParenthesisTrimedValue(value);
+            }
 
             var fromIndex = value.IndexOf("FROM", StringComparison.OrdinalIgnoreCase);
 
-            if (fromIndex < 0) return $"{name}:={value};";
+            if (fromIndex < 0)
+            {
+                return $"{name}:={value};";
+            }
 
             return $"{value.Substring(0, fromIndex)} INTO {name} {value.Substring(fromIndex)};";
         }

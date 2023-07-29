@@ -17,8 +17,7 @@ namespace DatabaseConverter.Core
 
         public FunctionTranslator(DbInterpreter sourceInterpreter, DbInterpreter targetInterpreter) : base(
             sourceInterpreter, targetInterpreter)
-        {
-        }
+        { }
 
         public FunctionTranslator(DbInterpreter sourceInterpreter, DbInterpreter targetInterpreter,
             IEnumerable<TokenInfo> functions) : base(sourceInterpreter, targetInterpreter)
@@ -30,14 +29,21 @@ namespace DatabaseConverter.Core
 
         public override void Translate()
         {
-            if (sourceDbType == targetDbType) return;
+            if (sourceDbType == targetDbType)
+            {
+                return;
+            }
 
             LoadMappings();
             LoadFunctionSpecifications();
 
             if (functions != null)
+            {
                 foreach (var token in functions)
+                {
                     token.Symbol = GetMappedFunction(token.Symbol);
+                }
+            }
         }
 
         public void LoadFunctionSpecifications()
@@ -49,7 +55,9 @@ namespace DatabaseConverter.Core
         public string GetMappedFunction(string value)
         {
             if (sourceDbType == DatabaseType.Postgres)
+            {
                 value = value.ReplaceOrdinalIgnoreCase(@"""substring""", "substring");
+            }
 
             var formulas = GetFunctionFormulas(sourceDbInterpreter, value);
 
@@ -57,15 +65,22 @@ namespace DatabaseConverter.Core
             {
                 var name = formula.Name;
 
-                if (string.IsNullOrEmpty(name)) continue;
+                if (string.IsNullOrEmpty(name))
+                {
+                    continue;
+                }
 
                 var sourceFuncSpec = sourceFuncSpecs.FirstOrDefault(item => item.Name == name.ToUpper());
 
-                if (sourceFuncSpec == null) continue;
+                if (sourceFuncSpec == null)
+                {
+                    continue;
+                }
 
                 var targetFunctionInfo = GetMappingFunctionInfo(name, formula.Body, out var useBrackets);
 
                 if (!string.IsNullOrEmpty(targetFunctionInfo.Name))
+                {
                     if (targetFunctionInfo.Name.ToUpper().Trim() != name.ToUpper().Trim())
                     {
                         var noParenthesess = false;
@@ -143,7 +158,10 @@ namespace DatabaseConverter.Core
                         var newExp =
                             $"{targetFunctionInfo.Name}{(formula.HasParentheses ? "(" : "")}{formula.Body}{(formula.HasParentheses ? ")" : "")}";
 
-                        if (!hasArgs && !string.IsNullOrEmpty(formula.Body)) newExp = $"{targetFunctionInfo.Name}()";
+                        if (!hasArgs && !string.IsNullOrEmpty(formula.Body))
+                        {
+                            newExp = $"{targetFunctionInfo.Name}()";
+                        }
 
                         if (noParenthesess)
                         {
@@ -152,7 +170,10 @@ namespace DatabaseConverter.Core
                         else
                         {
                             if (sourceFuncSpec.NoParenthesess && targetFuncSpec != null &&
-                                string.IsNullOrEmpty(targetFuncSpec.Args)) newExp += "()";
+                                string.IsNullOrEmpty(targetFuncSpec.Args))
+                            {
+                                newExp += "()";
+                            }
                         }
 
                         newExp = newExp.Replace("()()", "()");
@@ -161,11 +182,15 @@ namespace DatabaseConverter.Core
 
                         value = ReplaceValue(value, oldExp, newExp);
                     }
+                }
 
                 var newExpression = ParseFormula(sourceFuncSpecs, targetFuncSpecs, formula, targetFunctionInfo,
                     out var dictDataType, RoutineType);
 
-                if (newExpression != formula.Expression) value = ReplaceValue(value, formula.Expression, newExpression);
+                if (newExpression != formula.Expression)
+                {
+                    value = ReplaceValue(value, formula.Expression, newExpression);
+                }
             }
 
             return value;
@@ -189,7 +214,10 @@ namespace DatabaseConverter.Core
 
             if (value.IndexOf("(", StringComparison.Ordinal) < 0)
             {
-                if (IsValidFunction(value)) functions.Add(new FunctionFormula(value, value));
+                if (IsValidFunction(value))
+                {
+                    functions.Add(new FunctionFormula(value, value));
+                }
             }
             else
             {
@@ -197,7 +225,10 @@ namespace DatabaseConverter.Core
 
                 var sql = $"{select}{value}";
 
-                if (dbInterpreter.DatabaseType == DatabaseType.Oracle) sql += " FROM DUAL";
+                if (dbInterpreter.DatabaseType == DatabaseType.Oracle)
+                {
+                    sql += " FROM DUAL";
+                }
 
                 var sqlAnalyser = TranslateHelper.GetSqlAnalyser(dbInterpreter.DatabaseType, sql);
 

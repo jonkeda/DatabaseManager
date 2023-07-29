@@ -7,6 +7,7 @@ using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using DatabaseManager.Model;
+using Databases.Interpreter.Builder;
 
 namespace DatabaseManager.Profile
 {

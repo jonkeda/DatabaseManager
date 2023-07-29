@@ -18,7 +18,9 @@ namespace DatabaseConverter.Core
             var trimedValue = value.Trim('\'', ' ');
 
             if (DateTime.TryParse(trimedValue, out var date))
+            {
                 value = date.ToString(isTimestamp ? DatetimeFormat : DateFormat);
+            }
 
             return $"'{value}'";
         }
@@ -68,7 +70,10 @@ namespace DatabaseConverter.Core
                 var target = mapping.Items.FirstOrDefault(item => item.DbType == targetDbType.ToString());
 
                 if (target == null || !target.Formal)
+                {
                     return mapping.Name;
+                }
+
                 return target.Unit;
             }
 
@@ -82,7 +87,10 @@ namespace DatabaseConverter.Core
                 var unitItems = mappingItem.Unit.Split(',');
 
                 if (!mappingItem.CaseSensitive)
+                {
                     return unitItems.Any(item => item.ToUpper() == unit.ToUpper());
+                }
+
                 return unitItems.Any(item => item == unit);
             }
 

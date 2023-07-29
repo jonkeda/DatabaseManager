@@ -10,8 +10,7 @@ namespace DatabaseConverter.Core.Functions
     {
         public DateDiffTranslator(FunctionSpecification sourceSpecification, FunctionSpecification targetSpecification)
             : base(sourceSpecification, targetSpecification)
-        {
-        }
+        { }
 
 
         public override string Translate(FunctionFormula formula)
@@ -67,7 +66,10 @@ namespace DatabaseConverter.Core.Functions
 
                 if (TargetDbType == DatabaseType.SqlServer)
                 {
-                    if (argsReversed) reverseDateArguments();
+                    if (argsReversed)
+                    {
+                        reverseDateArguments();
+                    }
 
                     newExpression = $"DATEDIFF({unit}, {date1},{date2})";
                 }
@@ -75,7 +77,10 @@ namespace DatabaseConverter.Core.Functions
                 {
                     if (targetFunctionName == "TIMESTAMPDIFF")
                     {
-                        if (argsReversed) reverseDateArguments();
+                        if (argsReversed)
+                        {
+                            reverseDateArguments();
+                        }
 
                         newExpression = $"TIMESTAMPDIFF({unit}, {date1},{date2})";
                     }
@@ -130,13 +135,19 @@ namespace DatabaseConverter.Core.Functions
 
                     Func<string, bool, bool, string> getStrDate = (date, isStringValue, isTimestampStr) =>
                     {
-                        if (isStringValue) date = DatetimeHelper.GetOracleUniformDatetimeString(date, isTimestampStr);
+                        if (isStringValue)
+                        {
+                            date = DatetimeHelper.GetOracleUniformDatetimeString(date, isTimestampStr);
+                        }
 
                         var dataType = isStringValue ? isTimestampStr ? "TIMESTAMP" : "DATE" : "";
 
                         var strDate = $"{dataType}{date}";
 
-                        if (!isTimestampStr) strDate = $"CAST({strDate} AS TIMESTAMP)";
+                        if (!isTimestampStr)
+                        {
+                            strDate = $"CAST({strDate} AS TIMESTAMP)";
+                        }
 
                         return strDate;
                     };
@@ -151,9 +162,15 @@ namespace DatabaseConverter.Core.Functions
                     Func<string, bool, bool, string> getDateFormatStr = (date, isDateStr, isTimestampStr) =>
                     {
                         if (isDateStr)
+                        {
                             return $"TO_DATE({date}, {dateFormat})";
+                        }
+
                         if (isTimestampStr)
+                        {
                             return $"TO_DATE({date}, {datetimeFormat})";
+                        }
+
                         return $"TO_DATE(TO_CHAR({date}, {datetimeFormat}), {datetimeFormat})";
                     };
 
@@ -200,7 +217,10 @@ namespace DatabaseConverter.Core.Functions
                         var value = $"(JULIANDAY({date1})-JULIANDAY({date2}))";
 
                         if (unit == "YEAR")
+                        {
                             return $"FLOOR(ROUND({value}{multiplier},2))";
+                        }
+
                         return $"ROUND({value}{multiplier})";
                     };
 

@@ -6,6 +6,7 @@ using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using DatabaseManager.Model;
+using Databases.Interpreter.Builder;
 
 namespace DatabaseManager.Core
 {
@@ -43,7 +44,10 @@ namespace DatabaseManager.Core
 
                 foreach (var table in tables)
                 {
-                    if (i > 0 && i < tables.Count) sb.Append("UNION ALL");
+                    if (i > 0 && i < tables.Count)
+                    {
+                        sb.Append("UNION ALL");
+                    }
 
                     var tableName = dbInterpreter.GetQuotedDbObjectNameWithSchema(table);
 

@@ -7,6 +7,7 @@ using DatabaseConverter.Model;
 using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
+using Databases.Exceptions;
 using SqlAnalyser.Core;
 using SqlAnalyser.Model;
 
@@ -32,7 +33,10 @@ namespace DatabaseConverter.Core
         {
             // if (sourceDbInterpreter.DatabaseType == targetDbInterpreter.DatabaseType) return;
 
-            if (hasError) return;
+            if (hasError)
+            {
+                return;
+            }
 
             LoadMappings();
 
@@ -44,9 +48,15 @@ namespace DatabaseConverter.Core
 
             foreach (var dbObj in scripts)
             {
-                if (hasError) break;
+                if (hasError)
+                {
+                    break;
+                }
 
-                if (string.IsNullOrEmpty(dbObj.Definition)) continue;
+                if (string.IsNullOrEmpty(dbObj.Definition))
+                {
+                    continue;
+                }
 
                 count++;
 
@@ -58,13 +68,21 @@ namespace DatabaseConverter.Core
 
                 var result = TranslateScript(dbObj);
 
-                if (Option.CollectTranslateResultAfterTranslated) TranslateResults.Add(result);
+                if (Option.CollectTranslateResultAfterTranslated)
+                {
+                    TranslateResults.Add(result);
+                }
 
-                if (!result.HasError) successCount++;
+                if (!result.HasError)
+                {
+                    successCount++;
+                }
             }
 
             if (total > 1)
+            {
                 FeedbackInfo($"Translated {total} script(s): {successCount} succeeded, {total - successCount} failed.");
+            }
         }
 
         private TranslateResult TranslateScript(ScriptDbObject dbObj, bool isPartial = false)
@@ -83,14 +101,19 @@ namespace DatabaseConverter.Core
 
                 dbObj.Definition = dbObj.Definition.Trim();
 
-                if (Option.RemoveCarriagRreturnChar) dbObj.Definition = dbObj.Definition.Replace("\r\n", "\n");
+                if (Option.RemoveCarriagRreturnChar)
+                {
+                    dbObj.Definition = dbObj.Definition.Replace("\r\n", "\n");
+                }
 
                 if (sourceDbType == DatabaseType.MySql)
                 {
                     var dbName = sourceDbInterpreter.ConnectionInfo.Database;
 
                     if (dbName != null)
+                    {
                         dbObj.Definition = dbObj.Definition.Replace($"`{dbName}`.", "").Replace($"{dbName}.", "");
+                    }
                 }
                 else if (sourceDbType == DatabaseType.Postgres)
                 {
@@ -110,9 +133,13 @@ namespace DatabaseConverter.Core
                 var sqlAnalyser = GetSqlAnalyser(sourceDbInterpreter.DatabaseType, originalDefinition);
 
                 if (!isPartial)
+                {
                     analyseResult = sqlAnalyser.Analyse<T>();
+                }
                 else
+                {
                     analyseResult = sqlAnalyser.AnalyseCommon();
+                }
 
                 var script = analyseResult.Script;
 
@@ -187,7 +214,10 @@ namespace DatabaseConverter.Core
                 {
                     if (string.IsNullOrEmpty(dbObj.Name) && !string.IsNullOrEmpty(analyseResult.Script?.Name?.Symbol))
                     {
-                        if (AutoMakeupSchemaName) dbObj.Schema = analyseResult.Script.Schema;
+                        if (AutoMakeupSchemaName)
+                        {
+                            dbObj.Schema = analyseResult.Script.Schema;
+                        }
 
                         TranslateHelper.RestoreTokenValue(originalDefinition, analyseResult.Script.Name);
 
@@ -207,7 +237,9 @@ namespace DatabaseConverter.Core
                 }
 
                 if (script is RoutineScript)
+                {
                     if (sourceDbType == DatabaseType.Postgres)
+                    {
                         if (!isPartial)
                         {
                             var declaresAndBody =
@@ -218,17 +250,26 @@ namespace DatabaseConverter.Core
                             var res = TranslateScript(scriptDbObject, true);
 
                             if (!res.HasError)
+                            {
                                 dbObj.Definition =
                                     PostgresTranslateHelper.MergeDefinition(dbObj.Definition,
                                         scriptDbObject.Definition);
+                            }
                             else
+                            {
                                 analyseResult = new AnalyseResult { Error = res.Error };
+                            }
                         }
+                    }
+                }
 
                 dbObj.Definition =
                     TranslateHelper.TranslateComments(sourceDbInterpreter, targetDbInterpreter, dbObj.Definition);
 
-                if (isPartial) return translateResult;
+                if (isPartial)
+                {
+                    return translateResult;
+                }
 
                 translateResult.Error = replaced ? null : analyseResult.Error;
                 translateResult.Data = dbObj.Definition;
@@ -242,7 +283,10 @@ namespace DatabaseConverter.Core
 
                     FeedbackError(errMsg, ContinueWhenErrorOccurs);
 
-                    if (!ContinueWhenErrorOccurs) hasError = true;
+                    if (!ContinueWhenErrorOccurs)
+                    {
+                        hasError = true;
+                    }
                 }
 
                 return translateResult;
@@ -284,7 +328,9 @@ namespace DatabaseConverter.Core
                     var routine = result.Script as RoutineScript;
 
                     if (targetDbInterpreter.DatabaseType == DatabaseType.MySql && routine.ReturnTable != null)
+                    {
                         routine.Type = RoutineType.PROCEDURE;
+                    }
                 }
             }
 
@@ -300,6 +346,7 @@ namespace DatabaseConverter.Core
 
                 if (typeof(T) == typeof(TableTrigger))
                     //make up a trigger function
+                {
                     if (targetDbType == DatabaseType.Postgres)
                     {
                         var name = targetDbInterpreter.GetQuotedString($"func_{dbObj.Name}");
@@ -320,20 +367,25 @@ namespace DatabaseConverter.Core
 
                         anotherDefinition = StringHelper.FormatScript(scriptBuildFactory.GenerateScripts(rs).Script);
                     }
+                }
 
                 var scriptBuildResult = scriptBuildFactory.GenerateScripts(script);
 
                 dbObj.Definition = StringHelper.FormatScript(scriptBuildResult.Script);
 
                 if (anotherDefinition != null)
+                {
                     dbObj.Definition = anotherDefinition + Environment.NewLine + dbObj.Definition;
+                }
             }
         }
 
         private SqlSyntaxError ParseSqlSyntaxError(SqlSyntaxError error, string definition)
         {
             foreach (var item in error.Items)
+            {
                 item.Text = definition.Substring(item.StartIndex, item.StopIndex - item.StartIndex + 1);
+            }
 
             return error;
         }

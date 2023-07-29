@@ -35,7 +35,10 @@ namespace DatabaseManager.Core
 
                 var script = (await scriptGenerator.Generate(result.DbObject, ScriptAction.ALTER)).Script;
 
-                if (string.IsNullOrEmpty(script)) continue;
+                if (string.IsNullOrEmpty(script))
+                {
+                    continue;
+                }
 
                 var definition = result.DbObject.Definition;
 
@@ -52,10 +55,17 @@ namespace DatabaseManager.Core
                 }
 
                 if (result.DbObject is View)
+                {
                     scripts.Add(new AlterDbObjectScript<View>(script));
+                }
                 else if (result.DbObject is Procedure)
+                {
                     scripts.Add(new AlterDbObjectScript<Procedure>(script));
-                else if (result.DbObject is Function) scripts.Add(new AlterDbObjectScript<Function>(script));
+                }
+                else if (result.DbObject is Function)
+                {
+                    scripts.Add(new AlterDbObjectScript<Function>(script));
+                }
 
                 dictDifinition.Add(i, definition);
 

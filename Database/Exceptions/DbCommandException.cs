@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DatabaseInterpreter.Core
+namespace Databases.Exceptions
 {
     public class DbCommandException : Exception
     {
@@ -19,7 +19,7 @@ namespace DatabaseInterpreter.Core
 
         public string CustomMessage { get; internal set; }
 
-        public bool HasRollbackedTransaction { get; internal set; }
+        public bool HasRolledBackTransaction { get; internal set; }
 
         public override string Message => $"{BaseException?.Message}{Environment.NewLine}{CustomMessage}";
     }

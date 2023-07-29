@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 
-namespace DatabaseInterpreter.Core
+namespace Databases.Interpreter.Builder
 {
     public class ScriptBuilder
     {

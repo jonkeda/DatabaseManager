@@ -5,8 +5,7 @@ namespace DatabaseManager.Core
     public class SqlServerDiagnosis : DbDiagnosis
     {
         public SqlServerDiagnosis(ConnectionInfo connectionInfo) : base(connectionInfo)
-        {
-        }
+        { }
 
         public override DatabaseType DatabaseType => DatabaseType.SqlServer;
 

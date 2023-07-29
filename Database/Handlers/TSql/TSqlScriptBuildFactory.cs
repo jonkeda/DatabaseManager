@@ -33,10 +33,17 @@ namespace SqlAnalyser.Core
                     var strParameterType = "";
 
                     if (parameterType == ParameterType.IN)
+                    {
                         strParameterType = "";
+                    }
                     else if (parameterType.HasFlag(ParameterType.IN) && parameterType.HasFlag(ParameterType.OUT))
+                    {
                         strParameterType = "OUT";
-                    else if (parameterType != ParameterType.NONE) strParameterType = parameterType.ToString();
+                    }
+                    else if (parameterType != ParameterType.NONE)
+                    {
+                        strParameterType = parameterType.ToString();
+                    }
 
                     var defaultValue = parameter.DefaultValue == null ? "" : "=" + parameter.DefaultValue;
 
@@ -57,10 +64,14 @@ namespace SqlAnalyser.Core
             if (script.Type == RoutineType.FUNCTION)
             {
                 if (script.ReturnTable == null)
+                {
                     sb.AppendLine($"RETURNS {script.ReturnDataType}");
+                }
                 else
+                {
                     sb.AppendLine(
                         $"RETURNS {script.ReturnTable.Name}({string.Join(",", script.ReturnTable.Columns.Select(t => $"{t.Name.Symbol} {t.DataType}"))})");
+                }
             }
 
             sb.AppendLine("AS");
@@ -83,11 +94,17 @@ namespace SqlAnalyser.Core
                         {
                             var condition = @while.Condition?.Symbol;
 
-                            if (condition == null) @while.Condition = new TokenInfo("");
+                            if (condition == null)
+                            {
+                                @while.Condition = new TokenInfo("");
+                            }
 
                             @while.Condition.Symbol = "@@FETCH_STATUS = 0";
 
-                            if (condition != null) @while.Condition.Symbol += " AND " + condition;
+                            if (condition != null)
+                            {
+                                @while.Condition.Symbol += " AND " + condition;
+                            }
 
                             sb.AppendLine(BuildStatement(fetchCursorStatement));
                         }
@@ -145,7 +162,10 @@ namespace SqlAnalyser.Core
 
             result.BodyStartIndex = sb.Length;
 
-            foreach (var statement in script.Statements) sb.AppendLine(BuildStatement(statement));
+            foreach (var statement in script.Statements)
+            {
+                sb.AppendLine(BuildStatement(statement));
+            }
 
             result.BodyStopIndex = sb.Length - 1;
 
@@ -173,7 +193,10 @@ namespace SqlAnalyser.Core
 
             result.BodyStartIndex = sb.Length;
 
-            foreach (var statement in script.Statements) sb.Append(BuildStatement(statement));
+            foreach (var statement in script.Statements)
+            {
+                sb.Append(BuildStatement(statement));
+            }
 
             result.BodyStopIndex = sb.Length - 1;
 

@@ -18,7 +18,10 @@ namespace DatabaseConverter.Core
         {
             get
             {
-                if (_functionMappings == null) _functionMappings = GetFunctionMappings();
+                if (_functionMappings == null)
+                {
+                    _functionMappings = GetFunctionMappings();
+                }
 
                 return _functionMappings;
             }

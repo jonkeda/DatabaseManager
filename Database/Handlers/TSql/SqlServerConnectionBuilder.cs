@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using DatabaseInterpreter.Model;
+using Databases.Interpreter.Builder;
 
 namespace DatabaseInterpreter.Core
 {
@@ -11,9 +12,13 @@ namespace DatabaseInterpreter.Core
                 $"Data Source={connectionInfo.Server};Initial Catalog={connectionInfo.Database};TrustServerCertificate=true;");
 
             if (connectionInfo.IntegratedSecurity)
+            {
                 sb.Append("Integrated Security=true;");
+            }
             else
+            {
                 sb.Append($"User Id={connectionInfo.UserId};Password={connectionInfo.Password};");
+            }
 
             return sb.ToString();
         }

@@ -9,7 +9,10 @@ namespace DatabaseManager.Helper
         {
             var folderPath = Path.GetDirectoryName(zipFilePath);
 
-            if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
 
             var zip = ZipFile.Create(zipFilePath);
 

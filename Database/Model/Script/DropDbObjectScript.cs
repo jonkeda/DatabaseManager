@@ -4,7 +4,6 @@
         where T : DatabaseObject
     {
         public DropDbObjectScript(string script) : base(script)
-        {
-        }
+        { }
     }
 }

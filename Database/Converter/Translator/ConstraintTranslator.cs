@@ -22,9 +22,15 @@ namespace DatabaseConverter.Core
 
         public override void Translate()
         {
-            if (sourceDbInterpreter.DatabaseType == targetDbInterpreter.DatabaseType) return;
+            if (sourceDbInterpreter.DatabaseType == targetDbInterpreter.DatabaseType)
+            {
+                return;
+            }
 
-            if (hasError) return;
+            if (hasError)
+            {
+                return;
+            }
 
             FeedbackInfo("Begin to translate constraints.");
 
@@ -40,11 +46,13 @@ namespace DatabaseConverter.Core
                     targetDbInterpreter.DatabaseType == DatabaseType.Postgres)
                 {
                     if (targetDbInterpreter.DatabaseType == DatabaseType.Oracle)
+                    {
                         if (constraint.Definition.Contains("SYSDATE"))
                         {
                             invalidConstraints.Add(constraint);
                             continue;
                         }
+                    }
 
                     var likeExp =
                         @"(([\w\[\]""`]+)[\s]+(like)[\s]+(['][\[].+[\]][']))"; //example: ([SHELF] like '[A-Za-z]' OR "SHELF"='N/A'), to match: [SHELF] like '[A-Za-z]'
@@ -52,6 +60,7 @@ namespace DatabaseConverter.Core
                     var matches = Regex.Matches(constraint.Definition, likeExp, RegexOptions.IgnoreCase);
 
                     if (matches.Count > 0)
+                    {
                         foreach (Match m in matches)
                         {
                             var items = m.Value.Split(' ');
@@ -60,15 +69,23 @@ namespace DatabaseConverter.Core
 
                             if (targetDbInterpreter.DatabaseType == DatabaseType.Oracle ||
                                 targetDbInterpreter.DatabaseType == DatabaseType.MySql)
+                            {
                                 newValue = $"REGEXP_LIKE({items[0]},{items[2]})";
+                            }
                             else if (targetDbInterpreter.DatabaseType == DatabaseType.Postgres)
+                            {
                                 newValue = $"{items[0]} similar to ('({items[2].Trim('\'')})')";
+                            }
 
                             if (!string.IsNullOrEmpty(newValue))
+                            {
                                 constraint.Definition = constraint.Definition.Replace(m.Value, newValue);
+                            }
                         }
+                    }
 
                     if (targetDbInterpreter.DatabaseType == DatabaseType.Postgres)
+                    {
                         if (TableColumns != null)
                         {
                             var isMoneyConstraint = TableColumns.Any(item =>
@@ -77,9 +94,12 @@ namespace DatabaseConverter.Core
                             );
 
                             if (isMoneyConstraint && !constraint.Definition.ToLower().Contains("::money"))
+                            {
                                 constraint.Definition =
                                     TranslateHelper.ConvertNumberToPostgresMoney(constraint.Definition);
+                            }
                         }
+                    }
                 }
 
                 if (sourceDbInterpreter.DatabaseType == DatabaseType.Oracle ||
@@ -96,6 +116,7 @@ namespace DatabaseConverter.Core
                         var matches = Regex.Matches(constraint.Definition, likeExp, RegexOptions.IgnoreCase);
 
                         if (matches.Count > 0)
+                        {
                             foreach (Match m in matches)
                             {
                                 var items = likeFunctionNameExp.Replace(m.Value, "").Trim('(', ')').Split(',');
@@ -103,13 +124,20 @@ namespace DatabaseConverter.Core
                                 string newValue = null;
 
                                 if (targetDbInterpreter.DatabaseType == DatabaseType.SqlServer)
+                                {
                                     newValue = $"{items[0]} like {items[1]}";
+                                }
                                 else if (targetDbInterpreter.DatabaseType == DatabaseType.Postgres)
+                                {
                                     newValue = $"{items[0]} similar to ('({items[1].Trim('\'')})')";
+                                }
 
                                 if (!string.IsNullOrEmpty(newValue))
+                                {
                                     constraint.Definition = constraint.Definition.Replace(m.Value, newValue);
+                                }
                             }
+                        }
                     }
                 }
                 else if (sourceDbInterpreter.DatabaseType == DatabaseType.Postgres)
@@ -135,6 +163,7 @@ namespace DatabaseConverter.Core
                         var matches = Regex.Matches(constraint.Definition, likeExp, RegexOptions.IgnoreCase);
 
                         if (matches.Count > 0)
+                        {
                             foreach (Match m in matches)
                             {
                                 var items = m.Value.Split('~');
@@ -148,13 +177,20 @@ namespace DatabaseConverter.Core
 
                                 if (targetDbInterpreter.DatabaseType == DatabaseType.Oracle ||
                                     targetDbInterpreter.DatabaseType == DatabaseType.MySql)
+                                {
                                     newValue = $"REGEXP_LIKE({columnName},{expression})";
+                                }
                                 else if (targetDbInterpreter.DatabaseType == DatabaseType.SqlServer)
+                                {
                                     newValue = $"{columnName} like {expression}";
+                                }
 
                                 if (!string.IsNullOrEmpty(newValue))
+                                {
                                     constraint.Definition = constraint.Definition.Replace(m.Value, newValue);
+                                }
                             }
+                        }
                     }
                 }
             }
@@ -167,8 +203,10 @@ namespace DatabaseConverter.Core
         private void LoadSourceDataTypeSpecifications()
         {
             if (sourceDataTypeSpecifications == null)
+            {
                 sourceDataTypeSpecifications =
                     DataTypeManager.GetDataTypeSpecifications(sourceDbInterpreter.DatabaseType);
+            }
         }
     }
 }

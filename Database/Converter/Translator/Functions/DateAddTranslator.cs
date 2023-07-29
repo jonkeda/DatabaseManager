@@ -9,8 +9,7 @@ namespace DatabaseConverter.Core.Functions
     {
         public DateAddTranslator(FunctionSpecification sourceSpecification, FunctionSpecification targetSpecification) :
             base(sourceSpecification, targetSpecification)
-        {
-        }
+        { }
 
 
         public override string Translate(FunctionFormula formula)
@@ -64,7 +63,10 @@ namespace DatabaseConverter.Core.Functions
                 {
                     var isDateStr = isStringValue && !date.Contains(" ");
 
-                    if (isStringValue) date = DatetimeHelper.GetOracleUniformDatetimeString(date, isTimestampStr);
+                    if (isStringValue)
+                    {
+                        date = DatetimeHelper.GetOracleUniformDatetimeString(date, isTimestampStr);
+                    }
 
                     var dataType = isStringValue ? isTimestampStr ? "TIMESTAMP" : "DATE" : "";
 

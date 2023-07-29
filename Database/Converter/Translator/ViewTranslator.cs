@@ -6,6 +6,7 @@ using DatabaseConverter.Model;
 using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
+using Databases.Exceptions;
 
 namespace DatabaseConverter.Core
 {
@@ -25,19 +26,27 @@ namespace DatabaseConverter.Core
         {
             //if (sourceDbInterpreter.DatabaseType == targetDbInterpreter.DatabaseType) return;
 
-            if (hasError) return;
+            if (hasError)
+            {
+                return;
+            }
 
             LoadMappings();
 
             if (string.IsNullOrEmpty(targetSchemaName))
             {
                 if (targetDbInterpreter.DatabaseType == DatabaseType.SqlServer)
+                {
                     targetSchemaName = "dbo";
+                }
                 else
+                {
                     targetSchemaName = targetDbInterpreter.DefaultSchema;
+                }
             }
 
             foreach (var view in views)
+            {
                 try
                 {
                     var viewNameWithQuotation =
@@ -59,7 +68,10 @@ namespace DatabaseConverter.Core
 
                     foreach (var line in lines)
                     {
-                        if (line.StartsWith(sourceDbInterpreter.CommentString)) continue;
+                        if (line.StartsWith(sourceDbInterpreter.CommentString))
+                        {
+                            continue;
+                        }
 
                         sb.AppendLine(line);
                     }
@@ -86,10 +98,12 @@ namespace DatabaseConverter.Core
                     view.Definition = definition;
 
                     if (Option.CollectTranslateResultAfterTranslated)
+                    {
                         TranslateResults.Add(new TranslateResult
                         {
                             DbObjectType = DatabaseObjectType.View, DbObjectName = view.Name, Data = view.Definition
                         });
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -104,9 +118,13 @@ namespace DatabaseConverter.Core
                     };
 
                     if (!ContinueWhenErrorOccurs)
+                    {
                         throw vce;
+                    }
+
                     FeedbackError(ExceptionHelper.GetExceptionDetails(ex), ContinueWhenErrorOccurs);
                 }
+            }
         }
 
         public override string ParseDefinition(string definition)
@@ -149,7 +167,10 @@ namespace DatabaseConverter.Core
                                 }
                             }
 
-                            if (!hasChanged) sb.AppendLine(line);
+                            if (!hasChanged)
+                            {
+                                sb.AppendLine(line);
+                            }
                         }
 
                         definition = sb.ToString();

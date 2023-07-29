@@ -15,7 +15,10 @@ namespace SqlAnalyser.Model
             {
                 _name = value;
 
-                if (value != null) _name.Type = TokenType.ConstraintName;
+                if (value != null)
+                {
+                    _name.Type = TokenType.ConstraintName;
+                }
             }
         }
 
@@ -26,7 +29,10 @@ namespace SqlAnalyser.Model
             get => _fk;
             set
             {
-                if (value != null) Type = ConstraintType.ForeignKey;
+                if (value != null)
+                {
+                    Type = ConstraintType.ForeignKey;
+                }
 
                 _fk = value;
             }

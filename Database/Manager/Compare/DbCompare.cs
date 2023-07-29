@@ -76,7 +76,10 @@ namespace DatabaseManager.Core
                         var triggerDifferences = CompareDatabaseObjects("Trigger", DatabaseObjectType.Trigger,
                             sourceTriggers, targetTriggers);
 
-                        foreach (var triggerDiff in triggerDifferences) triggerDiff.ParentName = target.Name;
+                        foreach (var triggerDiff in triggerDifferences)
+                        {
+                            triggerDiff.ParentName = target.Name;
+                        }
 
                         difference.SubDifferences.AddRange(triggerDifferences);
 
@@ -141,12 +144,15 @@ namespace DatabaseManager.Core
                         difference.SubDifferences.ForEach(item => item.Parent = difference);
 
                         if (difference.SubDifferences.Any(item => item.DifferenceType != DbDifferenceType.None))
+                        {
                             difference.DifferenceType = DbDifferenceType.Modified;
+                        }
                     }
                 }
             }
 
             foreach (var source in sourceSchemaInfo.Tables)
+            {
                 if (!targetSchemaInfo.Tables.Any(item => IsNameEquals(item.Name, source.Name)))
                 {
                     var difference = new DbDifference
@@ -158,6 +164,7 @@ namespace DatabaseManager.Core
 
                     differences.Add(difference);
                 }
+            }
 
             #endregion
 
@@ -196,13 +203,17 @@ namespace DatabaseManager.Core
                     difference.Source = source;
                     difference.Target = target;
 
-                    if (!IsDbObjectEquals(source, target)) difference.DifferenceType = DbDifferenceType.Modified;
+                    if (!IsDbObjectEquals(source, target))
+                    {
+                        difference.DifferenceType = DbDifferenceType.Modified;
+                    }
 
                     differences.Add(difference);
                 }
             }
 
             foreach (var source in sourceObjects)
+            {
                 if (!targetObjects.Any(item => IsNameEquals(item.Name, source.Name)))
                 {
                     var difference = new DbDifference
@@ -214,6 +225,7 @@ namespace DatabaseManager.Core
 
                     differences.Add(difference);
                 }
+            }
 
             return differences;
         }
@@ -242,13 +254,17 @@ namespace DatabaseManager.Core
                     difference.Source = source;
                     difference.Target = target;
 
-                    if (!IsDbObjectEquals(source, target)) difference.DifferenceType = DbDifferenceType.Modified;
+                    if (!IsDbObjectEquals(source, target))
+                    {
+                        difference.DifferenceType = DbDifferenceType.Modified;
+                    }
 
                     differences.Add(difference);
                 }
             }
 
             foreach (var source in sourceObjects)
+            {
                 if (!targetObjects.Any(item => IsNameEquals(item.Name, source.Name)))
                 {
                     var difference = new DbDifference
@@ -260,6 +276,7 @@ namespace DatabaseManager.Core
 
                     differences.Add(difference);
                 }
+            }
 
             return differences;
         }

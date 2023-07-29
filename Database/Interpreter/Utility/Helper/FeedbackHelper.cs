@@ -17,21 +17,33 @@ namespace DatabaseInterpreter.Utility
                 if (info.Owner != null)
                 {
                     if (info.Owner.GetType() == typeof(string))
+                    {
                         prefix = info.Owner.ToString();
+                    }
                     else
+                    {
                         prefix = info.Owner.GetType().Name;
+                    }
+
                     prefix += ":";
                 }
 
                 var logContent = $"{prefix}{info.Message}";
 
                 if (LogHelper.LogType.HasFlag(LogType.Info) && info.InfoType == FeedbackInfoType.Info)
+                {
                     LogHelper.LogInfo(logContent);
+                }
                 else if (LogHelper.LogType.HasFlag(LogType.Error) && info.InfoType == FeedbackInfoType.Error)
+                {
                     LogHelper.LogError(logContent);
+                }
             }
 
-            if (EnableDebug) Console.WriteLine(info.Message);
+            if (EnableDebug)
+            {
+                Console.WriteLine(info.Message);
+            }
         }
 
 

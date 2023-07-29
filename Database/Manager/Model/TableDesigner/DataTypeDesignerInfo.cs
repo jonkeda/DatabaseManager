@@ -3,6 +3,5 @@
 namespace DatabaseManager.Model
 {
     public class DataTypeDesignerInfo : DataTypeSpecification
-    {
-    }
+    { }
 }

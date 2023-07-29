@@ -23,7 +23,10 @@ namespace DatabaseInterpreter.Utility
         {
             var logFolder = "log";
 
-            if (!Directory.Exists(logFolder)) Directory.CreateDirectory(logFolder);
+            if (!Directory.Exists(logFolder))
+            {
+                Directory.CreateDirectory(logFolder);
+            }
 
             var filePath = Path.Combine(logFolder, DateTime.Today.ToString("yyyyMMdd") + ".txt");
 

@@ -9,16 +9,17 @@ namespace DatabaseManager.Core
     public class SqlServerBackup : DbBackup
     {
         public SqlServerBackup()
-        {
-        }
+        { }
 
         public SqlServerBackup(BackupSetting setting, ConnectionInfo connectionInfo) : base(setting, connectionInfo)
-        {
-        }
+        { }
 
         public override string Backup()
         {
-            if (Setting == null) throw new ArgumentException("There is no backup setting for SqlServer.");
+            if (Setting == null)
+            {
+                throw new ArgumentException("There is no backup setting for SqlServer.");
+            }
 
             var fileNameWithoutExt = ConnectionInfo.Database + "_" + DateTime.Now.ToString("yyyyMMddHHmmss");
             var fileName = fileNameWithoutExt + ".bak";

@@ -31,6 +31,9 @@ add "ColumnName" for "TableConstraint"</PackageReleaseNotes>
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Interpreter\Builder\Connection\" />
+    <Folder Include="Interpreter\Builder\Script\" />
+    <Folder Include="Interpreter\Builder\Sql\" />
     <Folder Include="Interpreter\Config\" />
   </ItemGroup>
 

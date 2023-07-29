@@ -11,8 +11,7 @@ namespace DatabaseManager.Core
         public string DefaultBackupFolderName = "Backup";
 
         protected DbBackup()
-        {
-        }
+        { }
 
         protected DbBackup(BackupSetting setting, ConnectionInfo connectionInfo)
         {
@@ -29,9 +28,15 @@ namespace DatabaseManager.Core
         {
             var saveFolder = Setting.SaveFolder;
 
-            if (string.IsNullOrEmpty(saveFolder)) saveFolder = DefaultBackupFolderName;
+            if (string.IsNullOrEmpty(saveFolder))
+            {
+                saveFolder = DefaultBackupFolderName;
+            }
 
-            if (!Directory.Exists(saveFolder)) Directory.CreateDirectory(saveFolder);
+            if (!Directory.Exists(saveFolder))
+            {
+                Directory.CreateDirectory(saveFolder);
+            }
 
             return saveFolder;
         }

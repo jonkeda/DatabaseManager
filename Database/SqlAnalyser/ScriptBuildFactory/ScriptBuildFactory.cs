@@ -18,7 +18,10 @@ namespace SqlAnalyser.Core
         {
             get
             {
-                if (statementBuilder == null) statementBuilder = GetStatementBuilder();
+                if (statementBuilder == null)
+                {
+                    statementBuilder = GetStatementBuilder();
+                }
 
                 return statementBuilder;
             }
@@ -53,19 +56,33 @@ namespace SqlAnalyser.Core
             ScriptBuildResult result;
 
             if (script is RoutineScript routineScript)
+            {
                 result = GenerateRoutineScripts(routineScript);
+            }
             else if (script is ViewScript viewScript)
+            {
                 result = GenerateViewScripts(viewScript);
+            }
             else if (script is TriggerScript triggerScript)
+            {
                 result = GenerateTriggerScripts(triggerScript);
+            }
             else if (script is CommonScript commonScript)
+            {
                 result = GenerateCommonScripts(commonScript);
+            }
             else
+            {
                 throw new NotSupportedException($"Not support generate scripts for type: {script.GetType()}.");
+            }
 
             if (statementBuilder != null && statementBuilder.Replacements.Count > 0)
+            {
                 foreach (var kp in statementBuilder.Replacements)
+                {
                     result.Script = AnalyserHelper.ReplaceSymbol(result.Script, kp.Key, kp.Value);
+                }
+            }
 
             statementBuilder?.Dispose();
 
@@ -73,12 +90,10 @@ namespace SqlAnalyser.Core
         }
 
         protected virtual void PreHandleStatements(List<Statement> statements)
-        {
-        }
+        { }
 
         protected virtual void PostHandleStatements(StringBuilder sb)
-        {
-        }
+        { }
 
         protected virtual ScriptBuildResult GenerateCommonScripts(CommonScript script)
         {
@@ -88,7 +103,10 @@ namespace SqlAnalyser.Core
 
             var sb = new StringBuilder();
 
-            foreach (var statement in script.Statements) sb.AppendLine(BuildStatement(statement));
+            foreach (var statement in script.Statements)
+            {
+                sb.AppendLine(BuildStatement(statement));
+            }
 
             PostHandleStatements(sb);
 

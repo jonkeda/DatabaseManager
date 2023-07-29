@@ -19,15 +19,27 @@ namespace DatabaseConverter.Core
 
             foreach (var line in lines)
             {
-                if (line.StartsWith("DECLARE")) sb.AppendLine(line);
+                if (line.StartsWith("DECLARE"))
+                {
+                    sb.AppendLine(line);
+                }
+
                 if ((line.StartsWith("BEGIN") || line.StartsWith("AS")) && firstBeginIndex == -1)
+                {
                     firstBeginIndex = index;
-                else if (line.StartsWith("END") || line.StartsWith("$")) lastEndIndex = index;
+                }
+                else if (line.StartsWith("END") || line.StartsWith("$"))
+                {
+                    lastEndIndex = index;
+                }
 
                 index++;
             }
 
-            if (lastEndIndex == -1) lastEndIndex = lines.Length - 1;
+            if (lastEndIndex == -1)
+            {
+                lastEndIndex = lines.Length - 1;
+            }
 
             var items = new List<string>();
 
@@ -35,7 +47,10 @@ namespace DatabaseConverter.Core
 
             foreach (var line in lines)
             {
-                if (index > firstBeginIndex && index < lastEndIndex) sb.AppendLine(line);
+                if (index > firstBeginIndex && index < lastEndIndex)
+                {
+                    sb.AppendLine(line);
+                }
 
                 index++;
             }
@@ -65,11 +80,17 @@ namespace DatabaseConverter.Core
                 {
                     firstBeginIndex = i;
 
-                    foreach (var declare in declares) sb.AppendLine(declare);
+                    foreach (var declare in declares)
+                    {
+                        sb.AppendLine(declare);
+                    }
                 }
                 else if (firstBeginIndex != -1 && i == firstBeginIndex + 1)
                 {
-                    foreach (var bodyLine in bodyLines) sb.AppendLine(bodyLine);
+                    foreach (var bodyLine in bodyLines)
+                    {
+                        sb.AppendLine(bodyLine);
+                    }
                 }
 
                 sb.AppendLine(line);

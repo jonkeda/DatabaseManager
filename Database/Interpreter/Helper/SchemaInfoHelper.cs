@@ -53,7 +53,9 @@ namespace DatabaseInterpreter.Core
         public static string GetMappedTableName(string tableName, Dictionary<string, string> tableNameMappings)
         {
             if (tableNameMappings != null && tableNameMappings.TryGetValue(tableName, out var name))
+            {
                 return name;
+            }
 
             return tableName;
         }
@@ -64,7 +66,10 @@ namespace DatabaseInterpreter.Core
 
             schemaInfo.TablePrimaryKeys.ForEach(item =>
             {
-                if (keyNames.Contains(item.Name)) item.Name = "PK_" + item.TableName;
+                if (keyNames.Contains(item.Name))
+                {
+                    item.Name = "PK_" + item.TableName;
+                }
 
                 keyNames.Add(item.Name);
             });
@@ -74,7 +79,10 @@ namespace DatabaseInterpreter.Core
         {
             schemaInfo.TablePrimaryKeys.ForEach(item =>
             {
-                if (item.Name == "PRIMARY") item.Name = "PK_" + item.TableName;
+                if (item.Name == "PRIMARY")
+                {
+                    item.Name = "PK_" + item.TableName;
+                }
             });
         }
 
@@ -101,17 +109,26 @@ namespace DatabaseInterpreter.Core
         {
             schemaInfo.TablePrimaryKeys.ForEach(item =>
             {
-                if (item.Name.Length > maxLength) item.Name = item.Name.Substring(0, maxLength);
+                if (item.Name.Length > maxLength)
+                {
+                    item.Name = item.Name.Substring(0, maxLength);
+                }
             });
 
             schemaInfo.TableForeignKeys.ForEach(item =>
             {
-                if (item.Name.Length > maxLength) item.Name = item.Name.Substring(0, maxLength);
+                if (item.Name.Length > maxLength)
+                {
+                    item.Name = item.Name.Substring(0, maxLength);
+                }
             });
 
             schemaInfo.TableIndexes.ForEach(item =>
             {
-                if (item.Name.Length > maxLength) item.Name = item.Name.Substring(0, maxLength);
+                if (item.Name.Length > maxLength)
+                {
+                    item.Name = item.Name.Substring(0, maxLength);
+                }
             });
         }
 
@@ -142,22 +159,33 @@ namespace DatabaseInterpreter.Core
                     bool existed;
 
                     if (obj is TableForeignKey tfk)
+                    {
                         existed = (targetDbObjects as List<TableForeignKey>).Any(item =>
                             item.TableName.ToLower() == tfk.TableName && item.ReferencedTableName.ToLower() ==
                                                                       tfk.ReferencedTableName.ToLower()
                                                                       && IsForeignKeyColumnsEquals(item.Columns,
                                                                           tfk.Columns));
+                    }
                     else if (obj is TableColumnChild tk)
+                    {
                         existed = targetDbObjects.Cast<TableColumnChild>().Any(item =>
                             item.TableName.ToLower() == tk.TableName &&
                             item.ColumnName.ToLower() == tk.ColumnName.ToLower());
+                    }
                     else if (obj is TableChild tc)
+                    {
                         existed = targetDbObjects.Cast<TableChild>().Any(item =>
                             item.TableName.ToLower() == tc.TableName && item.Name?.ToLower() == tc.Name?.ToLower());
+                    }
                     else
+                    {
                         existed = targetDbObjects.Any(item => item.Name.ToLower() == obj.Name.ToLower());
+                    }
 
-                    if (existed) excludeDbObjects.Add(obj);
+                    if (existed)
+                    {
+                        excludeDbObjects.Add(obj);
+                    }
                 }
 
                 sourceDbObjects.RemoveAll(item => excludeDbObjects.Any(t => t == item));
@@ -166,15 +194,22 @@ namespace DatabaseInterpreter.Core
 
         public static bool IsForeignKeyColumnsEquals(List<ForeignKeyColumn> columns1, List<ForeignKeyColumn> columns2)
         {
-            if (columns1.Count != columns2.Count) return false;
+            if (columns1.Count != columns2.Count)
+            {
+                return false;
+            }
 
             var count = 0;
 
             foreach (var column in columns1)
+            {
                 if (columns2.Any(item => item.ReferencedColumnName.ToLower() == column.ReferencedColumnName.ToLower() &&
                                          item.ColumnName.ToLower() == column.ColumnName.ToLower()
                     ))
+                {
                     count++;
+                }
+            }
 
             return count == columns1.Count;
         }
@@ -182,21 +217,32 @@ namespace DatabaseInterpreter.Core
         public static bool IsPrimaryKeyEquals(TablePrimaryKey primaryKey1, TablePrimaryKey primaryKey2,
             bool onlyComapreColums = false, bool excludeComment = true)
         {
-            if (primaryKey1 == null && primaryKey2 == null) return true;
+            if (primaryKey1 == null && primaryKey2 == null)
+            {
+                return true;
+            }
 
             if ((primaryKey1 != null && primaryKey2 == null) || (primaryKey1 == null && primaryKey2 != null))
+            {
                 return false;
+            }
 
             if (IsIndexColumnsEquals(primaryKey1.Columns, primaryKey2.Columns))
             {
-                if (onlyComapreColums) return true;
+                if (onlyComapreColums)
+                {
+                    return true;
+                }
 
                 if (primaryKey1.Name == primaryKey2.Name && primaryKey1.Clustered == primaryKey2.Clustered
                                                          && (excludeComment || (!excludeComment &&
                                                              ValueHelper.IsStringEquals(primaryKey1.Comment,
                                                                  primaryKey2.Comment)))
                    )
+                {
                     return true;
+                }
+
                 return false;
             }
 
@@ -205,14 +251,21 @@ namespace DatabaseInterpreter.Core
 
         public static bool IsIndexColumnsEquals(List<IndexColumn> columns1, List<IndexColumn> columns2)
         {
-            if (columns1.Count != columns2.Count) return false;
+            if (columns1.Count != columns2.Count)
+            {
+                return false;
+            }
 
             var count = 0;
 
             foreach (var column in columns1)
+            {
                 if (columns2.Any(item =>
                         item.ColumnName.ToLower() == column.ColumnName.ToLower() && item.IsDesc == column.IsDesc))
+                {
                     count++;
+                }
+            }
 
             return count == columns1.Count;
         }
@@ -368,7 +421,9 @@ namespace DatabaseInterpreter.Core
                     StringHelper.GetBalanceParenthesisTrimedValue(column2.DefaultValue))
                 && (excludeComment || (!excludeComment && ValueHelper.IsStringEquals(column1.Comment, column2.Comment)))
                 && ValueHelper.IsStringEquals(column1.ComputeExp, column2.ComputeExp))
+            {
                 return true;
+            }
 
             return false;
         }
@@ -377,9 +432,14 @@ namespace DatabaseInterpreter.Core
             TableColumn column2)
         {
             if (DataTypeHelper.IsUserDefinedType(column1) != DataTypeHelper.IsUserDefinedType(column2))
+            {
                 return false;
+            }
+
             if (DataTypeHelper.IsUserDefinedType(column1) && DataTypeHelper.IsUserDefinedType(column2))
+            {
                 return column1.DataType == column2.DataType;
+            }
 
             var dataTypeInfo1 = DataTypeHelper.GetDataTypeInfo(column1.DataType);
             var dataTypeInfo2 = DataTypeHelper.GetDataTypeInfo(column2.DataType);
@@ -402,13 +462,19 @@ namespace DatabaseInterpreter.Core
                 dataType2 = dataTypeInfo2.DataType;
             }
 
-            if (dataType1.ToLower() != dataType2.ToLower()) return false;
+            if (dataType1.ToLower() != dataType2.ToLower())
+            {
+                return false;
+            }
 
             var dataTypeSpec1 = dataTypeSpecs1.FirstOrDefault(item => item.Name == dataType1);
             var dataTypeSpec2 = dataTypeSpecs2.FirstOrDefault(item => item.Name == dataType2);
 
             if (dataTypeInfo1.DataType == dataTypeInfo2.DataType && string.IsNullOrEmpty(dataTypeSpec1.Args) &&
-                string.IsNullOrEmpty(dataTypeSpec2.Args)) return true;
+                string.IsNullOrEmpty(dataTypeSpec2.Args))
+            {
+                return true;
+            }
 
             var isChar1 = DataTypeHelper.IsCharType(dataType1);
             var isChar2 = DataTypeHelper.IsCharType(dataType2);
@@ -417,22 +483,38 @@ namespace DatabaseInterpreter.Core
             var isBytes2 = DataTypeHelper.IsCharType(dataType2);
 
             if (isBytes1 && isBytes2)
+            {
                 return column1.MaxLength == column2.MaxLength;
+            }
+
             if (isChar1 && isChar2 && DataTypeHelper.StartsWithN(dataType1) && DataTypeHelper.StartsWithN(dataType2))
+            {
                 return column1.MaxLength == column2.MaxLength;
+            }
+
             if ((column1.Precision == null && column1.Scale == null && column1.MaxLength == column2.Precision)
                 || (column2.Precision == null && column2.Scale == null && column2.MaxLength == column1.Precision))
+            {
                 return true;
+            }
 
             if (dataTypeSpec1.Name == dataTypeSpec2.Name && dataTypeSpec1.Args?.Contains("length") == false)
             {
                 if (dataTypeSpec1.Args == "scale")
+                {
                     return IsPrecisionScaleEquals(column1.Scale, column2.Scale);
+                }
+
                 if (dataTypeSpec1.Args == "precision")
+                {
                     return IsPrecisionScaleEquals(column1.Precision, column2.Precision);
+                }
+
                 if (dataTypeSpec1.Args?.Contains("scale") == true || dataTypeSpec1.Args?.Contains("precision") == true)
+                {
                     return IsPrecisionScaleEquals(column1.Precision, column2.Precision)
                            && IsPrecisionScaleEquals(column1.Scale, column2.Scale);
+                }
             }
 
             return column1.MaxLength == column2.MaxLength
@@ -442,7 +524,10 @@ namespace DatabaseInterpreter.Core
 
         private static bool IsPrecisionScaleEquals(long? value1, long? value2)
         {
-            if ((!value1.HasValue || value1 <= 0) && (!value2.HasValue || value2 <= 0)) return true;
+            if ((!value1.HasValue || value1 <= 0) && (!value2.HasValue || value2 <= 0))
+            {
+                return true;
+            }
 
             return value1 == value2;
         }
@@ -483,7 +568,10 @@ namespace DatabaseInterpreter.Core
                         item.ReferencedSchema = mappings.FirstOrDefault(t => t.SourceSchema == item.ReferencedSchema)
                             ?.TargetSchema;
 
-                        if (item.ReferencedSchema == null) item.ReferencedSchema = targetSchema;
+                        if (item.ReferencedSchema == null)
+                        {
+                            item.ReferencedSchema = targetSchema;
+                        }
                     }
 
                     item.Schema = targetSchema;
@@ -521,14 +609,19 @@ namespace DatabaseInterpreter.Core
 
         public static string GetMappedSchema(string schema, List<SchemaMappingInfo> schemaMappings)
         {
-            if (schema == null) return null;
+            if (schema == null)
+            {
+                return null;
+            }
 
             var mappedSchema = schemaMappings.FirstOrDefault(item => item.SourceSchema.ToUpper() == schema.ToUpper())
                 ?.TargetSchema;
 
             if (mappedSchema == null)
+            {
                 mappedSchema = schemaMappings.FirstOrDefault(item => string.IsNullOrEmpty(item.SourceSchema))
                     ?.TargetSchema;
+            }
 
             return mappedSchema;
         }
@@ -538,18 +631,33 @@ namespace DatabaseInterpreter.Core
             var schemaInfo = new SchemaInfo();
 
             if (dbObject is Table table)
+            {
                 schemaInfo.Tables.Add(table);
+            }
             else if (dbObject is View view)
+            {
                 schemaInfo.Views.Add(view);
+            }
             else if (dbObject is Function function)
+            {
                 schemaInfo.Functions.Add(function);
+            }
             else if (dbObject is Procedure procedure)
+            {
                 schemaInfo.Procedures.Add(procedure);
+            }
             else if (dbObject is TableTrigger trigger)
+            {
                 schemaInfo.TableTriggers.Add(trigger);
+            }
             else if (dbObject is Sequence sequence)
+            {
                 schemaInfo.Sequences.Add(sequence);
-            else if (dbObject is UserDefinedType type) schemaInfo.UserDefinedTypes.Add(type);
+            }
+            else if (dbObject is UserDefinedType type)
+            {
+                schemaInfo.UserDefinedTypes.Add(type);
+            }
 
             return schemaInfo;
         }

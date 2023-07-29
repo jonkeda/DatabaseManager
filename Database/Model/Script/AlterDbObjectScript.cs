@@ -4,7 +4,6 @@
         where T : DatabaseObject
     {
         public AlterDbObjectScript(string script) : base(script)
-        {
-        }
+        { }
     }
 }

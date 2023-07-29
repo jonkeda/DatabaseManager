@@ -12,7 +12,10 @@ namespace SqlAnalyser.Core
         public override void SyntaxError(TextWriter output, IRecognizer recognizer, IToken offendingSymbol, int line,
             int charPositionInLine, string msg, RecognitionException e)
         {
-            if (Error == null) Error = new SqlSyntaxError();
+            if (Error == null)
+            {
+                Error = new SqlSyntaxError();
+            }
 
             if (offendingSymbol is CommonToken token)
             {

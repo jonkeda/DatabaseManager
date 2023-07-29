@@ -20,9 +20,15 @@ namespace DatabaseConverter.Core
             var matches = RegexHelper.NumberRegex.Matches(str);
 
             if (matches != null)
+            {
                 foreach (Match match in matches)
+                {
                     if (!string.IsNullOrEmpty(match.Value))
+                    {
                         str = str.Replace(match.Value, $"{match.Value}::money");
+                    }
+                }
+            }
 
             return str;
         }
@@ -38,9 +44,13 @@ namespace DatabaseConverter.Core
                 ).OrderByDescending(item => item.Name.Length);
 
                 if (specs != null)
+                {
                     foreach (var spec in specs)
+                    {
                         value = value.Replace($"::{quotationLeftChar}{spec.Name}{quotationRightChar}", "")
                             .Replace($"::{spec.Name}", "");
+                    }
+                }
             }
 
             return value;
@@ -61,7 +71,10 @@ namespace DatabaseConverter.Core
             {
                 var index = value.IndexOf("(", StringComparison.Ordinal);
 
-                if (index > 0) return value.Substring(0, index).Trim();
+                if (index > 0)
+                {
+                    return value.Substring(0, index).Trim();
+                }
             }
 
             return value;
@@ -110,13 +123,17 @@ namespace DatabaseConverter.Core
                 {
                     maxLength = GetDataTypeArgumentValue(argItems[0].Trim(), true).Value;
 
-                    if (isChar && DataTypeHelper.StartsWithN(dataTypeName) && maxLength > 0) maxLength *= 2;
+                    if (isChar && DataTypeHelper.StartsWithN(dataTypeName) && maxLength > 0)
+                    {
+                        maxLength *= 2;
+                    }
                 }
                 else
                 {
                     var value = -1;
 
                     if (int.TryParse(argItems[0], out value))
+                    {
                         if (value > 0)
                         {
                             var dataTypeSpecification = dbInterpreter.GetDataTypeSpecification(dataTypeName);
@@ -133,10 +150,14 @@ namespace DatabaseConverter.Core
                                 {
                                     precision = GetDataTypeArgumentValue(argItems[0]);
 
-                                    if (argItems.Length > 1) scale = GetDataTypeArgumentValue(argItems[1]);
+                                    if (argItems.Length > 1)
+                                    {
+                                        scale = GetDataTypeArgumentValue(argItems[1]);
+                                    }
                                 }
                             }
                         }
+                    }
                 }
             }
 
@@ -151,7 +172,10 @@ namespace DatabaseConverter.Core
         {
             var intValue = -1;
 
-            if (int.TryParse(value, out intValue)) return intValue;
+            if (int.TryParse(value, out intValue))
+            {
+                return intValue;
+            }
 
             return isChar ? -1 : default(int?);
         }
@@ -168,7 +192,9 @@ namespace DatabaseConverter.Core
         public static void RestoreTokenValue(string definition, TokenInfo token)
         {
             if (token != null && token.StartIndex.HasValue && token.Length > 0)
+            {
                 token.Symbol = definition.Substring(token.StartIndex.Value, token.Length);
+            }
         }
 
         public static SqlAnalyserBase GetSqlAnalyser(DatabaseType databaseType, string content)
@@ -206,7 +232,10 @@ namespace DatabaseConverter.Core
                     }
                 }
 
-                if (!handled) sb.Append(line);
+                if (!handled)
+                {
+                    sb.Append(line);
+                }
 
                 sb.Append('\n');
             }
@@ -224,7 +253,10 @@ namespace DatabaseConverter.Core
             var trimedName = name.Trim().Trim(trimChars).Trim();
 
             if (trimedName.Contains(" ") && IsNameQuoted(name.Trim(), trimChars))
+            {
                 return true;
+            }
+
             return RegexHelper.NameRegex.IsMatch(trimedName);
         }
 
@@ -241,7 +273,10 @@ namespace DatabaseConverter.Core
 
                 var assignName = items[0].Trim(trimChars).Trim();
 
-                if (RegexHelper.NameRegex.IsMatch(assignName)) return true;
+                if (RegexHelper.NameRegex.IsMatch(assignName))
+                {
+                    return true;
+                }
             }
 
             return false;

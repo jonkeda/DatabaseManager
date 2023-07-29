@@ -9,7 +9,11 @@ namespace DatabaseInterpreter.Utility
     {
         public static string GetSingleQuotedString(params string[] values)
         {
-            if (values != null) return string.Join(",", values.Select(item => $"'{item}'"));
+            if (values != null)
+            {
+                return string.Join(",", values.Select(item => $"'{item}'"));
+            }
+
             return null;
         }
 
@@ -44,15 +48,22 @@ namespace DatabaseInterpreter.Utility
         public static byte[] ParseHex(string text)
         {
             var ret = new byte[text.Length / 2];
-            for (var i = 0; i < ret.Length; i++) ret[i] = Convert.ToByte(text.Substring(i * 2, 2), 16);
+            for (var i = 0; i < ret.Length; i++)
+            {
+                ret[i] = Convert.ToByte(text.Substring(i * 2, 2), 16);
+            }
+
             return ret;
         }
 
         public static string ToSingleEmptyLine(string value)
         {
             if (value != null)
+            {
                 return Regex.Replace(value, "(\\r\\n){3,}", Environment.NewLine + Environment.NewLine,
                     RegexOptions.Multiline);
+            }
+
             return value;
         }
 
@@ -77,21 +88,29 @@ namespace DatabaseInterpreter.Utility
         public static string TrimParenthesis(string value)
         {
             while (value.Length > 2 && value.StartsWith("(") && value.EndsWith(")"))
+            {
                 value = value.Substring(1, value.Length - 2);
+            }
 
             return value;
         }
 
         public static string GetParenthesisedString(string value)
         {
-            if (IsParenthesised(value)) return value;
+            if (IsParenthesised(value))
+            {
+                return value;
+            }
 
             return $"({value})";
         }
 
         public static bool IsParenthesised(string value)
         {
-            if (string.IsNullOrEmpty(value)) return false;
+            if (string.IsNullOrEmpty(value))
+            {
+                return false;
+            }
 
             var trimedValue = value.Trim();
 
@@ -107,7 +126,10 @@ namespace DatabaseInterpreter.Utility
                     var trimedValue = value.Substring(1, value.Length - 2);
 
                     if (!IsParenthesisBalanced(trimedValue))
+                    {
                         return value;
+                    }
+
                     value = trimedValue;
                 }
 
@@ -119,7 +141,10 @@ namespace DatabaseInterpreter.Utility
 
         public static bool IsParenthesisBalanced(string value)
         {
-            if (string.IsNullOrEmpty(value) || (!value.Contains("(") && !value.Contains(")"))) return true;
+            if (string.IsNullOrEmpty(value) || (!value.Contains("(") && !value.Contains(")")))
+            {
+                return true;
+            }
 
             var pairs = new Dictionary<char, char> { { '(', ')' } };
 
@@ -128,6 +153,7 @@ namespace DatabaseInterpreter.Utility
             try
             {
                 foreach (var c in value)
+                {
                     if (pairs.Keys.Contains(c))
                     {
                         parenthesises.Push(c);
@@ -137,11 +163,16 @@ namespace DatabaseInterpreter.Utility
                         if (pairs.Values.Contains(c))
                         {
                             if (c == pairs[parenthesises.First()])
+                            {
                                 parenthesises.Pop();
+                            }
                             else
+                            {
                                 return false;
+                            }
                         }
                     }
+                }
             }
             catch
             {

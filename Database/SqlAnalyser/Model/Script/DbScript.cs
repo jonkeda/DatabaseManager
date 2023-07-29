@@ -10,7 +10,10 @@
             get
             {
                 if (string.IsNullOrEmpty(Schema))
+                {
                     return Name?.ToString();
+                }
+
                 return $"{Schema}.{Name}";
             }
         }

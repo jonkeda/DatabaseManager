@@ -19,8 +19,7 @@ namespace DatabaseManager.Core
         private IObserver<FeedbackInfo> observer;
 
         public DbManager()
-        {
-        }
+        { }
 
         public DbManager(DbInterpreter dbInterpreter)
         {
@@ -37,7 +36,10 @@ namespace DatabaseManager.Core
         {
             FeedbackInfo("Begin to clear data...");
 
-            if (tables == null) tables = await dbInterpreter.GetTablesAsync();
+            if (tables == null)
+            {
+                tables = await dbInterpreter.GetTablesAsync();
+            }
 
             var failed = false;
 
@@ -73,7 +75,10 @@ namespace DatabaseManager.Core
                         await dbInterpreter.ExecuteNonQueryAsync(dbConnection, commandInfo);
                     }
 
-                    if (!dbInterpreter.HasError) transaction.Commit();
+                    if (!dbInterpreter.HasError)
+                    {
+                        transaction.Commit();
+                    }
 
                     await SetConstrainsEnabled(dbConnection, true);
                 }
@@ -84,6 +89,7 @@ namespace DatabaseManager.Core
                 FeedbackError(ExceptionHelper.GetExceptionDetails(ex));
 
                 if (transaction != null)
+                {
                     try
                     {
                         transaction.Rollback();
@@ -92,6 +98,7 @@ namespace DatabaseManager.Core
                     {
                         LogHelper.LogError(iex.Message);
                     }
+                }
             }
             finally
             {
@@ -118,13 +125,15 @@ namespace DatabaseManager.Core
 
             var scripts = scriptGenerator.SetConstrainsEnabled(enabled);
 
-            foreach (var script in scripts) await dbInterpreter.ExecuteNonQueryAsync(dbConnection, script.Content);
+            foreach (var script in scripts)
+            {
+                await dbInterpreter.ExecuteNonQueryAsync(dbConnection, script.Content);
+            }
 
             if (needDispose)
             {
                 using (dbConnection)
-                {
-                }
+                { }
 
                 ;
             }
@@ -176,7 +185,9 @@ namespace DatabaseManager.Core
             var names = new List<string>();
 
             foreach (var obj in dbObjects)
+            {
                 if (!names.Contains(obj.Name))
+                {
                     try
                     {
                         await DropDbObject(obj, connection, true);
@@ -187,6 +198,8 @@ namespace DatabaseManager.Core
                     {
                         FeedbackError($@"Error occurs when drop ""{obj.Name}"":{ex.Message}", true);
                     }
+                }
+            }
         }
 
         private async Task<bool> DropDbObject(DatabaseObject dbObject, DbConnection connection = null,
@@ -203,15 +216,21 @@ namespace DatabaseManager.Core
                 var sql = script.Content;
 
                 if (dbInterpreter.ScriptsDelimiter.Length == 1)
+                {
                     sql = sql.TrimEnd(dbInterpreter.ScriptsDelimiter.ToCharArray());
+                }
 
                 var commandInfo = new CommandInfo
                     { CommandText = sql, ContinueWhenErrorOccurs = continueWhenErrorOccurs };
 
                 if (connection != null)
+                {
                     await dbInterpreter.ExecuteNonQueryAsync(connection, commandInfo);
+                }
                 else
+                {
                     await dbInterpreter.ExecuteNonQueryAsync(commandInfo);
+                }
 
                 return true;
             }
@@ -246,9 +265,13 @@ namespace DatabaseManager.Core
                 var saveFilePath = backup.Backup();
 
                 if (File.Exists(saveFilePath))
+                {
                     FeedbackInfo($"Database has been backuped to {saveFilePath}.");
+                }
                 else
+                {
                     FeedbackInfo("Database has been backuped.");
+                }
 
                 return true;
             }
@@ -296,7 +319,10 @@ namespace DatabaseManager.Core
 
         public void Feedback(FeedbackInfo info)
         {
-            if (observer != null) FeedbackHelper.Feedback(observer, info);
+            if (observer != null)
+            {
+                FeedbackHelper.Feedback(observer, info);
+            }
         }
 
         public void FeedbackInfo(string message)

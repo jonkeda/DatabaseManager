@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
+using Databases.Interpreter.Builder;
 using Microsoft.SqlServer.Types;
 using Oracle.ManagedDataAccess.Client;
 using PgGeom = NetTopologySuite.Geometries;

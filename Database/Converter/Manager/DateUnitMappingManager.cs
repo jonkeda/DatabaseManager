@@ -16,7 +16,10 @@ namespace DatabaseConverter.Core
         {
             get
             {
-                if (_dateUnitMappings == null) _dateUnitMappings = GetDateUnitMappings();
+                if (_dateUnitMappings == null)
+                {
+                    _dateUnitMappings = GetDateUnitMappings();
+                }
 
                 return _dateUnitMappings;
             }

@@ -14,7 +14,9 @@ namespace DatabaseInterpreter.Core
         public static List<FunctionSpecification> GetFunctionSpecifications(DatabaseType dbType)
         {
             if (_functionSpecifications != null && _functionSpecifications.TryGetValue(dbType, out var specifications))
+            {
                 return specifications;
+            }
 
             var filePath = Path.Combine(ConfigRootFolder, $"FunctionSpecification/{dbType}.xml");
 
@@ -30,7 +32,9 @@ namespace DatabaseInterpreter.Core
             }).ToList();
 
             if (_functionSpecifications == null)
+            {
                 _functionSpecifications = new Dictionary<DatabaseType, List<FunctionSpecification>>();
+            }
 
             _functionSpecifications.Add(dbType, functionSpecs);
 

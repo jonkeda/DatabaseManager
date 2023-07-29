@@ -20,11 +20,20 @@ namespace DatabaseInterpreter.Utility
         {
             // Check arguments.
             if (plainText == null || plainText.Length <= 0)
+            {
                 throw new ArgumentNullException(nameof(plainText));
+            }
+
             if (key == null || key.Length <= 0)
+            {
                 throw new ArgumentNullException("Key");
+            }
+
             if (iv == null || iv.Length <= 0)
+            {
                 throw new ArgumentNullException("IV");
+            }
+
             byte[] encrypted;
 
             // Create an Aes object
@@ -68,11 +77,19 @@ namespace DatabaseInterpreter.Utility
         {
             // Check arguments.
             if (cipherText == null || cipherText.Length <= 0)
+            {
                 throw new ArgumentNullException(nameof(cipherText));
+            }
+
             if (key == null || key.Length <= 0)
+            {
                 throw new ArgumentNullException("Key");
+            }
+
             if (iv == null || iv.Length <= 0)
+            {
                 throw new ArgumentNullException("IV");
+            }
 
             // Declare the string used to hold
             // the decrypted text.

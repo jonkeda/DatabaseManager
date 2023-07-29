@@ -22,12 +22,19 @@ namespace SqlAnalyser.Core
             {
                 Append($"INSERT INTO {insert.TableName}", false);
 
-                if (insert.Columns.Count > 0) AppendLine($"({string.Join(",", insert.Columns.Select(item => item))})");
+                if (insert.Columns.Count > 0)
+                {
+                    AppendLine($"({string.Join(",", insert.Columns.Select(item => item))})");
+                }
 
                 if (insert.SelectStatements != null && insert.SelectStatements.Count > 0)
+                {
                     AppendChildStatements(insert.SelectStatements);
+                }
                 else
+                {
                     AppendLine($"VALUES({string.Join(",", insert.Values.Select(item => item))});");
+                }
             }
             else if (statement is UnionStatement union)
             {
@@ -39,7 +46,10 @@ namespace SqlAnalyser.Core
                 var fromItemsCount = update.FromItems == null ? 0 : update.FromItems.Count;
                 var tableName = StatementScriptBuilderHelper.GetUpdateSetTableName(update);
 
-                if (tableName == null && update.TableNames != null) tableName = update.TableNames.FirstOrDefault();
+                if (tableName == null && update.TableNames != null)
+                {
+                    tableName = update.TableNames.FirstOrDefault();
+                }
 
                 var useAlias = tableName.Alias != null;
 
@@ -57,7 +67,10 @@ namespace SqlAnalyser.Core
 
                         BuildUpdateSetValue(item);
 
-                        if (k < update.SetItems.Count - 1) Append(",");
+                        if (k < update.SetItems.Count - 1)
+                        {
+                            Append(",");
+                        }
 
                         AppendLine(Indent);
 
@@ -83,7 +96,10 @@ namespace SqlAnalyser.Core
 
                         if (hasJoin)
                         {
-                            if (i == 0) AppendLine($"FROM {fromItem.TableName.NameWithAlias}");
+                            if (i == 0)
+                            {
+                                AppendLine($"FROM {fromItem.TableName.NameWithAlias}");
+                            }
 
                             foreach (var joinItem in fromItem.JoinItems)
                             {
@@ -95,9 +111,13 @@ namespace SqlAnalyser.Core
                         else
                         {
                             if (i == 0)
+                            {
                                 Append("FROM ");
+                            }
                             else
+                            {
                                 Append(",");
+                            }
 
                             if (fromItem.SubSelectStatement != null)
                             {
@@ -118,13 +138,21 @@ namespace SqlAnalyser.Core
                 }
                 else
                 {
-                    if (useAlias) AppendLine($"FROM {tableName.NameWithAlias}");
+                    if (useAlias)
+                    {
+                        AppendLine($"FROM {tableName.NameWithAlias}");
+                    }
                 }
 
                 if (update.Condition != null && update.Condition.Symbol != null)
+                {
                     AppendLine($"WHERE {update.Condition}");
+                }
 
-                if (update.Option != null) AppendLine(update.Option.ToString());
+                if (update.Option != null)
+                {
+                    AppendLine(update.Option.ToString());
+                }
 
                 AppendLine(";");
             }
@@ -143,7 +171,10 @@ namespace SqlAnalyser.Core
                     BuildFromItems(delete.FromItems);
                 }
 
-                if (delete.Condition != null) AppendLine($"WHERE {delete.Condition}");
+                if (delete.Condition != null)
+                {
+                    AppendLine($"WHERE {delete.Condition}");
+                }
 
                 AppendLine(";");
             }
@@ -161,8 +192,10 @@ namespace SqlAnalyser.Core
                 var i = 0;
 
                 foreach (var column in tableInfo.Columns)
+                {
                     AppendLine(
                         $"{column.Name.FieldName} {column.DataType}{(i == tableInfo.Columns.Count - 1 ? "" : ",")}");
+                }
 
                 AppendLine(")");
             }
@@ -179,7 +212,10 @@ namespace SqlAnalyser.Core
                         var dataType =
                             AnalyserHelper.GetUserVariableDataType(DatabaseType.SqlServer, set.UserVariableDataType);
 
-                        if (!string.IsNullOrEmpty(dataType)) AppendLine($"DECLARE {set.Key} {dataType};");
+                        if (!string.IsNullOrEmpty(dataType))
+                        {
+                            AppendLine($"DECLARE {set.Key} {dataType};");
+                        }
                     }
 
                     var valueToken = set.Value;
@@ -194,7 +230,10 @@ namespace SqlAnalyser.Core
                         {
                             var child = valueToken.Children.FirstOrDefault(item => IsRoutineName(item));
 
-                            if (child != null) MakeupRoutineName(valueToken);
+                            if (child != null)
+                            {
+                                MakeupRoutineName(valueToken);
+                            }
                         }
                     }
 
@@ -222,9 +261,13 @@ namespace SqlAnalyser.Core
                     AppendLine("BEGIN");
 
                     if (item.Statements.Count > 0)
+                    {
                         AppendChildStatements(item.Statements);
+                    }
                     else
+                    {
                         AppendLine("PRINT('BLANK!');");
+                    }
 
                     AppendLine("END");
                     AppendLine();
@@ -245,8 +288,10 @@ namespace SqlAnalyser.Core
                     };
 
                     if (item.Type != IfStatementType.ELSE)
+                    {
                         ifItem.Condition = new TokenInfo($"{variableName}={item.Condition}")
                             { Type = TokenType.IfCondition };
+                    }
 
                     i++;
                 }
@@ -294,7 +339,9 @@ namespace SqlAnalyser.Core
                 AppendChildStatements(loop.Statements);
 
                 if (isForLoop && isIntegerIterate)
+                {
                     AppendLine($"SET {iteratorName}= {iteratorName}{(isReverse ? "-" : "+")}1;");
+                }
 
                 AppendLine("END");
             }
@@ -364,7 +411,10 @@ namespace SqlAnalyser.Core
                         {
                             var value = parameter.Value?.Symbol;
 
-                            if (!parameter.IsDescription) usings.Add(parameter);
+                            if (!parameter.IsDescription)
+                            {
+                                usings.Add(parameter);
+                            }
                         }
 
                         var strParameters = usings.Count == 0
@@ -403,7 +453,10 @@ namespace SqlAnalyser.Core
                 AppendLine(
                     $"DECLARE {declareCursor.CursorName} CURSOR{(declareCursor.SelectStatement != null ? " FOR" : "")}");
 
-                if (declareCursor.SelectStatement != null) Build(declareCursor.SelectStatement);
+                if (declareCursor.SelectStatement != null)
+                {
+                    Build(declareCursor.SelectStatement);
+                }
 
                 AppendLine();
             }
@@ -419,7 +472,10 @@ namespace SqlAnalyser.Core
             {
                 AppendLine($"CLOSE {closeCursor.CursorName}");
 
-                if (closeCursor.IsEnd) AppendLine($"DEALLOCATE {closeCursor.CursorName}");
+                if (closeCursor.IsEnd)
+                {
+                    AppendLine($"DEALLOCATE {closeCursor.CursorName}");
+                }
             }
             else if (statement is DeallocateCursorStatement deallocateCursor)
             {
@@ -462,7 +518,9 @@ namespace SqlAnalyser.Core
                 if (type == PreparedStatementType.Prepare)
                 {
                     if (Option.CollectSpecialStatementTypes.Contains(prepared.GetType()))
+                    {
                         SpecialStatements.Add(prepared);
+                    }
                 }
                 else if (type == PreparedStatementType.Execute)
                 {
@@ -498,8 +556,12 @@ namespace SqlAnalyser.Core
             var isWith = select.WithStatements != null && select.WithStatements.Count > 0;
 
             if (select.LimitInfo != null && select.TopInfo == null)
+            {
                 if (select.LimitInfo.StartRowIndex == null || select.LimitInfo.StartRowIndex.Symbol == "0")
+                {
                     select.TopInfo = new SelectTopInfo { TopCount = select.LimitInfo.RowCount };
+                }
+            }
 
             var top = select.TopInfo == null
                 ? ""
@@ -508,9 +570,14 @@ namespace SqlAnalyser.Core
             var selectColumns = $"SELECT {top}";
 
             if (!isAssignVariable)
+            {
                 selectColumns += $"{string.Join(",", select.Columns.Select(item => GetNameWithAlias(item)))}";
+            }
 
-            if (!isWith) Append(selectColumns);
+            if (!isWith)
+            {
+                Append(selectColumns);
+            }
 
             if (intoTableName != null)
             {
@@ -520,7 +587,10 @@ namespace SqlAnalyser.Core
             {
                 var assigns = new List<string>();
 
-                for (var i = 0; i < select.Intos.Count; i++) assigns.Add($"{select.Intos[i]}={select.Columns[i]}");
+                for (var i = 0; i < select.Intos.Count; i++)
+                {
+                    assigns.Add($"{select.Intos[i]}={select.Columns[i]}");
+                }
 
                 AppendLine(string.Join(", ", assigns));
             }
@@ -536,7 +606,9 @@ namespace SqlAnalyser.Core
                         AppendLine($"WITH {withStatement.Name}");
 
                         if (withStatement.Columns != null && withStatement.Columns.Count > 0)
+                        {
                             AppendLine($"({string.Join(",", withStatement.Columns.Select(item => item))})");
+                        }
                     }
                     else
                     {
@@ -563,38 +635,63 @@ namespace SqlAnalyser.Core
             }
 
             if (select.HasFromItems)
+            {
                 BuildSelectStatementFromItems(select);
-            else if (select.TableName != null) AppendLine($"FROM {GetNameWithAlias(select.TableName)}");
+            }
+            else if (select.TableName != null)
+            {
+                AppendLine($"FROM {GetNameWithAlias(select.TableName)}");
+            }
 
 
-            if (select.Where != null) AppendLine($"WHERE {select.Where}");
+            if (select.Where != null)
+            {
+                AppendLine($"WHERE {select.Where}");
+            }
 
             if (select.GroupBy != null && select.GroupBy.Count > 0)
+            {
                 AppendLine($"GROUP BY {string.Join(",", select.GroupBy.Select(item => item))}");
+            }
 
-            if (select.Having != null) AppendLine($"HAVING {select.Having}");
+            if (select.Having != null)
+            {
+                AppendLine($"HAVING {select.Having}");
+            }
 
             if (select.OrderBy != null && select.OrderBy.Count > 0)
+            {
                 AppendLine($"ORDER BY {string.Join(",", select.OrderBy.Select(item => item))}");
+            }
 
             if (select.LimitInfo != null)
+            {
                 if (select.TopInfo == null)
                 {
-                    if (select.OrderBy == null) AppendLine("ORDER BY (SELECT 0)");
+                    if (select.OrderBy == null)
+                    {
+                        AppendLine("ORDER BY (SELECT 0)");
+                    }
 
                     //NOTE: "OFFSET X ROWS FETCH NEXT Y ROWS ONLY" only available for SQLServer 2012 and above.
                     AppendLine(
                         $"OFFSET {select.LimitInfo.StartRowIndex?.Symbol ?? "0"} ROWS FETCH NEXT {select.LimitInfo.RowCount} ROWS ONLY");
                 }
+            }
 
             if (select.UnionStatements != null)
+            {
                 foreach (var union in select.UnionStatements)
                 {
                     Build(union, false).TrimSeparator();
                     AppendLine();
                 }
+            }
 
-            if (appendSeparator) AppendLine(";");
+            if (appendSeparator)
+            {
+                AppendLine(";");
+            }
         }
 
         private static void MakeupRoutineName(TokenInfo token)
@@ -604,7 +701,10 @@ namespace SqlAnalyser.Core
 
             var name = index == -1 ? symbol : symbol.Substring(0, index);
 
-            if (!name.Contains(".")) token.Symbol = "dbo." + symbol;
+            if (!name.Contains("."))
+            {
+                token.Symbol = "dbo." + symbol;
+            }
         }
 
         private string GetUnionTypeName(UnionType unionType)
@@ -637,7 +737,10 @@ namespace SqlAnalyser.Core
             {
                 var newTableName = "#" + trimedTableName;
 
-                if (!Replacements.ContainsKey(tableName)) Replacements.Add(trimedTableName, newTableName);
+                if (!Replacements.ContainsKey(tableName))
+                {
+                    Replacements.Add(trimedTableName, newTableName);
+                }
             }
 
             var hasColumns = table.Columns.Count > 0;
@@ -682,7 +785,10 @@ namespace SqlAnalyser.Core
                     i++;
                 }
 
-                if (hasTableConstraints) sb.AppendLine(GetConstraints(table.Constraints));
+                if (hasTableConstraints)
+                {
+                    sb.AppendLine(GetConstraints(table.Constraints));
+                }
 
                 sb.Append(")");
             }

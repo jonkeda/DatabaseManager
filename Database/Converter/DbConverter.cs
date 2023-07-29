@@ -282,7 +282,8 @@ namespace DatabaseConverter.Core
             var translateEngine = new TranslateEngine(sourceSchemaInfo, targetSchemaInfo, sourceInterpreter,
                 targetInterpreter, Option)
             {
-                ContinueWhenErrorOccurs = Option.ContinueWhenErrorOccurs || (!executeScriptOnTargetServer && !onlyForTranslate)
+                ContinueWhenErrorOccurs =
+                    Option.ContinueWhenErrorOccurs || (!executeScriptOnTargetServer && !onlyForTranslate)
             };
 
             var translateDbObjectType = TranslateEngine.SupportDatabaseObjectType;

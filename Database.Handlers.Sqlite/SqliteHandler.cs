@@ -1,15 +1,14 @@
-﻿using DatabaseInterpreter.Core;
-using SqlAnalyser.Core;
+﻿using System.Data.Common;
+using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseManager.Core;
-using System.Data.Common;
-using CsvHelper;
 using Microsoft.Data.Sqlite;
+using SqlAnalyser.Core;
 
 namespace Databases.Handlers.Sqlite
 {
     public class SqliteHandler : SqlHandler<
-        SqliteScriptBuildFactory, 
+        SqliteScriptBuildFactory,
         SqliteStatementScriptBuilder,
         SqliteAnalyser,
         SqliteBackup,
@@ -17,7 +16,6 @@ namespace Databases.Handlers.Sqlite
     {
         public SqliteHandler() : base(DatabaseType.Sqlite)
         {
-
         }
 
         public override SqlAnalyserBase GetSqlAnalyser(string content)
@@ -44,10 +42,9 @@ namespace Databases.Handlers.Sqlite
 
         protected override DbProviderFactory CreateDbProviderFactory(string providerName)
         {
-            if (providerName.Contains("sqlite")) 
+            if (providerName.Contains("sqlite"))
                 return SqliteFactory.Instance;
             return null;
         }
-
     }
 }

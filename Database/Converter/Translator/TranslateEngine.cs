@@ -15,12 +15,13 @@ namespace DatabaseConverter.Core
             DatabaseObjectType.View | DatabaseObjectType.Function | DatabaseObjectType.Procedure |
             DatabaseObjectType.Trigger | DatabaseObjectType.Sequence | DatabaseObjectType.Type;
 
-        private IObserver<FeedbackInfo> observer;
         private readonly DbConverterOption option;
         private readonly DbInterpreter sourceInterpreter;
         private readonly SchemaInfo sourceSchemaInfo;
         private readonly DbInterpreter targetInterpreter;
         private readonly SchemaInfo targetSchemaInfo;
+
+        private IObserver<FeedbackInfo> observer;
 
         public TranslateEngine(SchemaInfo sourceSchemaInfo, SchemaInfo targetSchemaInfo,
             DbInterpreter sourceInterpreter, DbInterpreter targetInterpreter, DbConverterOption option = null)

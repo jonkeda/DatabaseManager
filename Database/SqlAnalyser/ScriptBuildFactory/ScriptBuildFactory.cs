@@ -30,7 +30,7 @@ namespace SqlAnalyser.Core
 
         private StatementScriptBuilder GetStatementBuilder()
         {
-            StatementScriptBuilder builder = SqlHandler.GetHandler(DatabaseType).CreateStatementScriptBuilder();
+            var builder = SqlHandler.GetHandler(DatabaseType).CreateStatementScriptBuilder();
 
             builder.Option = ScriptBuilderOption;
 

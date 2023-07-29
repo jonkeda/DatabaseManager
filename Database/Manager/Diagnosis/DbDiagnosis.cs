@@ -357,7 +357,7 @@ namespace DatabaseManager.Core
             var columns = statement.Columns;
 
             foreach (var col in columns)
-                if (col.Alias != null && !col.Alias.Symbol.StartsWith( interpreter.QuotationLeftChar.ToString()))
+                if (col.Alias != null && !col.Alias.Symbol.StartsWith(interpreter.QuotationLeftChar.ToString()))
                 {
                     var detail = new ScriptDiagnoseResultDetail
                     {

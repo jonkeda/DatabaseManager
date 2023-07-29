@@ -142,28 +142,20 @@ namespace DatabaseInterpreter.Core
                     bool existed;
 
                     if (obj is TableForeignKey tfk)
-                    {
                         existed = (targetDbObjects as List<TableForeignKey>).Any(item =>
                             item.TableName.ToLower() == tfk.TableName && item.ReferencedTableName.ToLower() ==
                                                                       tfk.ReferencedTableName.ToLower()
                                                                       && IsForeignKeyColumnsEquals(item.Columns,
                                                                           tfk.Columns));
-                    }
                     else if (obj is TableColumnChild tk)
-                    {
                         existed = targetDbObjects.Cast<TableColumnChild>().Any(item =>
                             item.TableName.ToLower() == tk.TableName &&
                             item.ColumnName.ToLower() == tk.ColumnName.ToLower());
-                    }
                     else if (obj is TableChild tc)
-                    {
                         existed = targetDbObjects.Cast<TableChild>().Any(item =>
                             item.TableName.ToLower() == tc.TableName && item.Name?.ToLower() == tc.Name?.ToLower());
-                    }
                     else
-                    {
                         existed = targetDbObjects.Any(item => item.Name.ToLower() == obj.Name.ToLower());
-                    }
 
                     if (existed) excludeDbObjects.Add(obj);
                 }

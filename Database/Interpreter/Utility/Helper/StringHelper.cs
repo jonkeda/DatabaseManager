@@ -141,9 +141,6 @@ namespace DatabaseInterpreter.Utility
                             else
                                 return false;
                         }
-                        else
-                        {
-                        }
                     }
             }
             catch

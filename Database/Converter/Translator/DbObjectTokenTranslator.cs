@@ -99,8 +99,8 @@ namespace DatabaseConverter.Core
 
         private string GetFunctionExpression(TSQLToken token, string definition)
         {
-            int startIndex = token.BeginPosition;
-            int functionEndIndex = FindFunctionEndIndex(startIndex + token.Text.Length, definition);
+            var startIndex = token.BeginPosition;
+            var functionEndIndex = FindFunctionEndIndex(startIndex + token.Text.Length, definition);
 
             string functionExpression = null;
 

@@ -15,8 +15,8 @@ namespace DatabaseManager.Core
     public class DbManager
     {
         private readonly DbInterpreter dbInterpreter;
-        private IObserver<FeedbackInfo> observer;
         private readonly DbScriptGenerator scriptGenerator;
+        private IObserver<FeedbackInfo> observer;
 
         public DbManager()
         {

@@ -198,7 +198,7 @@ namespace DatabaseInterpreter.Core
 
             var primaryKeyConstraint = "";
 
-            if (this.option.TableScriptsGenerateOption.GeneratePrimaryKey && primaryKey != null)
+            if (option.TableScriptsGenerateOption.GeneratePrimaryKey && primaryKey != null)
             {
                 var primaryKeyName = primaryKey.Name ?? "";
 
@@ -216,7 +216,7 @@ namespace DatabaseInterpreter.Core
 
             var foreginKeyConstraint = new StringBuilder();
 
-            if (this.option.TableScriptsGenerateOption.GenerateForeignKey && foreignKeys != null)
+            if (option.TableScriptsGenerateOption.GenerateForeignKey && foreignKeys != null)
                 foreach (var foreignKey in foreignKeys)
                 {
                     var columnNames = string.Join(",",
@@ -254,7 +254,7 @@ namespace DatabaseInterpreter.Core
 
             var useColumnIndex = false;
 
-            if (this.option.TableScriptsGenerateOption.GenerateIndex && indexes != null)
+            if (option.TableScriptsGenerateOption.GenerateIndex && indexes != null)
                 if (indexes.All(item => item.Columns.Count == 1 && item.IsUnique))
                     useColumnIndex = true;
 
@@ -264,7 +264,7 @@ namespace DatabaseInterpreter.Core
 
             var useColumnCheckConstraint = false;
 
-            if (this.option.TableScriptsGenerateOption.GenerateConstraint && constraints != null)
+            if (option.TableScriptsGenerateOption.GenerateConstraint && constraints != null)
                 useColumnCheckConstraint = true;
 
             #endregion
@@ -307,7 +307,7 @@ namespace DatabaseInterpreter.Core
 
             #region Index
 
-            if (this.option.TableScriptsGenerateOption.GenerateIndex && indexes != null && !useColumnIndex)
+            if (option.TableScriptsGenerateOption.GenerateIndex && indexes != null && !useColumnIndex)
                 foreach (var index in indexes)
                     sb.AppendLine(AddIndex(index));
 

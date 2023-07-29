@@ -13,8 +13,8 @@ namespace DatabaseManager.Core
     public class TableManager
     {
         private readonly DbInterpreter dbInterpreter;
-        private IObserver<FeedbackInfo> observer;
         private readonly DbScriptGenerator scriptGenerator;
+        private IObserver<FeedbackInfo> observer;
 
         public TableManager(DbInterpreter dbInterpreter)
         {
@@ -595,13 +595,14 @@ namespace DatabaseManager.Core
                     if (!indexDesignerInfo.IsPrimary)
                     {
                         var index = new TableIndex
-                            { Schema = indexDesignerInfo.Schema, TableName = indexDesignerInfo.TableName,
-                                Name = indexDesignerInfo.Name,
-                                IsUnique = indexDesignerInfo.Type == IndexType.Unique.ToString(),
-                                Clustered = indexDesignerInfo.Clustered,
-                                Comment = indexDesignerInfo.Comment,
-                                Type = indexDesignerInfo.Type
-                            };
+                        {
+                            Schema = indexDesignerInfo.Schema, TableName = indexDesignerInfo.TableName,
+                            Name = indexDesignerInfo.Name,
+                            IsUnique = indexDesignerInfo.Type == IndexType.Unique.ToString(),
+                            Clustered = indexDesignerInfo.Clustered,
+                            Comment = indexDesignerInfo.Comment,
+                            Type = indexDesignerInfo.Type
+                        };
 
                         index.Columns.AddRange(indexDesignerInfo.Columns);
 
@@ -619,14 +620,15 @@ namespace DatabaseManager.Core
                 foreach (var keyDesignerInfo in schemaDesignerInfo.TableForeignKeyDesignerInfos)
                 {
                     var foreignKey = new TableForeignKey
-                        { Schema = keyDesignerInfo.Schema, TableName = keyDesignerInfo.TableName,
-                            Name = keyDesignerInfo.Name,
-                            ReferencedSchema = keyDesignerInfo.ReferencedSchema,
-                            ReferencedTableName = keyDesignerInfo.ReferencedTableName,
-                            UpdateCascade = keyDesignerInfo.UpdateCascade,
-                            DeleteCascade = keyDesignerInfo.DeleteCascade,
-                            Comment = keyDesignerInfo.Comment
-                        };
+                    {
+                        Schema = keyDesignerInfo.Schema, TableName = keyDesignerInfo.TableName,
+                        Name = keyDesignerInfo.Name,
+                        ReferencedSchema = keyDesignerInfo.ReferencedSchema,
+                        ReferencedTableName = keyDesignerInfo.ReferencedTableName,
+                        UpdateCascade = keyDesignerInfo.UpdateCascade,
+                        DeleteCascade = keyDesignerInfo.DeleteCascade,
+                        Comment = keyDesignerInfo.Comment
+                    };
 
                     foreignKey.Columns.AddRange(keyDesignerInfo.Columns);
 
@@ -644,12 +646,13 @@ namespace DatabaseManager.Core
                 foreach (var constraintDesignerInfo in schemaDesignerInfo.TableConstraintDesignerInfos)
                 {
                     var constraint = new TableConstraint
-                        { Schema = constraintDesignerInfo.Schema, TableName = constraintDesignerInfo.TableName,
-                            Name = constraintDesignerInfo.Name,
-                            ColumnName = constraintDesignerInfo.ColumnName,
-                            Definition = constraintDesignerInfo.Definition,
-                            Comment = constraintDesignerInfo.Comment
-                        };
+                    {
+                        Schema = constraintDesignerInfo.Schema, TableName = constraintDesignerInfo.TableName,
+                        Name = constraintDesignerInfo.Name,
+                        ColumnName = constraintDesignerInfo.ColumnName,
+                        Definition = constraintDesignerInfo.Definition,
+                        Comment = constraintDesignerInfo.Comment
+                    };
 
                     schemaInfo.TableConstraints.Add(constraint);
                 }

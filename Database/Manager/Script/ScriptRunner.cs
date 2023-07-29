@@ -283,7 +283,7 @@ namespace DatabaseManager.Core
 
                     if (!hasRolledBack) transaction.Rollback();
                 }
-                catch 
+                catch
                 {
                     //throw;
                 }

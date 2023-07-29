@@ -11,10 +11,10 @@ namespace DatabaseManager.Core
     {
         public const string AsPattern = @"\b(AS|IS)\b";
         private readonly string createAlterScriptPattern = @"\b(CREATE|ALTER).+(VIEW|FUNCTION|PROCEDURE|TRIGGER)\b";
+        private readonly DbInterpreter dbInterpreter;
         private readonly string dmlPattern = @"\b(CREATE|ALTER|INSERT|UPDATE|DELETE|TRUNCATE|INTO)\b";
         private readonly string routinePattern = @"\b(BEGIN|END|DECLARE|SET|GOTO)\b";
         private readonly string selectPattern = "SELECT(.[\n]?)+(FROM)?";
-        private readonly DbInterpreter dbInterpreter;
 
         public ScriptParser(DbInterpreter dbInterpreter, string script)
         {
@@ -86,7 +86,8 @@ namespace DatabaseManager.Core
 
             if (scriptParser.IsCreateOrAlterScript())
             {
-                var firstLine = upperScript.Split(new [] { Environment.NewLine }, StringSplitOptions.None).FirstOrDefault();
+                var firstLine = upperScript.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
+                    .FirstOrDefault();
 
                 var asMatch = Regex.Match(firstLine, AsPattern);
 
@@ -100,7 +101,8 @@ namespace DatabaseManager.Core
                     return ScriptType.View;
                 if (prefix.IndexOf(" FUNCTION ", StringComparison.Ordinal) > 0)
                     return ScriptType.Function;
-                if (prefix.IndexOf(" PROCEDURE ", StringComparison.Ordinal) > 0 || prefix.IndexOf(" PROC ", StringComparison.Ordinal) > 0)
+                if (prefix.IndexOf(" PROCEDURE ", StringComparison.Ordinal) > 0 ||
+                    prefix.IndexOf(" PROC ", StringComparison.Ordinal) > 0)
                     return ScriptType.Procedure;
                 if (prefix.IndexOf(" TRIGGER ", StringComparison.Ordinal) > 0) return ScriptType.Trigger;
             }
@@ -118,7 +120,7 @@ namespace DatabaseManager.Core
 
             var info = new ScriptContentInfo();
 
-            var lines = script.Split(new []{ lineSeperator}, StringSplitOptions.None);
+            var lines = script.Split(new[] { lineSeperator }, StringSplitOptions.None);
 
             var count = 0;
 

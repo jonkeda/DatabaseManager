@@ -11,8 +11,8 @@ namespace DatabaseConverter.Core
 {
     public class ViewTranslator : DbObjectTokenTranslator
     {
-        private string targetSchemaName;
         private readonly List<View> views;
+        private string targetSchemaName;
 
         public ViewTranslator(DbInterpreter sourceDbInterpreter, DbInterpreter targetDbInterpreter, List<View> views,
             string targetSchemaName = null) : base(sourceDbInterpreter, targetDbInterpreter)

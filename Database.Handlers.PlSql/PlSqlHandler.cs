@@ -1,23 +1,21 @@
-﻿using DatabaseInterpreter.Core;
-using SqlAnalyser.Core;
+﻿using System.Data.Common;
+using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseManager.Core;
-using System.Data.Common;
-using CsvHelper;
 using Oracle.ManagedDataAccess.Client;
+using SqlAnalyser.Core;
 
 namespace Databases.Handlers.PlSql
 {
     public class PlSqlHandler : SqlHandler<
-        PlSqlScriptBuildFactory, 
-        PlSqlStatementScriptBuilder, 
+        PlSqlScriptBuildFactory,
+        PlSqlStatementScriptBuilder,
         PlSqlAnalyser,
-        OracleBackup, 
+        OracleBackup,
         OracleDiagnosis>
     {
         public PlSqlHandler() : base(DatabaseType.Oracle)
         {
-
         }
 
         public override SqlAnalyserBase GetSqlAnalyser(string content)

@@ -26,11 +26,11 @@ namespace DatabaseInterpreter.Core
             { "character varying", NpgsqlDbType.Varchar }
         };
 
+        private readonly bool ownsTheConnection;
+
         private NpgsqlConnection connection;
 
         private string destinationTableName;
-
-        private readonly bool ownsTheConnection;
 
         public PostgreBulkCopy(string connectionString) : this(new NpgsqlConnection(connectionString))
         {

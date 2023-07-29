@@ -1,15 +1,14 @@
-﻿using DatabaseInterpreter.Core;
-using SqlAnalyser.Core;
+﻿using System.Data.Common;
+using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseManager.Core;
-using System.Data.Common;
-using CsvHelper;
 using MySqlConnector;
+using SqlAnalyser.Core;
 
 namespace Databases.Handlers.MySql
 {
     public class MySqlHandler : SqlHandler<
-        MySqlScriptBuildFactory, 
+        MySqlScriptBuildFactory,
         MySqlStatementScriptBuilder,
         MySqlAnalyser,
         MySqlBackup,
@@ -17,7 +16,6 @@ namespace Databases.Handlers.MySql
     {
         public MySqlHandler() : base(DatabaseType.MySql)
         {
-
         }
 
         public override SqlAnalyserBase GetSqlAnalyser(string content)
@@ -30,7 +28,7 @@ namespace Databases.Handlers.MySql
             return new MySqlDiagnosis(connectionInfo);
         }
 
-        public override DbInterpreter CreateDbInterpreter(ConnectionInfo connectionInfo, 
+        public override DbInterpreter CreateDbInterpreter(ConnectionInfo connectionInfo,
             DbInterpreterOption option)
         {
             return new MySqlInterpreter(connectionInfo, option);
@@ -47,6 +45,5 @@ namespace Databases.Handlers.MySql
                 return MySqlConnectorFactory.Instance;
             return null;
         }
-
     }
 }

@@ -1713,16 +1713,12 @@ namespace SqlAnalyser.Core
                     var dotId = qualifiedIdentifier.dotIdentifier();
 
                     if (dotId == null)
-                    {
                         columnName = new ColumnName(id);
-                    }
                     else
-                    {
                         columnName = new ColumnName(qualifiedIdentifier)
                         {
                             TableName = new TableName(id)
                         };
-                    }
                 }
                 else if (node is ColumnRefContext columnRef)
                 {

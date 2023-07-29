@@ -75,7 +75,9 @@ namespace SqlAnalyser.Core
                 {
                     if (statement is WhileStatement @while)
                     {
-                        var fetchCursorStatement = @while.Statements.FirstOrDefault(item => item is FetchCursorStatement) as FetchCursorStatement;
+                        var fetchCursorStatement =
+                            @while.Statements.FirstOrDefault(item => item is FetchCursorStatement) as
+                                FetchCursorStatement;
 
                         if (fetchCursorStatement != null && !statements.Any(item => item is FetchCursorStatement))
                         {

@@ -26,7 +26,6 @@ namespace DatabaseInterpreter.Utility
             return value?.Replace("'", "''");
         }
 
-      
 
         public static string BytesToHexString(byte[] value)
         {

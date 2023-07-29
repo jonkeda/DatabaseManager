@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Dapper;
 using DatabaseInterpreter.Model;
@@ -25,6 +24,11 @@ namespace DatabaseInterpreter.Core
         }
 
         #endregion
+
+        protected virtual string GetUserDefinedColumnName(string columnName, string columnDataType)
+        {
+            return columnName;
+        }
 
         #region Field & Property
 
@@ -71,7 +75,7 @@ namespace DatabaseInterpreter.Core
 
         #region Database
 
-        public abstract Task<List<Model.Database>> GetDatabasesAsync();
+        public abstract Task<List<Database>> GetDatabasesAsync();
 
         #endregion
 
@@ -699,10 +703,7 @@ namespace DatabaseInterpreter.Core
 
                 #region User defined type
 
-                if (column.IsUserDefined)
-                {
-                    columnName = GetUserDefinedColumnName(columnName, column.DataType);
-                }
+                if (column.IsUserDefined) columnName = GetUserDefinedColumnName(columnName, column.DataType);
 
                 #endregion
 
@@ -1153,10 +1154,5 @@ namespace DatabaseInterpreter.Core
         }
 
         #endregion
-
-        protected virtual string GetUserDefinedColumnName(string columnName, string columnDataType)
-        {
-            return columnName;
-        }
     }
 }

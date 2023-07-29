@@ -150,10 +150,11 @@ namespace DatabaseManager.Core
                 if (!targetSchemaInfo.Tables.Any(item => IsNameEquals(item.Name, source.Name)))
                 {
                     var difference = new DbDifference
-                        { Type = nameof(Table), DatabaseObjectType = DatabaseObjectType.Table,
-                            DifferenceType = DbDifferenceType.Added,
-                            Source = source
-                        };
+                    {
+                        Type = nameof(Table), DatabaseObjectType = DatabaseObjectType.Table,
+                        DifferenceType = DbDifferenceType.Added,
+                        Source = source
+                    };
 
                     differences.Add(difference);
                 }
@@ -205,10 +206,11 @@ namespace DatabaseManager.Core
                 if (!targetObjects.Any(item => IsNameEquals(item.Name, source.Name)))
                 {
                     var difference = new DbDifference
-                        { Type = type, DatabaseObjectType = databaseObjectType, ParentName = source.TableName,
-                            DifferenceType = DbDifferenceType.Added,
-                            Source = source
-                        };
+                    {
+                        Type = type, DatabaseObjectType = databaseObjectType, ParentName = source.TableName,
+                        DifferenceType = DbDifferenceType.Added,
+                        Source = source
+                    };
 
                     differences.Add(difference);
                 }

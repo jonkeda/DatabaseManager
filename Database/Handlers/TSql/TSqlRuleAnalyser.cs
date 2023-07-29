@@ -867,19 +867,19 @@ namespace SqlAnalyser.Core
                     foreach (var bc in block.children)
                         if (bc is Sql_clausesContext clauses)
                             statements.AddRange(ParseSqlClause(clauses));
-                else if (child is Return_statementContext @return)
-                    statements.Add(ParseReturnStatement(@return));
-                else if (child is Break_statementContext @break)
-                    statements.Add(new BreakStatement());
-                else if (child is Continue_statementContext @continue)
-                    statements.Add(new ContinueStatement());
-                else if (child is Try_catch_statementContext trycatch)
-                    statements.Add(ParseTryCatchStatement(trycatch));
-                else if (child is Print_statementContext print)
-                    statements.Add(ParsePrintStatement(print));
-                else if (child is Raiseerror_statementContext raiseError)
-                    statements.Add(ParseRaiseErrorStatement(raiseError));
-                else if (child is Goto_statementContext gs) statements.Add(ParseGotoStatement(gs));
+                        else if (child is Return_statementContext @return)
+                            statements.Add(ParseReturnStatement(@return));
+                        else if (child is Break_statementContext @break)
+                            statements.Add(new BreakStatement());
+                        else if (child is Continue_statementContext @continue)
+                            statements.Add(new ContinueStatement());
+                        else if (child is Try_catch_statementContext trycatch)
+                            statements.Add(ParseTryCatchStatement(trycatch));
+                        else if (child is Print_statementContext print)
+                            statements.Add(ParsePrintStatement(print));
+                        else if (child is Raiseerror_statementContext raiseError)
+                            statements.Add(ParseRaiseErrorStatement(raiseError));
+                        else if (child is Goto_statementContext gs) statements.Add(ParseGotoStatement(gs));
             }
 
             return statements;
@@ -2232,17 +2232,13 @@ namespace SqlAnalyser.Core
                     NameToken seqName;
 
                     if (ids.Length == 2)
-                    {
                         seqName = new NameToken(ids[1])
                         {
                             Type = TokenType.SequenceName,
                             Schema = ids[0].GetText()
                         };
-                    }
                     else
-                    {
                         seqName = new NameToken(ids[0]) { Type = TokenType.SequenceName };
-                    }
 
                     token.AddChild(seqName);
                 }

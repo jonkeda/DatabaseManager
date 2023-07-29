@@ -32,6 +32,8 @@ namespace SqlAnalyser.Core
 
         protected int Length => Script.Length;
 
+        protected virtual bool IsPostgreBuilder => false;
+
         public void Dispose()
         {
             DeclareVariableStatements.Clear();
@@ -231,8 +233,6 @@ namespace SqlAnalyser.Core
             if (!hasJoins) AppendLine("", false);
         }
 
-        protected virtual Boolean IsPostgreBuilder => false;
-
         protected void BuildIfCondition(IfStatementItem item)
         {
             if (item.Condition != null)
@@ -243,7 +243,7 @@ namespace SqlAnalyser.Core
             {
                 if (item.ConditionType == IfConditionType.NotExists)
                     Append("NOT EXISTS");
-                else if (item.ConditionType == IfConditionType.Exists) 
+                else if (item.ConditionType == IfConditionType.Exists)
                     Append("EXISTS");
 
                 AppendSubquery(item.CondtionStatement);
@@ -389,7 +389,8 @@ namespace SqlAnalyser.Core
             return sb.ToString();
         }
 
-        protected virtual void AddConstraintDefinition(bool isForColumn, string name, StringBuilder sb, string definition)
+        protected virtual void AddConstraintDefinition(bool isForColumn, string name, StringBuilder sb,
+            string definition)
         {
             var hasName = !string.IsNullOrEmpty(name);
 

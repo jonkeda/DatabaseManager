@@ -246,7 +246,7 @@ namespace SqlAnalyser.Core
 
                     if (item.Type != IfStatementType.ELSE)
                         ifItem.Condition = new TokenInfo($"{variableName}={item.Condition}")
-                        { Type = TokenType.IfCondition };
+                            { Type = TokenType.IfCondition };
 
                     i++;
                 }
@@ -467,7 +467,8 @@ namespace SqlAnalyser.Core
                 else if (type == PreparedStatementType.Execute)
                 {
                     var pre = SpecialStatements.FirstOrDefault(item =>
-                            item is PreparedStatement preparedStatement && preparedStatement.Id.Symbol == prepared.Id.Symbol) as
+                            item is PreparedStatement preparedStatement &&
+                            preparedStatement.Id.Symbol == prepared.Id.Symbol) as
                         PreparedStatement;
 
                     var variables = prepared.ExecuteVariables.Count > 0
@@ -566,25 +567,15 @@ namespace SqlAnalyser.Core
             else if (select.TableName != null) AppendLine($"FROM {GetNameWithAlias(select.TableName)}");
 
 
-            if (select.Where != null)
-            {
-                AppendLine($"WHERE {select.Where}");
-            }
+            if (select.Where != null) AppendLine($"WHERE {select.Where}");
 
             if (select.GroupBy != null && select.GroupBy.Count > 0)
-            {
                 AppendLine($"GROUP BY {string.Join(",", select.GroupBy.Select(item => item))}");
-            }
 
-            if (select.Having != null)
-            {
-                AppendLine($"HAVING {select.Having}");
-            }
+            if (select.Having != null) AppendLine($"HAVING {select.Having}");
 
             if (select.OrderBy != null && select.OrderBy.Count > 0)
-            {
                 AppendLine($"ORDER BY {string.Join(",", select.OrderBy.Select(item => item))}");
-            }
 
             if (select.LimitInfo != null)
                 if (select.TopInfo == null)

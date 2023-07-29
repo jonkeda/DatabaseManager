@@ -12,6 +12,16 @@ namespace DatabaseInterpreter.Core
         {
         }
 
+        #region Data Script
+
+        protected override string GetBytesConvertHexString(object value, string dataType)
+        {
+            var hex = string.Concat(((byte[])value).Select(item => item.ToString("X2")));
+            return $"UNHEX('{hex}')";
+        }
+
+        #endregion
+
         #region Generate Schema Scripts
 
         public override ScriptBuilder GenerateSchemaScripts(SchemaInfo schemaInfo)
@@ -94,16 +104,6 @@ namespace DatabaseInterpreter.Core
                 return name.Substring(0, MySqlInterpreter.NameMaxLength);
 
             return name;
-        }
-
-        #endregion
-
-        #region Data Script
-
-        protected override string GetBytesConvertHexString(object value, string dataType)
-        {
-            var hex = string.Concat(((byte[])value).Select(item => item.ToString("X2")));
-            return $"UNHEX('{hex}')";
         }
 
         #endregion

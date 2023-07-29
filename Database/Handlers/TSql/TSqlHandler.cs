@@ -1,23 +1,21 @@
-﻿using DatabaseInterpreter.Core;
-using SqlAnalyser.Core;
+﻿using System.Data.Common;
+using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseManager.Core;
-using System.Data.Common;
-using CsvHelper;
 using Microsoft.Data.SqlClient;
+using SqlAnalyser.Core;
 
 namespace Databases.Handlers.TSql
 {
     public class TSqlHandler : SqlHandler<
-        TSqlScriptBuildFactory, 
-        TSqlStatementScriptBuilder, 
+        TSqlScriptBuildFactory,
+        TSqlStatementScriptBuilder,
         TSqlAnalyser,
-        SqlServerBackup, 
+        SqlServerBackup,
         SqlServerDiagnosis>
     {
         public TSqlHandler() : base(DatabaseType.SqlServer)
         {
-
         }
 
 
@@ -49,6 +47,5 @@ namespace Databases.Handlers.TSql
                 return SqlClientFactory.Instance;
             return null;
         }
-
     }
 }

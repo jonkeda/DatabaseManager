@@ -860,12 +860,11 @@ namespace SqlAnalyser.Core
             TruncateStatement statement = null;
 
             if (node.opt_table() != null)
-            {
                 statement = new TruncateStatement
                 {
-                    TableName = ParseTableName(node.relation_expr_list().relation_expr()?.FirstOrDefault()?.qualified_name())
+                    TableName = ParseTableName(node.relation_expr_list().relation_expr()?.FirstOrDefault()
+                        ?.qualified_name())
                 };
-            }
 
             return statement;
         }
@@ -1115,16 +1114,12 @@ namespace SqlAnalyser.Core
                 else if (node is Qualified_nameContext qualified)
                 {
                     if (qualified.indirection() != null)
-                    {
                         tableName = new TableName(GetIndirectionAttrName(qualified.indirection()))
                         {
                             Schema = qualified.colid().GetText()
                         };
-                    }
                     else
-                    {
                         tableName = new TableName(qualified.colid());
-                    }
                 }
 
                 if (!strict && tableName == null) tableName = new TableName(node);

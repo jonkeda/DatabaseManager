@@ -562,7 +562,7 @@ namespace DatabaseInterpreter.Core
 
                     case nameof(DateTime):
                     case nameof(DateTimeOffset):
-                    //case nameof(MySqlDateTime):
+                        //case nameof(MySqlDateTime):
 
                         if (databaseType == DatabaseType.Oracle)
                         {
@@ -573,7 +573,8 @@ namespace DatabaseInterpreter.Core
                                 strValue = GetOracleDatetimeConvertString(dateTime);
                             }
                             else 
-*/                            if (type.Name == nameof(DateTime))
+*/
+                            if (type.Name == nameof(DateTime))
                             {
                                 var dateTime = Convert.ToDateTime(value);
 
@@ -662,9 +663,18 @@ namespace DatabaseInterpreter.Core
                     case nameof(PgGeom.GeometryCollection):
                         var srid = 0;
 
-                        if (value is SqlGeography sgg1) srid = sgg1.STSrid.Value;
-                        else if (value is SqlGeometry sgm1) srid = sgm1.STSrid.Value;
-                        else if (value is PgGeom.Geometry g) srid = g.SRID;
+                        if (value is SqlGeography sgg1)
+                        {
+                            srid = sgg1.STSrid.Value;
+                        }
+                        else if (value is SqlGeometry sgm1)
+                        {
+                            srid = sgm1.STSrid.Value;
+                        }
+                        else if (value is PgGeom.Geometry g)
+                        {
+                            srid = g.SRID;
+                        }
                         /*
                                                 if (this.databaseType == DatabaseType.MySql)
                                                 {

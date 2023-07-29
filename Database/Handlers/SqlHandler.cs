@@ -9,11 +9,16 @@ namespace Databases.Handlers
 {
     public class SqlHandlerDictionary : Dictionary<DatabaseType, SqlHandler>
     {
-
     }
 
     public abstract class SqlHandler
     {
+        private static readonly SqlHandlerDictionary Handlers = new SqlHandlerDictionary();
+
+        static SqlHandler()
+        {
+        }
+
         protected SqlHandler(DatabaseType databaseType)
         {
             DatabaseType = databaseType;
@@ -30,13 +35,6 @@ namespace Databases.Handlers
         public abstract DbScriptGenerator CreateDbScriptGenerator(DbInterpreter dbInterpreter);
         protected abstract DbProviderFactory CreateDbProviderFactory(string providerName);
 
-        private static readonly SqlHandlerDictionary Handlers = new SqlHandlerDictionary();
-
-        static SqlHandler()
-        {
-
-        }
-
         public static void RegisterHandler(SqlHandler sqlHandler)
         {
             Handlers.Add(sqlHandler.DatabaseType, sqlHandler);
@@ -44,10 +42,7 @@ namespace Databases.Handlers
 
         public static SqlHandler GetHandler(DatabaseType databaseType)
         {
-            if (Handlers.TryGetValue(databaseType, out var handler))
-            {
-                return handler;
-            }
+            if (Handlers.TryGetValue(databaseType, out var handler)) return handler;
 
             throw new KeyNotFoundException($"The handler for {databaseType} is not found.");
         }
@@ -57,13 +52,12 @@ namespace Databases.Handlers
             foreach (var handler in Handlers.Values)
             {
                 var provider = handler.CreateDbProviderFactory(providerName);
-                if (provider != null) 
-                    return provider;  
+                if (provider != null)
+                    return provider;
             }
 
             return null;
         }
-
     }
 
     public abstract class SqlHandler<TBF, TSF, TA, TBU, TD>
@@ -92,6 +86,5 @@ namespace Databases.Handlers
         {
             return new TBU();
         }
-
     }
 }

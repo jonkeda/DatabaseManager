@@ -13,15 +13,15 @@ namespace DatabaseConverter.Core
 {
     public class ScriptTokenProcessor : IDisposable
     {
-        private List<string> charTokenSymbols = new List<string>();
-        private DataTypeTranslator dataTypeTranslator;
-        private Dictionary<string, string> dictChangedValues = new Dictionary<string, string>();
         private readonly DatabaseType sourceDbType;
         private readonly IEnumerable<string> sourceFunctions;
         private readonly DatabaseType targetDbType;
         private readonly IEnumerable<string> targetFunctions;
-        private List<TokenInfo> tokensWithConcatChars = new List<TokenInfo>();
         private readonly List<IEnumerable<VariableMapping>> triggerVariableMappings;
+        private List<string> charTokenSymbols = new List<string>();
+        private DataTypeTranslator dataTypeTranslator;
+        private Dictionary<string, string> dictChangedValues = new Dictionary<string, string>();
+        private List<TokenInfo> tokensWithConcatChars = new List<TokenInfo>();
 
         public ScriptTokenProcessor(CommonScript script, ScriptDbObject dbObject, DbInterpreter sourceInterpreter,
             DbInterpreter targetInterpreter)
@@ -122,7 +122,8 @@ namespace DatabaseConverter.Core
 
                     token.Symbol = TargetDbInterpreter.ParseDataType(column);
 
-                    if (statement is DeclareVariableStatement variableStatement && DataTypeHelper.IsCharType(column.DataType))
+                    if (statement is DeclareVariableStatement variableStatement &&
+                        DataTypeHelper.IsCharType(column.DataType))
                         charTokenSymbols.Add(variableStatement.Name.Symbol);
                 }
             };
@@ -138,7 +139,9 @@ namespace DatabaseConverter.Core
                 }
 
                 if (routineScript.ReturnDataType != null)
+                {
                     changeDataType(null, routineScript.ReturnDataType);
+                }
                 else
                 {
                     if (routineScript.ReturnTable?.Name != null &&
@@ -437,10 +440,7 @@ namespace DatabaseConverter.Core
 
         private void ChangeNameTokenAlias(TokenInfo token)
         {
-            if (token is NameToken nameToken)
-            {
-                ChangeAliasQuotationChar(nameToken);
-            }
+            if (token is NameToken nameToken) ChangeAliasQuotationChar(nameToken);
         }
 
         private bool HasChildren(TokenInfo token)

@@ -605,7 +605,8 @@ namespace SqlAnalyser.Core
                 else if (type == PreparedStatementType.Execute)
                 {
                     var pre = SpecialStatements.FirstOrDefault(item =>
-                            item is PreparedStatement preparedStatement && preparedStatement.Id.Symbol == prepared.Id.Symbol) as
+                            item is PreparedStatement preparedStatement &&
+                            preparedStatement.Id.Symbol == prepared.Id.Symbol) as
                         PreparedStatement;
 
                     var variables = prepared.ExecuteVariables.Count > 0
@@ -948,6 +949,5 @@ namespace SqlAnalyser.Core
 
             return false;
         }
-
     }
 }

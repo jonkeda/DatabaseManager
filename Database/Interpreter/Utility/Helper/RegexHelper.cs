@@ -4,11 +4,11 @@ namespace DatabaseInterpreter.Utility
 {
     public class RegexHelper
     {
-        public static Regex NameRegex { get; } = new Regex(NameRegexPattern, RegexOptions.Compiled);
-        public static Regex NumberRegex { get; } = new Regex(NumberRegexPattern, RegexOptions.Compiled);
-
         private const string NameRegexPattern = "^[a-zA-Z_][a-zA-Z0-9_]*$";
         private const string NumberRegexPattern = "(([0-9]\\d*\\.?\\d*)|(0\\.\\d*[0-9]))";
+        public static Regex NameRegex { get; } = new Regex(NameRegexPattern, RegexOptions.Compiled);
+
+        public static Regex NumberRegex { get; } = new Regex(NumberRegexPattern, RegexOptions.Compiled);
         //public const string ParenthesesRegexPattern = @"\((.|\n|\r)*\)";
         //public const string EscapeChars = @".()[^$+*?|\{";
 

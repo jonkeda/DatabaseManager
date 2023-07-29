@@ -15,7 +15,8 @@ namespace DatabaseInterpreter.Core
 
         public static IEnumerable<DataTypeSpecification> GetDataTypeSpecifications(DatabaseType databaseType)
         {
-            if (_dataTypeSpecifications != null && _dataTypeSpecifications.TryGetValue(databaseType, out var specifications))
+            if (_dataTypeSpecifications != null &&
+                _dataTypeSpecifications.TryGetValue(databaseType, out var specifications))
                 return specifications;
 
             var filePath = Path.Combine(ConfigRootFolder, $"DataTypeSpecification/{databaseType}.xml");

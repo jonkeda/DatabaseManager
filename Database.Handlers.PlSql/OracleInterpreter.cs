@@ -3,17 +3,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using Microsoft.SqlServer.Types;
 using Oracle.ManagedDataAccess.Client;
-using static Npgsql.Replication.PgOutput.Messages.RelationMessage;
 using PgGeom = NetTopologySuite.Geometries;
 
 namespace DatabaseInterpreter.Core
@@ -29,6 +26,45 @@ namespace DatabaseInterpreter.Core
         }
 
         #endregion
+
+
+        protected override string GetUserDefinedColumnName(string columnName, string columnDataType)
+        {
+            if (!IsLowDbVersion()) columnName = $@"JSON_OBJECT({columnName}) AS {columnName}"; //JSON_OBJECT -> v12.2
+
+            /*
+                // TODO
+
+                quotedTableName += " t";
+
+                var attributes = await GetUserDefinedTypeAttributesAsync(connection,
+                    new SchemaInfoFilter { UserDefinedTypeNames = new[] { columnDataType } });
+
+                var sb = new StringBuilder();
+                sb.Append("('('||");
+
+                var count = 0;
+
+                foreach (var atrribute in attributes)
+                {
+                    if (count > 0) sb.Append("||','||");
+
+                    var attrName = GetQuotedString(atrribute.Name);
+
+                    if (!DataTypeHelper.IsCharType(atrribute.DataType))
+                        sb.Append($"TO_CHAR(t.{columnName}.{attrName})");
+                    else
+                        sb.Append($"t.{columnName}.{attrName}");
+
+                    count++;
+                }
+
+                sb.Append($"||')') AS {columnName}");
+
+                columnName = sb.ToString();
+            */
+            return columnName;
+        }
 
         #region Field & Property
 
@@ -120,11 +156,11 @@ namespace DatabaseInterpreter.Core
             return dbSchema;
         }
 
-        public override Task<List<Model.Database>> GetDatabasesAsync()
+        public override Task<List<Database>> GetDatabasesAsync()
         {
             var sql = GetSqlForTablespaces();
 
-            return GetDbObjectsAsync<Model.Database>(sql);
+            return GetDbObjectsAsync<Database>(sql);
         }
 
         private string GetSqlForTablespaces()
@@ -886,7 +922,6 @@ namespace DatabaseInterpreter.Core
                         dynamic newValue = null;
 
                         if (type != typeof(DBNull))
-                        {
                             if (type == typeof(BitArray))
                             {
                                 newColumnType = typeof(byte[]);
@@ -897,7 +932,7 @@ namespace DatabaseInterpreter.Core
 
                                 newValue = bytes;
                             }
-                            /* else if (type == typeof(SqlGeography))
+                        /* else if (type == typeof(SqlGeography))
                              {
                                  if (dataType == "sdo_geometry")
                                  {
@@ -962,7 +997,6 @@ namespace DatabaseInterpreter.Core
                                      newValue = PostgresGeometryHelper.ToOracleStGeometry(value as PgGeom.Geometry);
                                  }
                              } */
-                        }
                         /*  else
                           {
                               if (dataType == "sdo_geometry")
@@ -1205,52 +1239,5 @@ namespace DatabaseInterpreter.Core
         }
 
         #endregion
-
-
-        protected override string GetUserDefinedColumnName(string columnName, string columnDataType)
-        {
-            if (!IsLowDbVersion())
-            {
-                columnName = $@"JSON_OBJECT({columnName}) AS {columnName}"; //JSON_OBJECT -> v12.2
-            }
-            else
-            {
-/*
-                // TODO
-
-                quotedTableName += " t";
-
-                var attributes = await GetUserDefinedTypeAttributesAsync(connection,
-                    new SchemaInfoFilter { UserDefinedTypeNames = new[] { columnDataType } });
-
-                var sb = new StringBuilder();
-                sb.Append("('('||");
-
-                var count = 0;
-
-                foreach (var atrribute in attributes)
-                {
-                    if (count > 0) sb.Append("||','||");
-
-                    var attrName = GetQuotedString(atrribute.Name);
-
-                    if (!DataTypeHelper.IsCharType(atrribute.DataType))
-                        sb.Append($"TO_CHAR(t.{columnName}.{attrName})");
-                    else
-                        sb.Append($"t.{columnName}.{attrName}");
-
-                    count++;
-                }
-
-                sb.Append($"||')') AS {columnName}");
-
-                columnName = sb.ToString();
-            */
-
-            }
-            return columnName;
-        }
     }
-
 }
-

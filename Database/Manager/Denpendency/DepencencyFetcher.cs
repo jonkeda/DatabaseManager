@@ -201,11 +201,12 @@ namespace DatabaseManager.Core
                         RegexOptions.Multiline | RegexOptions.IgnoreCase))
                 {
                     var usage = new RoutineScriptUsage
-                        { ObjectType = sdb.GetType().Name, ObjectSchema = sdb.Schema, ObjectName = sdb.Name,
-                            RefObjectType = refDbObject.GetType().Name,
-                            RefObjectSchema = refDbObject.Schema,
-                            RefObjectName = refDbObject.Name
-                        };
+                    {
+                        ObjectType = sdb.GetType().Name, ObjectSchema = sdb.Schema, ObjectName = sdb.Name,
+                        RefObjectType = refDbObject.GetType().Name,
+                        RefObjectSchema = refDbObject.Schema,
+                        RefObjectName = refDbObject.Name
+                    };
 
                     usages.Add(usage);
                 }

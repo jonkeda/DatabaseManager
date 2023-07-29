@@ -1,23 +1,21 @@
-﻿using DatabaseInterpreter.Core;
-using SqlAnalyser.Core;
+﻿using System.Data.Common;
+using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseManager.Core;
-using System.Data.Common;
-using CsvHelper;
 using Npgsql;
+using SqlAnalyser.Core;
 
 namespace Databases.Handlers.TSql
 {
     public class PostgreSqlHandler : SqlHandler<
-        PostgreSqlScriptBuildFactory, 
+        PostgreSqlScriptBuildFactory,
         PostgreSqlStatementScriptBuilder,
         PostgreSqlAnalyser,
-        PostgresBackup, 
+        PostgresBackup,
         PostgresDiagnosis>
     {
         public PostgreSqlHandler() : base(DatabaseType.Postgres)
         {
-
         }
 
 
@@ -51,6 +49,5 @@ namespace Databases.Handlers.TSql
                 return NpgsqlFactory.Instance;
             return null;
         }
-
     }
 }

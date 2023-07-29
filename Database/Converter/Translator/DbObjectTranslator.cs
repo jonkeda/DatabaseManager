@@ -178,10 +178,7 @@ namespace DatabaseConverter.Core
 
         public string ReplaceVariables(string script, List<IEnumerable<VariableMapping>> mappings)
         {
-            if (mappings == null)
-            {
-                return script;
-            }
+            if (mappings == null) return script;
 
             foreach (var mapping in mappings)
             {
@@ -607,7 +604,7 @@ namespace DatabaseConverter.Core
                 useBrackets = true;
             }
 
-      var functionInfo = new MappingFunctionInfo { Name = name };
+            var functionInfo = new MappingFunctionInfo { Name = name };
 
             var funcMappings = functionMappings.FirstOrDefault(item =>
                 item.Any(t =>

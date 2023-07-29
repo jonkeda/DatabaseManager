@@ -8,6 +8,9 @@ namespace DatabaseInterpreter.Core
 {
     public class ScriptBuilder
     {
+        private static readonly Regex FormatRegex = new Regex(@"([;]+[\s]*[;]+)|(\r\n[\s]*[;])",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         public bool FormatScript { get; set; } = true;
         public List<Script> Scripts { get; } = new List<Script>();
 
@@ -38,9 +41,6 @@ namespace DatabaseInterpreter.Core
 
             return FormatScript ? Format(script) : script;
         }
-
-        private static readonly Regex FormatRegex = new Regex(@"([;]+[\s]*[;]+)|(\r\n[\s]*[;])",
-            RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         private string Format(string script)
         {

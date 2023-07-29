@@ -11,11 +11,11 @@ namespace DatabaseManager.Core
 {
     public class DbSynchro
     {
-        private IObserver<FeedbackInfo> observer;
-        private DbInterpreter sourceInterpreter;
         private readonly TableManager tableManager;
         private readonly DbInterpreter targetInterpreter;
         private readonly DbScriptGenerator targetScriptGenerator;
+        private IObserver<FeedbackInfo> observer;
+        private DbInterpreter sourceInterpreter;
 
         public DbSynchro(DbInterpreter sourceInterpreter, DbInterpreter targetInterpreter)
         {

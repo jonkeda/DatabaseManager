@@ -24,7 +24,7 @@ namespace DatabaseInterpreter.Core
         public DbConnection CreateConnection()
         {
             var lowerProviderName = _dbProvider.ProviderName.ToLower();
-            DbProviderFactory factory = SqlHandler.CreateConnection(lowerProviderName);
+            var factory = SqlHandler.CreateConnection(lowerProviderName);
 
             var connection = factory.CreateConnection();
 

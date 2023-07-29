@@ -294,7 +294,8 @@ namespace DatabaseConverter.Core
                                 || RegexHelper.NameRegex.IsMatch(value.Trim('(', ')', ' '))
                                 || (value.Contains(".") && value.Split('.').All(item =>
                                     RegexHelper.NameRegex.IsMatch(item.Trim().Trim(quotationChars))))
-                                || RegexHelper.NameRegex.IsMatch(TranslateHelper.ExtractNameFromParenthesis(value.Trim()))
+                                || RegexHelper.NameRegex.IsMatch(
+                                    TranslateHelper.ExtractNameFromParenthesis(value.Trim()))
                                )
                             {
                                 sb.Append(value);

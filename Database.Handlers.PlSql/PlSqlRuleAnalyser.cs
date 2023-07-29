@@ -2076,9 +2076,7 @@ namespace SqlAnalyser.Core
 
             if (node is General_element_partContext context &&
                 context.children.Any(item => item is Function_argumentContext))
-            {
                 return true;
-            }
 
             if (node is General_element_partContext gep)
             {
@@ -2119,17 +2117,13 @@ namespace SqlAnalyser.Core
                     NameToken seqName;
 
                     if (ids.Length == 3)
-                    {
                         seqName = new NameToken(ids[1])
                         {
                             Type = TokenType.SequenceName,
                             Schema = ids[0].GetText()
                         };
-                    }
                     else
-                    {
                         seqName = new NameToken(ids[0]) { Type = TokenType.SequenceName };
-                    }
 
                     token.AddChild(seqName);
                 }

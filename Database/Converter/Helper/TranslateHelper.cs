@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using Databases.Handlers;
 using DatabaseConverter.Core.Model;
 using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
+using Databases.Handlers;
 using SqlAnalyser.Core;
 using SqlAnalyser.Model;
 

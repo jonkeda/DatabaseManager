@@ -15,8 +15,8 @@ namespace DatabaseConverter.Core
     public class ScriptTranslator<T> : DbObjectTokenTranslator
         where T : ScriptDbObject
     {
-        private ScriptBuildFactory scriptBuildFactory;
         private readonly IEnumerable<T> scripts;
+        private ScriptBuildFactory scriptBuildFactory;
 
 
         public ScriptTranslator(DbInterpreter sourceDbInterpreter, DbInterpreter targetDbInterpreter,
@@ -222,7 +222,7 @@ namespace DatabaseConverter.Core
                                     PostgresTranslateHelper.MergeDefinition(dbObj.Definition,
                                         scriptDbObject.Definition);
                             else
-                                analyseResult = new AnalyseResult { Error = res.Error as SqlSyntaxError };
+                                analyseResult = new AnalyseResult { Error = res.Error };
                         }
 
                 dbObj.Definition =

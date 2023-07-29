@@ -13,6 +13,16 @@ namespace DatabaseInterpreter.Core
         {
         }
 
+        #region Data Script
+
+        protected override string GetBytesConvertHexString(object value, string dataType)
+        {
+            var hex = ValueHelper.BytesToHexString(value as byte[]);
+            return $"CAST({hex} AS {dataType})";
+        }
+
+        #endregion
+
         #region Schema Script
 
         public override ScriptBuilder GenerateSchemaScripts(SchemaInfo schemaInfo)
@@ -121,16 +131,6 @@ namespace DatabaseInterpreter.Core
                 default:
                     return false;
             }
-        }
-
-        #endregion
-
-        #region Data Script
-
-        protected override string GetBytesConvertHexString(object value, string dataType)
-        {
-            var hex = ValueHelper.BytesToHexString(value as byte[]);
-            return $"CAST({hex} AS {dataType})";
         }
 
         #endregion
@@ -362,7 +362,7 @@ CREATE TABLE {quotedTableName}(
 
             #region Comment
 
-            if (this.option.TableScriptsGenerateOption.GenerateComment)
+            if (option.TableScriptsGenerateOption.GenerateComment)
             {
                 if (!string.IsNullOrEmpty(table.Comment)) sb.AppendLine(SetTableComment(table));
 
@@ -374,7 +374,7 @@ CREATE TABLE {quotedTableName}(
 
             #region Default Value
 
-            if (this.option.TableScriptsGenerateOption.GenerateDefaultValue)
+            if (option.TableScriptsGenerateOption.GenerateDefaultValue)
             {
                 var defaultValueColumns = columns.Where(item =>
                     item.Schema == table.Schema && item.TableName == tableName &&
@@ -394,7 +394,7 @@ CREATE TABLE {quotedTableName}(
 
             #region Primary Key
 
-            if (this.option.TableScriptsGenerateOption.GeneratePrimaryKey && primaryKey != null)
+            if (option.TableScriptsGenerateOption.GeneratePrimaryKey && primaryKey != null)
             {
                 sb.AppendLine(AddPrimaryKey(primaryKey));
 
@@ -405,7 +405,7 @@ CREATE TABLE {quotedTableName}(
 
             #region Foreign Key
 
-            if (this.option.TableScriptsGenerateOption.GenerateForeignKey && foreignKeys != null)
+            if (option.TableScriptsGenerateOption.GenerateForeignKey && foreignKeys != null)
                 foreach (var foreignKey in foreignKeys)
                 {
                     sb.AppendLine(AddForeignKey(foreignKey));
@@ -418,7 +418,7 @@ CREATE TABLE {quotedTableName}(
 
             #region Index
 
-            if (this.option.TableScriptsGenerateOption.GenerateIndex && indexes != null)
+            if (option.TableScriptsGenerateOption.GenerateIndex && indexes != null)
                 foreach (var index in indexes)
                 {
                     sb.AppendLine(AddIndex(index));
@@ -430,7 +430,7 @@ CREATE TABLE {quotedTableName}(
 
             #region Constraint
 
-            if (this.option.TableScriptsGenerateOption.GenerateConstraint && constraints != null)
+            if (option.TableScriptsGenerateOption.GenerateConstraint && constraints != null)
                 foreach (var constraint in constraints)
                 {
                     sb.AppendLine(AddCheckConstraint(constraint));

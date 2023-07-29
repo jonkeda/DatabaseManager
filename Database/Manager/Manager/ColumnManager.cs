@@ -106,7 +106,7 @@ namespace DatabaseManager.Core
                 var args = dataTypeSpec.Args;
 
                 var argsNames = args.Split(',');
-                var lengthItems = length?.Split(new [] {","}, StringSplitOptions.RemoveEmptyEntries);
+                var lengthItems = length?.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries);
 
                 if (argsNames.Length != lengthItems?.Length)
                 {

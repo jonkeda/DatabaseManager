@@ -16,7 +16,7 @@ namespace DatabaseManager.Core
 
         public override string Backup()
         {
-            throw new NotImplementedException();   
+            throw new NotImplementedException();
         }
     }
 }

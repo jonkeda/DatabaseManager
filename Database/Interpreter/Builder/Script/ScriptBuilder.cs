@@ -42,12 +42,9 @@ namespace DatabaseInterpreter.Core
         private static readonly Regex FormatRegex = new Regex(@"([;]+[\s]*[;]+)|(\r\n[\s]*[;])",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-
         private string Format(string script)
         {
-            var regex = FormatRegex;
-
-            return StringHelper.ToSingleEmptyLine(regex.Replace(script, ";"));
+            return StringHelper.ToSingleEmptyLine(FormatRegex.Replace(script, ";"));
         }
     }
 }

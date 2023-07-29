@@ -309,7 +309,7 @@ public partial class frmConvert : Form, IObserver<FeedbackInfo>
                         MessageBox.Show("Task has been canceled.");
                     }
                 }
-                else if (result.InfoType == DbConvertResultInfoType.Warnning)
+                else if (result.InfoType == DbConvertResultInfoType.Warning)
                 {
                     MessageBox.Show(result.Message, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }

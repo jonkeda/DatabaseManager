@@ -12,7 +12,7 @@ namespace DatabaseConverter.Model
     public enum DbConvertResultInfoType
     {
         Information = 0,
-        Warnning = 1,
+        Warning = 1,
         Error = 2
     }
 }

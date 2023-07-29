@@ -1,12 +1,14 @@
 ﻿using SqlAnalyser.Core;
 using DatabaseInterpreter.Model;
+using DatabaseManager.Core;
 
 namespace Databases.Handlers.MySql
 {
     public class MySqlHandler : SqlHandler<
         MySqlScriptBuildFactory, 
         MySqlStatementScriptBuilder,
-        MySqlAnalyser>
+        MySqlAnalyser,
+        MySqlBackup>
     {
         public MySqlHandler() : base(DatabaseType.MySql)
         {

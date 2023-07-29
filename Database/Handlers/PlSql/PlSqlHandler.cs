@@ -1,12 +1,14 @@
 ﻿using SqlAnalyser.Core;
 using DatabaseInterpreter.Model;
+using DatabaseManager.Core;
 
 namespace Databases.Handlers.PlSql
 {
     public class PlSqlHandler : SqlHandler<
         PlSqlScriptBuildFactory, 
         PlSqlStatementScriptBuilder, 
-        PlSqlAnalyser>
+        PlSqlAnalyser,
+        OracleBackup>
     {
         public PlSqlHandler() : base(DatabaseType.Oracle)
         {

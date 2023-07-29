@@ -1,12 +1,14 @@
 ﻿using SqlAnalyser.Core;
 using DatabaseInterpreter.Model;
+using DatabaseManager.Core;
 
 namespace Databases.Handlers.TSql
 {
     public class PostgreSqlHandler : SqlHandler<
         PostgreSqlScriptBuildFactory, 
         PostgreSqlStatementScriptBuilder,
-        PostgreSqlAnalyser>
+        PostgreSqlAnalyser,
+        PostgresBackup>
     {
         public PostgreSqlHandler() : base(DatabaseType.Postgres)
         {

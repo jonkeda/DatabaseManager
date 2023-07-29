@@ -517,7 +517,7 @@ namespace DatabaseConverter.Core
             {
                 if (continuedWhenErrorOccured)
                 {
-                    result.InfoType = DbConvertResultInfoType.Warnning;
+                    result.InfoType = DbConvertResultInfoType.Warning;
                     result.Message = $"Convert has finished,{Environment.NewLine}but some errors occured.";
                 }
                 else

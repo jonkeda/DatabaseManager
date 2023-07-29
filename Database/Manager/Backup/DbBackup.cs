@@ -3,6 +3,7 @@ using System.IO;
 using DatabaseInterpreter.Model;
 using DatabaseManager.Helper;
 using DatabaseManager.Model;
+using Databases.Handlers;
 
 namespace DatabaseManager.Core
 {
@@ -55,14 +56,7 @@ namespace DatabaseManager.Core
 
         public static DbBackup GetInstance(DatabaseType databaseType)
         {
-            if (databaseType == DatabaseType.SqlServer) return new SqlServerBackup();
-            if (databaseType == DatabaseType.Oracle)
-                return new OracleBackup();
-            if (databaseType == DatabaseType.MySql)
-                return new MySqlBackup();
-            if (databaseType == DatabaseType.Postgres) return new PostgresBackup();
-
-            throw new NotImplementedException($"Not implemented for backup {databaseType}.");
+            return SqlHandler.GetHandler(databaseType).CreateDbBackup();
         }
     }
 }

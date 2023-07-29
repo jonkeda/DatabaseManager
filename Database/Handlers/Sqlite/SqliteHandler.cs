@@ -1,12 +1,14 @@
 ﻿using SqlAnalyser.Core;
 using DatabaseInterpreter.Model;
+using DatabaseManager.Core;
 
 namespace Databases.Handlers.Sqlite
 {
     public class SqliteHandler : SqlHandler<
         SqliteScriptBuildFactory, 
         SqliteStatementScriptBuilder,
-        SqliteAnalyser>
+        SqliteAnalyser,
+        SqliteBackup>
     {
         public SqliteHandler() : base(DatabaseType.Sqlite)
         {

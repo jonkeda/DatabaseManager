@@ -4,6 +4,7 @@ using Databases.Handlers.PlSql;
 using Databases.Handlers.Sqlite;
 using Databases.Handlers.TSql;
 using DatabaseInterpreter.Model;
+using DatabaseManager.Core;
 using SqlAnalyser.Core;
 
 namespace Databases.Handlers
@@ -23,10 +24,9 @@ namespace Databases.Handlers
         public DatabaseType DatabaseType { get; }
 
         public abstract ScriptBuildFactory CreateScriptBuildFactory();
-
         public abstract StatementScriptBuilder CreateStatementScriptBuilder();
-
         public abstract SqlAnalyserBase GetSqlAnalyser(string content);
+        public abstract DbBackup CreateDbBackup();
 
         private static readonly SqlHandlerDictionary Handlers = new SqlHandlerDictionary();
 
@@ -54,13 +54,15 @@ namespace Databases.Handlers
 
             throw new KeyNotFoundException($"The handler for {databaseType} is not found.");
         }
+
     }
 
-    public abstract class SqlHandler<TBF, TSF, TA>
+    public abstract class SqlHandler<TBF, TSF, TA, TBU>
         : SqlHandler
         where TBF : ScriptBuildFactory, new()
         where TSF : StatementScriptBuilder, new()
         where TA : SqlAnalyserBase
+        where TBU : DbBackup, new()
     {
         protected SqlHandler(DatabaseType databaseType) : base(databaseType)
         {
@@ -74,6 +76,11 @@ namespace Databases.Handlers
         public override StatementScriptBuilder CreateStatementScriptBuilder()
         {
             return new TSF();
+        }
+
+        public override DbBackup CreateDbBackup()
+        {
+            return new TBU();
         }
 
     }

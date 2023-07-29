@@ -30,7 +30,7 @@ namespace DatabaseConverter.Core
 
             Type type = obj.GetType();
 
-            Action readProperties = () =>
+            void ReadProperties()
             {
                 var properties = type.GetProperties();
 
@@ -46,31 +46,27 @@ namespace DatabaseConverter.Core
                     {
                         if (!value.Equals(obj)) this.ExtractTokens(value, false);
                     }
-                    else if (value.GetType().IsClass && property.PropertyType.IsGenericType &&
-                             !(property.DeclaringType == typeof(CommonScript) &&
-                               property.Name == nameof(CommonScript.Functions)))
+                    else if (value.GetType().IsClass && property.PropertyType.IsGenericType && !(property.DeclaringType == typeof(CommonScript) && property.Name == nameof(CommonScript.Functions)))
                     {
                         foreach (var v in value) this.ExtractTokens(v, false);
                     }
-                    else if (value is Statement || value is StatementItem || value is SelectTopInfo
-                             || value is TableInfo || value is ColumnInfo || value is ConstraintInfo ||
-                             value is ForeignKeyInfo)
+                    else if (value is Statement || value is StatementItem || value is SelectTopInfo || value is TableInfo || value is ColumnInfo || value is ConstraintInfo || value is ForeignKeyInfo)
                     {
                         this.ExtractTokens(value, false);
                     }
                 }
-            };
+            }
 
             if (obj is TokenInfo token)
             {
                 AddToken(token);
 
-                readProperties();
+                ReadProperties();
 
                 return;
             }
 
-            readProperties();
+            ReadProperties();
         }
 
         private void AddToken(TokenInfo token)

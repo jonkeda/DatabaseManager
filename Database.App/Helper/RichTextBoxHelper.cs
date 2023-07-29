@@ -9,6 +9,7 @@ using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using DatabaseManager.Core;
 using DatabaseManager.Model;
+using Databases.SqlAnalyser.Model;
 using SqlAnalyser.Model;
 
 namespace DatabaseManager.Helper;

@@ -1,4 +1,7 @@
 ﻿using System.Collections.Generic;
+using Databases.SqlAnalyser.Model.DatabaseObject;
+using Databases.SqlAnalyser.Model.Script;
+using Databases.SqlAnalyser.Model.Token;
 
 namespace SqlAnalyser.Model
 {

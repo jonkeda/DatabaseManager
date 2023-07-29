@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace SqlAnalyser.Model
+namespace Databases.SqlAnalyser.Model.Statement
 {
     public class TryCatchStatement : Statement
     {

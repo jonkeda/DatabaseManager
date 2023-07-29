@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
+using Databases.SqlAnalyser.Model.Statement;
+using Databases.SqlAnalyser.Model.Token;
 using SqlAnalyser.Model;
 
-namespace SqlAnalyser.Core
+namespace Databases.SqlAnalyser
 {
     public class StatementScriptBuilderHelper
     {
@@ -50,17 +52,17 @@ namespace SqlAnalyser.Core
                 tableName = fromItems.FirstOrDefault(item => item.TableName != null &&
                                                              (tableNameOrAliases.Contains(
                                                                   item.TableName.Symbol.ToLower())
-                                                              || (item.TableName.Alias != null &&
+                                                              || item.TableName.Alias != null &&
                                                                   tableNameOrAliases.Contains(item.TableName.Alias
-                                                                      .Symbol.ToLower()))))?.TableName;
+                                                                      .Symbol.ToLower())))?.TableName;
             }
 
             if (tableName == null && tableNames != null)
             {
                 tableName = tableNames.FirstOrDefault(item => tableNameOrAliases.Contains(item.Symbol.ToLower())
-                                                              || (item.Alias != null &&
+                                                              || item.Alias != null &&
                                                                   tableNameOrAliases.Contains(
-                                                                      item.Alias.Symbol.ToLower())));
+                                                                      item.Alias.Symbol.ToLower()));
             }
 
             return tableName;
@@ -93,7 +95,7 @@ namespace SqlAnalyser.Core
 
             var colValues = valueStatement.Columns.Select(item => item.Symbol).ToArray();
 
-            Action buildSet = () =>
+            void BuildSet()
             {
                 for (var i = 0; i < colNames.Length; i++)
                 {
@@ -104,9 +106,9 @@ namespace SqlAnalyser.Core
                         sb.AppendLine();
                     }
                 }
-            };
+            }
 
-            Func<string> getFromTables = () =>
+            string GetFromTables()
             {
                 if (valueStatement.HasFromItems)
                 {
@@ -114,42 +116,42 @@ namespace SqlAnalyser.Core
                 }
 
                 return string.Empty;
-            };
+            }
 
-            Action buildWhere = () =>
+            void BuildWhere()
             {
                 if (where != null)
                 {
                     sb.AppendLine($"WHERE {where.Symbol}");
                 }
-            };
+            }
 
-            Action buildFromAndWhere = () =>
+            void BuildFromAndWhere()
             {
-                var fromTables = getFromTables();
+                var fromTables = GetFromTables();
 
                 sb.AppendLine($"FROM {fromTables}");
 
-                buildWhere();
-            };
+                BuildWhere();
+            }
 
             if (builder == DatabaseType.SqlServer || builder == DatabaseType.Sqlite)
             {
-                buildSet();
+                BuildSet();
 
-                buildFromAndWhere();
+                BuildFromAndWhere();
             }
             else if (builder == DatabaseType.MySql)
             {
-                var fromTables = getFromTables();
+                var fromTables = GetFromTables();
 
                 sb.AppendLine(fromTables);
 
                 sb.AppendLine("SET");
 
-                buildSet();
+                BuildSet();
 
-                buildWhere();
+                BuildWhere();
             }
             else if (builder == DatabaseType.Postgres)
             {
@@ -161,11 +163,11 @@ namespace SqlAnalyser.Core
                     }
                 }
 
-                buildSet();
+                BuildSet();
 
                 if (valueStatement.HasFromItems)
                 {
-                    var fromTables = getFromTables();
+                    var fromTables = GetFromTables();
 
                     var tableName = GetUpdateSetTableName(statement);
 
@@ -187,7 +189,7 @@ namespace SqlAnalyser.Core
                     sb.AppendLine($"FROM {string.Join(",", fromTableList)}");
                 }
 
-                buildWhere();
+                BuildWhere();
             }
 
             return sb.ToString();

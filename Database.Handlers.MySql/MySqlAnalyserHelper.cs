@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using DatabaseInterpreter.Utility;
+using Databases.SqlAnalyser.Model.Statement;
+using Databases.SqlAnalyser.Model.Statement.Cursor;
 using SqlAnalyser.Model;
 
 namespace SqlAnalyser.Core

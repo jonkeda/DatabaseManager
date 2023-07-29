@@ -1,8 +1,9 @@
 ﻿using System.IO;
 using Antlr4.Runtime;
+using Databases.SqlAnalyser.Model;
 using SqlAnalyser.Model;
 
-namespace SqlAnalyser.Core
+namespace Databases.SqlAnalyser
 {
     public class SqlSyntaxErrorListener : BaseErrorListener
     {

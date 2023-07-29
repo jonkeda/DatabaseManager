@@ -4,13 +4,17 @@ using System.Linq;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using DatabaseInterpreter.Model;
+using Databases.SqlAnalyser.Model;
+using Databases.SqlAnalyser.Model.DatabaseObject;
+using Databases.SqlAnalyser.Model.Script;
+using Databases.SqlAnalyser.Model.Token;
 using SqlAnalyser.Model;
 
-namespace SqlAnalyser.Core
+namespace Databases.SqlAnalyser
 {
     public abstract class SqlRuleAnalyser
     {
-        public SqlRuleAnalyser(string content)
+        protected SqlRuleAnalyser(string content)
         {
             Content = content;
         }

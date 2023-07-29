@@ -1,4 +1,6 @@
-﻿namespace DatabaseInterpreter.Model
+﻿using DatabaseInterpreter.Model;
+
+namespace Databases
 {
     public class DbInterpreterSetting
     {

@@ -2,6 +2,7 @@
 using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseManager.Core;
+using Databases.SqlAnalyser;
 using MySqlConnector;
 using SqlAnalyser.Core;
 

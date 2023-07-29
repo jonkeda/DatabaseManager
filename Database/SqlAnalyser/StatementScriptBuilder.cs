@@ -3,9 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using DatabaseInterpreter.Utility;
+using Databases.SqlAnalyser.Model;
+using Databases.SqlAnalyser.Model.DatabaseObject;
+using Databases.SqlAnalyser.Model.Script;
+using Databases.SqlAnalyser.Model.Statement;
+using Databases.SqlAnalyser.Model.Statement.Cursor;
+using Databases.SqlAnalyser.Model.Token;
 using SqlAnalyser.Model;
 
-namespace SqlAnalyser.Core
+namespace Databases.SqlAnalyser
 {
     public abstract class StatementScriptBuilder : IDisposable
     {

@@ -125,12 +125,13 @@ namespace DatabaseManager.Core
             return result;
         }
 
-        private IEnumerable<T> ConvertScriptDbObject<T>(string script) where T : ScriptDbObject
+        private IEnumerable<T> ConvertScriptDbObject<T>(string script) where T : ScriptDbObject, new()
         {
             var list = new List<T>();
-
-            var t = Activator.CreateInstance(typeof(T)) as T;
-            t.Definition = script;
+            var t = new T
+            {
+                Definition = script
+            };
 
             list.Add(t);
 

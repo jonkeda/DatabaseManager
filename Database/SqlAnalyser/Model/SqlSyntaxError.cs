@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 
-namespace SqlAnalyser.Model
+namespace Databases.SqlAnalyser.Model
 {
     public class SqlSyntaxError
     {

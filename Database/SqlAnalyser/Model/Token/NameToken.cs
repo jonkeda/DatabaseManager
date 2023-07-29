@@ -1,7 +1,7 @@
 ﻿using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 
-namespace SqlAnalyser.Model
+namespace Databases.SqlAnalyser.Model.Token
 {
     public class NameToken : TokenInfo
     {

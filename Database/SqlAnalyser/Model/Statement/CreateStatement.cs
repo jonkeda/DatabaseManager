@@ -1,6 +1,7 @@
 ﻿using DatabaseInterpreter.Model;
+using Databases.SqlAnalyser.Model.Token;
 
-namespace SqlAnalyser.Model
+namespace Databases.SqlAnalyser.Model.Statement
 {
     public class CreateStatement : Statement
     {

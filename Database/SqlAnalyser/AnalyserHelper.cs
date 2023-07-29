@@ -5,9 +5,11 @@ using System.Text.RegularExpressions;
 using Antlr4.Runtime;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
+using Databases.SqlAnalyser.Model.Statement;
+using Databases.SqlAnalyser.Model.Token;
 using SqlAnalyser.Model;
 
-namespace SqlAnalyser.Core
+namespace Databases.SqlAnalyser
 {
     public static class AnalyserHelper
     {

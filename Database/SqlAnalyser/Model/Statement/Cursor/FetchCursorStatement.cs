@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
+using Databases.SqlAnalyser.Model.Token;
 
-namespace SqlAnalyser.Model
+namespace Databases.SqlAnalyser.Model.Statement.Cursor
 {
     public class FetchCursorStatement : Statement
     {

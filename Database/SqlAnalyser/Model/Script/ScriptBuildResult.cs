@@ -1,4 +1,4 @@
-﻿namespace SqlAnalyser.Core.Model
+﻿namespace Databases.SqlAnalyser.Model.Script
 {
     public class ScriptBuildResult
     {

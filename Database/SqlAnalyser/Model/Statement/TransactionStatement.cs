@@ -1,4 +1,6 @@
-﻿namespace SqlAnalyser.Model
+﻿using Databases.SqlAnalyser.Model.Token;
+
+namespace Databases.SqlAnalyser.Model.Statement
 {
     public class TransactionStatement : Statement
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SqlAnalyser.Model
+namespace Databases.SqlAnalyser.Model
 {
     public class StatementScriptBuilderOption
     {

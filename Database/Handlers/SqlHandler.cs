@@ -3,7 +3,7 @@ using System.Data.Common;
 using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseManager.Core;
-using SqlAnalyser.Core;
+using Databases.SqlAnalyser;
 
 namespace Databases.Handlers
 {

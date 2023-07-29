@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
+using Databases.SqlAnalyser.Model.Statement;
+using Databases.SqlAnalyser.Model.Token;
+using SqlAnalyser.Model;
 
-namespace SqlAnalyser.Model
+namespace Databases.SqlAnalyser.Model.DatabaseObject
 {
     public class TableInfo
     {

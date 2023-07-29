@@ -1,4 +1,7 @@
-﻿namespace SqlAnalyser.Model
+﻿using Databases.SqlAnalyser.Model.Token;
+using SqlAnalyser.Model;
+
+namespace Databases.SqlAnalyser.Model.Script
 {
     public class DbScript
     {

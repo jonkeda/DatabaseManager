@@ -1,4 +1,6 @@
-﻿using SqlAnalyser.Model;
+﻿using Databases.SqlAnalyser;
+using Databases.SqlAnalyser.Model;
+using SqlAnalyser.Model;
 
 namespace SqlAnalyser.Core
 {

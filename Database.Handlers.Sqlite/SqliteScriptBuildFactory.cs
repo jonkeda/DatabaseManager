@@ -2,7 +2,8 @@
 using System.Linq;
 using System.Text;
 using DatabaseInterpreter.Model;
-using SqlAnalyser.Core.Model;
+using Databases.SqlAnalyser;
+using Databases.SqlAnalyser.Model.Script;
 using SqlAnalyser.Model;
 
 namespace SqlAnalyser.Core

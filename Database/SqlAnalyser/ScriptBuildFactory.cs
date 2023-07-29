@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Text;
 using DatabaseInterpreter.Model;
 using Databases.Handlers;
-using SqlAnalyser.Core.Model;
+using Databases.SqlAnalyser.Model;
+using Databases.SqlAnalyser.Model.Script;
+using Databases.SqlAnalyser.Model.Statement;
 using SqlAnalyser.Model;
 
-namespace SqlAnalyser.Core
+namespace Databases.SqlAnalyser
 {
     public abstract class ScriptBuildFactory
     {

@@ -1,4 +1,4 @@
-﻿namespace SqlAnalyser.Model
+﻿namespace Databases.SqlAnalyser.Model
 {
     public class SqlRuleAnalyserOption
     {

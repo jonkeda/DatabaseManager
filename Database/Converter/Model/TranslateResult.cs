@@ -1,4 +1,5 @@
 ﻿using DatabaseInterpreter.Model;
+using Databases.SqlAnalyser.Model;
 using SqlAnalyser.Model;
 
 namespace DatabaseConverter.Model

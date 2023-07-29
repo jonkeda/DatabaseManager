@@ -9,12 +9,18 @@ namespace DatabaseManager.Core
 {
     public class ScriptParser
     {
-        public const string AsPattern = @"\b(AS|IS)\b";
-        private readonly string createAlterScriptPattern = @"\b(CREATE|ALTER).+(VIEW|FUNCTION|PROCEDURE|TRIGGER)\b";
         private readonly DbInterpreter dbInterpreter;
-        private readonly string dmlPattern = @"\b(CREATE|ALTER|INSERT|UPDATE|DELETE|TRUNCATE|INTO)\b";
-        private readonly string routinePattern = @"\b(BEGIN|END|DECLARE|SET|GOTO)\b";
-        private readonly string selectPattern = "SELECT(.[\n]?)+(FROM)?";
+
+        private static readonly Regex AsPattern = new Regex(@"\b(AS|IS)\b", 
+            RegexOptions.Compiled);
+        private static readonly Regex CreateAlterScriptPattern = new Regex( @"\b(CREATE|ALTER).+(VIEW|FUNCTION|PROCEDURE|TRIGGER)\b", 
+            RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
+        private static readonly Regex DmlPattern = new Regex(@"\b(CREATE|ALTER|INSERT|UPDATE|DELETE|TRUNCATE|INTO)\b", 
+            RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
+        private static readonly Regex RoutinePattern = new Regex(@"\b(BEGIN|END|DECLARE|SET|GOTO)\b", 
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex SelectPattern = new Regex("SELECT(.[\n]?)+(FROM)?",
+            RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
 
         public ScriptParser(DbInterpreter dbInterpreter, string script)
         {
@@ -51,17 +57,15 @@ namespace DatabaseManager.Core
 
         public bool IsSelect()
         {
-            var options = RegexOptions.IgnoreCase | RegexOptions.Multiline;
-
-            var selectMatches = Regex.Matches(Script, selectPattern, options);
+            var selectMatches = SelectPattern.Matches(Script);
 
             if (selectMatches.Cast<Match>().Any(item => !IsWordInSingleQuotation(CleanScript, item.Index)))
             {
-                var dmlMatches = Regex.Matches(Script, dmlPattern, options);
-                var routineMathes = Regex.Matches(Script, routinePattern, RegexOptions.IgnoreCase);
+                var dmlMatches = DmlPattern.Matches(Script);
+                var routineMatches = RoutinePattern.Matches(Script);
 
                 if (!(dmlMatches.Cast<Match>().Any(item => !IsWordInSingleQuotation(Script, item.Index))
-                      || routineMathes.Cast<Match>().Any(item => !IsWordInSingleQuotation(Script, item.Index))))
+                      || routineMatches.Cast<Match>().Any(item => !IsWordInSingleQuotation(Script, item.Index))))
                 {
                     return true;
                 }
@@ -70,17 +74,16 @@ namespace DatabaseManager.Core
             return false;
         }
 
-        private bool IsWordInSingleQuotation(string content, int startIndex)
+        private static bool IsWordInSingleQuotation(string content, int startIndex)
         {
             return content.Substring(0, startIndex).Count(item => item == '\'') % 2 != 0;
         }
 
         public bool IsCreateOrAlterScript()
         {
-            var mathes = Regex.Matches(Script, createAlterScriptPattern,
-                RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            var matches = CreateAlterScriptPattern.Matches(Script);
 
-            return mathes.Cast<Match>().Any(item => !IsWordInSingleQuotation(Script, item.Index));
+            return matches.Cast<Match>().Any(item => !IsWordInSingleQuotation(Script, item.Index));
         }
 
         public static ScriptType DetectScriptType(string script, DbInterpreter dbInterpreter)
@@ -94,7 +97,7 @@ namespace DatabaseManager.Core
                 var firstLine = upperScript.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
                     .FirstOrDefault();
 
-                var asMatch = Regex.Match(firstLine, AsPattern);
+                var asMatch = AsPattern.Match(firstLine);
 
                 var asIndex = asMatch.Index;
 

@@ -4,6 +4,11 @@ using System.Linq;
 using System.Text;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
+using Databases.SqlAnalyser;
+using Databases.SqlAnalyser.Model.DatabaseObject;
+using Databases.SqlAnalyser.Model.Statement;
+using Databases.SqlAnalyser.Model.Statement.Cursor;
+using Databases.SqlAnalyser.Model.Token;
 using SqlAnalyser.Model;
 
 namespace SqlAnalyser.Core

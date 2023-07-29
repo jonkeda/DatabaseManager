@@ -11,6 +11,8 @@ using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using DatabaseManager.Model;
 using Databases.Exceptions;
+using Databases.SqlAnalyser.Model.Statement;
+using Databases.SqlAnalyser.Model.Token;
 using SqlAnalyser.Model;
 
 namespace DatabaseManager.Core

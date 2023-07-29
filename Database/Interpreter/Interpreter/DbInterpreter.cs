@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Dapper;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
+using Databases;
 using Databases.Exceptions;
 using Databases.Interpreter.Builder;
 using Npgsql;
@@ -19,7 +20,7 @@ namespace DatabaseInterpreter.Core
     {
         #region Constructor
 
-        public DbInterpreter(ConnectionInfo connectionInfo, DbInterpreterOption option)
+        protected DbInterpreter(ConnectionInfo connectionInfo, DbInterpreterOption option)
         {
             ConnectionInfo = connectionInfo;
             Option = option;

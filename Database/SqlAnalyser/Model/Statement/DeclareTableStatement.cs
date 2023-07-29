@@ -1,4 +1,6 @@
-﻿namespace SqlAnalyser.Model
+﻿using Databases.SqlAnalyser.Model.DatabaseObject;
+
+namespace Databases.SqlAnalyser.Model.Statement
 {
     public class DeclareTableStatement : Statement
     {

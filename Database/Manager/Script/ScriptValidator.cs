@@ -1,5 +1,6 @@
 ﻿using DatabaseConverter.Core;
 using DatabaseInterpreter.Model;
+using Databases.SqlAnalyser.Model;
 using SqlAnalyser.Model;
 
 namespace DatabaseManager.Core

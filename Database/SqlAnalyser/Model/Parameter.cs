@@ -1,4 +1,5 @@
 ﻿using System;
+using Databases.SqlAnalyser.Model.Token;
 
 namespace SqlAnalyser.Model
 {

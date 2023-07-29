@@ -1,8 +1,9 @@
 ﻿using System;
 using DatabaseInterpreter.Model;
+using Databases.SqlAnalyser.Model;
 using SqlAnalyser.Model;
 
-namespace SqlAnalyser.Core
+namespace Databases.SqlAnalyser
 {
     public abstract class SqlAnalyserBase
     {

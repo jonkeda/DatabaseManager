@@ -1,4 +1,6 @@
-﻿namespace SqlAnalyser.Model
+﻿using Databases.SqlAnalyser.Model.Token;
+
+namespace SqlAnalyser.Model
 {
     public class CallParameter
     {

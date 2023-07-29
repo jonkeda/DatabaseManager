@@ -10,6 +10,7 @@ using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using DatabaseManager.Model;
 using Databases.Handlers;
+using Databases.SqlAnalyser.Model.Statement;
 using SqlAnalyser.Model;
 
 namespace DatabaseManager.Core
@@ -724,8 +725,6 @@ namespace DatabaseManager.Core
                 {
                     DbObject = rs
                 };
-
-                var definition = rs.Definition;
 
                 var details = new List<ScriptDiagnoseResultDetail>();
 

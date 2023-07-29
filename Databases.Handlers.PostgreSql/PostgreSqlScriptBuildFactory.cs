@@ -94,11 +94,19 @@ namespace SqlAnalyser.Core
 
                     var parenthesesIndex = dataType.IndexOf("(", StringComparison.Ordinal);
 
-                    if (parenthesesIndex > 0) dataType = dataType.Substring(0, parenthesesIndex);
+                    if (parenthesesIndex > 0)
+                    {
+                        dataType = dataType.Substring(0, parenthesesIndex);
+                    }
 
                     if (parameterType.HasFlag(ParameterType.IN) && parameterType.HasFlag(ParameterType.OUT))
+                    {
                         strParameterType = "IN OUT";
-                    else if (parameterType != ParameterType.NONE) strParameterType = parameterType.ToString();
+                    }
+                    else if (parameterType != ParameterType.NONE)
+                    {
+                        strParameterType = parameterType.ToString();
+                    }
 
                     sb.AppendLine(
                         $"{parameter.Name} {strParameterType} {dataType}{defaultValue}{(i == script.Parameters.Count - 1 ? "" : ",")}");
@@ -130,14 +138,18 @@ namespace SqlAnalyser.Core
                 else if (script.ReturnTable != null)
                 {
                     if (script.ReturnTable.Columns.Count > 0)
+                    {
                         sb.AppendLine(
                             $"RETURNS TABLE({string.Join(",", script.ReturnTable.Columns.Select(item => GetColumnInfo(item)))})");
+                    }
                 }
                 else
                 {
                     if (script.Statements.Count > 0 && script.Statements.First() is SelectStatement select)
+                    {
                         sb.AppendLine(
                             $"RETURNS TABLE({string.Join(",", select.Columns.Select(item => $"{item.FieldName} character varying"))})");
+                    }
                 }
             }
 
@@ -152,8 +164,12 @@ namespace SqlAnalyser.Core
             result.BodyStartIndex = sb.Length;
 
             if (script.Type == RoutineType.FUNCTION)
+            {
                 if (script.ReturnDataType == null)
+                {
                     sb.Append("RETURN QUERY ");
+                }
+            }
 
             FetchCursorStatement fetchCursorStatement = null;
 
@@ -218,7 +234,10 @@ namespace SqlAnalyser.Core
 
             result.BodyStartIndex = sb.Length;
 
-            foreach (var statement in script.Statements) sb.AppendLine(BuildStatement(statement));
+            foreach (var statement in script.Statements)
+            {
+                sb.AppendLine(BuildStatement(statement));
+            }
 
             result.BodyStopIndex = sb.Length - 1;
             result.Script = sb.ToString();

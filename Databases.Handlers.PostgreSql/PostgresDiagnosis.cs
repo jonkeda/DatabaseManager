@@ -5,8 +5,7 @@ namespace DatabaseManager.Core
     public class PostgresDiagnosis : DbDiagnosis
     {
         public PostgresDiagnosis(ConnectionInfo connectionInfo) : base(connectionInfo)
-        {
-        }
+        { }
 
         public override DatabaseType DatabaseType => DatabaseType.Postgres;
 

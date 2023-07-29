@@ -10,8 +10,7 @@ namespace DatabaseInterpreter.Core
     public class PostgresScriptGenerator : DbScriptGenerator
     {
         public PostgresScriptGenerator(DbInterpreter dbInterpreter) : base(dbInterpreter)
-        {
-        }
+        { }
 
         public string NotCreateIfExistsClause => dbInterpreter.NotCreateIfExists ? "IF NOT EXISTS" : "";
 
@@ -108,7 +107,9 @@ namespace DatabaseInterpreter.Core
             #endregion
 
             if (option.ScriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToFile))
+            {
                 AppendScriptsToFile(sb.ToString(), GenerateScriptMode.Schema, true);
+            }
 
             return sb;
         }
@@ -122,7 +123,10 @@ namespace DatabaseInterpreter.Core
             if (value != null)
             {
                 var dataType = column.DataType.ToLower();
-                if (dataType == "bytea" || dataType == "bit" || dataType == "bit varying") return true;
+                if (dataType == "bytea" || dataType == "bit" || dataType == "bit varying")
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -173,17 +177,30 @@ namespace DatabaseInterpreter.Core
                 return new AlterDbObjectScript<TableColumn>(alter);
             }
 
-            if (newDataType != oldDataType) alter = $"TYPE {newDataType}";
+            if (newDataType != oldDataType)
+            {
+                alter = $"TYPE {newDataType}";
+            }
 
-            if (newColumn.IsNullable && !oldColumn.IsNullable) alter = "DROP NOT NULL";
+            if (newColumn.IsNullable && !oldColumn.IsNullable)
+            {
+                alter = "DROP NOT NULL";
+            }
 
-            if (!newColumn.IsNullable && oldColumn.IsNullable) alter = "SET NOT NULL";
+            if (!newColumn.IsNullable && oldColumn.IsNullable)
+            {
+                alter = "SET NOT NULL";
+            }
 
             if (!string.IsNullOrEmpty(newColumn.DefaultValue) && string.IsNullOrEmpty(oldColumn.DefaultValue))
+            {
                 alter = $"SET DEFAULT {newColumn.DefaultValue}";
+            }
 
             if (string.IsNullOrEmpty(newColumn.DefaultValue) && !string.IsNullOrEmpty(oldColumn.DefaultValue))
+            {
                 alter = "DROP DEFAULT";
+            }
 
             return new AlterDbObjectScript<TableColumn>(
                 $"ALTER TABLE {GetQuotedString(table.Name)} ALTER COLUMN {GetQuotedString(newColumn.Name)} {alter};");
@@ -241,9 +258,15 @@ ALTER TABLE {GetQuotedFullTableName(primaryKey)} ADD CONSTRAINT {pkName} PRIMARY
 ALTER TABLE {GetQuotedFullTableName(foreignKey)} ADD CONSTRAINT {fkName} FOREIGN KEY ({columnNames})
 REFERENCES {GetQuotedDbObjectNameWithSchema(foreignKey.ReferencedSchema, foreignKey.ReferencedTableName)}({referenceColumnName})");
 
-            if (foreignKey.UpdateCascade) sb.AppendLine("ON UPDATE CASCADE");
+            if (foreignKey.UpdateCascade)
+            {
+                sb.AppendLine("ON UPDATE CASCADE");
+            }
 
-            if (foreignKey.DeleteCascade) sb.AppendLine("ON DELETE CASCADE");
+            if (foreignKey.DeleteCascade)
+            {
+                sb.AppendLine("ON DELETE CASCADE");
+            }
 
             sb.Append(scriptsDelimiter);
 
@@ -273,14 +296,18 @@ REFERENCES {GetQuotedDbObjectNameWithSchema(foreignKey.ReferencedSchema, foreign
             var indexType = IndexType.None;
 
             foreach (var name in Enum.GetNames(typeof(IndexType)))
+            {
                 if (name.ToUpper() == type?.ToUpper())
                 {
                     indexType = (IndexType)Enum.Parse(typeof(IndexType), name);
                     break;
                 }
+            }
 
             if (indexType == IndexType.None || (indexType | dbInterpreter.IndexType) != dbInterpreter.IndexType)
+            {
                 indexType = IndexType.BTree;
+            }
 
             var sql = "";
 
@@ -288,11 +315,15 @@ REFERENCES {GetQuotedDbObjectNameWithSchema(foreignKey.ReferencedSchema, foreign
             {
                 if (type == IndexType.Unique.ToString())
                     //use unique constraint, it can be used for foreign key reference.
+                {
                     sql =
                         $"ALTER TABLE {GetQuotedFullTableName(index)} ADD CONSTRAINT {indexName} UNIQUE ({columnNames});";
+                }
                 else
+                {
                     sql =
                         $"CREATE INDEX {GetQuotedString(index.Name)} ON {GetQuotedFullTableName(index)}({columnNames});";
+                }
             };
 
             if (indexType == IndexType.Unique)
@@ -302,10 +333,14 @@ REFERENCES {GetQuotedDbObjectNameWithSchema(foreignKey.ReferencedSchema, foreign
             else if (type != IndexType.Unique.ToString())
             {
                 if ((indexType | dbInterpreter.IndexType) == dbInterpreter.IndexType)
+                {
                     sql =
                         $"CREATE INDEX {GetQuotedString(index.Name)} ON {GetQuotedFullTableName(index)} USING {indexType.ToString().ToUpper()}({columnNames});";
+                }
                 else
+                {
                     addNormOrUnique();
+                }
             }
 
             return new CreateDbObjectScript<TableIndex>(sql);
@@ -314,8 +349,11 @@ REFERENCES {GetQuotedDbObjectNameWithSchema(foreignKey.ReferencedSchema, foreign
         public override Script DropIndex(TableIndex index)
         {
             if (index.Type == IndexType.Unique.ToString())
+            {
                 return new CreateDbObjectScript<TableIndex>(
                     $"ALTER TABLE IF EXISTS {GetQuotedFullTableName(index)} DROP CONSTRAINT  {GetQuotedString(index.Name)};");
+            }
+
             return new DropDbObjectScript<TableIndex>($"DROP INDEX {GetQuotedString(index.Name)};");
         }
 
@@ -410,10 +448,15 @@ CREATE TABLE {NotCreateIfExistsClause} {quotedTableName}(
 
             if (this.option.TableScriptsGenerateOption.GenerateComment)
             {
-                if (!string.IsNullOrEmpty(table.Comment)) sb.AppendLine(SetTableComment(table));
+                if (!string.IsNullOrEmpty(table.Comment))
+                {
+                    sb.AppendLine(SetTableComment(table));
+                }
 
                 foreach (var column in columns.Where(item => !string.IsNullOrEmpty(item.Comment)))
+                {
                     sb.AppendLine(SetTableColumnComment(table, column));
+                }
             }
 
             #endregion
@@ -421,15 +464,21 @@ CREATE TABLE {NotCreateIfExistsClause} {quotedTableName}(
             #region Primary Key
 
             if (this.option.TableScriptsGenerateOption.GeneratePrimaryKey && primaryKey != null)
+            {
                 sb.AppendLine(AddPrimaryKey(primaryKey));
+            }
 
             #endregion
 
             #region Foreign Key
 
             if (this.option.TableScriptsGenerateOption.GenerateForeignKey && foreignKeys != null)
+            {
                 foreach (var foreignKey in foreignKeys)
+                {
                     sb.AppendLine(AddForeignKey(foreignKey));
+                }
+            }
 
             #endregion
 
@@ -445,11 +494,17 @@ CREATE TABLE {NotCreateIfExistsClause} {quotedTableName}(
                         index.Columns.OrderBy(item => item.ColumnName).Select(item => item.ColumnName));
 
                     //Avoid duplicated indexes for one index.
-                    if (indexColumns.Contains(columnNames)) continue;
+                    if (indexColumns.Contains(columnNames))
+                    {
+                        continue;
+                    }
 
                     sb.AppendLine(AddIndex(index));
 
-                    if (!indexColumns.Contains(columnNames)) indexColumns.Add(columnNames);
+                    if (!indexColumns.Contains(columnNames))
+                    {
+                        indexColumns.Add(columnNames);
+                    }
                 }
             }
 
@@ -458,8 +513,12 @@ CREATE TABLE {NotCreateIfExistsClause} {quotedTableName}(
             #region Constraint
 
             if (this.option.TableScriptsGenerateOption.GenerateConstraint && constraints != null)
+            {
                 foreach (var constraint in constraints)
+                {
                     sb.AppendLine(AddCheckConstraint(constraint));
+                }
+            }
 
             #endregion
 
@@ -530,7 +589,10 @@ CREATE TABLE {NotCreateIfExistsClause} {quotedTableName}(
                     }
                 }
 
-                foreach (var cmd in cmds) yield return new Script(cmd);
+                foreach (var cmd in cmds)
+                {
+                    yield return new Script(cmd);
+                }
             }
 
             yield return new Script(GetSqlForEnableConstraints(enabled));

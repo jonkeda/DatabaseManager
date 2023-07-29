@@ -5,7 +5,6 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using DatabaseInterpreter.Model;
 using Databases.SqlAnalyser;
-using Databases.SqlAnalyser.Listener;
 using Databases.SqlAnalyser.Model;
 using Databases.SqlAnalyser.Model.DatabaseObject;
 using Databases.SqlAnalyser.Model.Script;
@@ -19,8 +18,7 @@ namespace SqlAnalyser.Core
     public class PostgreSqlRuleAnalyser : SqlRuleAnalyser
     {
         public PostgreSqlRuleAnalyser(string content) : base(content)
-        {
-        }
+        { }
 
         public override IEnumerable<Type> ParseTableTypes => new List<Type> { typeof(Qualified_nameContext) };
 
@@ -63,7 +61,10 @@ namespace SqlAnalyser.Core
                 {
                     var script = new CommonScript();
 
-                    foreach (var stmt in stmts) script.Statements.AddRange(ParseStmt(stmt));
+                    foreach (var stmt in stmts)
+                    {
+                        script.Statements.AddRange(ParseStmt(stmt));
+                    }
 
                     ExtractFunctions(script, rootContext);
 
@@ -339,6 +340,7 @@ namespace SqlAnalyser.Core
         private void SetRoutineParameters(RoutineScript script, Func_arg_with_defaultContext[] parameters)
         {
             if (parameters != null)
+            {
                 foreach (var parameter in parameters)
                 {
                     var parameterInfo = new Parameter();
@@ -353,9 +355,13 @@ namespace SqlAnalyser.Core
                     var hasDefault = false;
 
                     foreach (var child in parameter.children)
+                    {
                         if (child is TerminalNodeImpl impl)
                         {
-                            if (impl.GetText().ToUpper() == "DEFAULT") hasDefault = true;
+                            if (impl.GetText().ToUpper() == "DEFAULT")
+                            {
+                                hasDefault = true;
+                            }
                         }
                         else if (child is A_exprContext exprContext)
                         {
@@ -363,30 +369,43 @@ namespace SqlAnalyser.Core
                             {
                                 var defaultValue = exprContext;
 
-                                if (defaultValue != null) parameterInfo.DefaultValue = new TokenInfo(defaultValue);
+                                if (defaultValue != null)
+                                {
+                                    parameterInfo.DefaultValue = new TokenInfo(defaultValue);
+                                }
 
                                 break;
                             }
                         }
+                    }
 
                     SetParameterType(parameterInfo, parameter.children);
 
                     script.Parameters.Add(parameterInfo);
                 }
+            }
         }
 
         private void SetParameterType(Parameter parameterInfo, IList<IParseTree> nodes)
         {
             foreach (var child in nodes)
+            {
                 if (child is TerminalNodeImpl terminalNode)
                 {
                     if (terminalNode.Symbol.Type == IN_P)
+                    {
                         parameterInfo.ParameterType = ParameterType.IN;
+                    }
                     else if (terminalNode.Symbol.Type == OUT_P)
+                    {
                         parameterInfo.ParameterType = ParameterType.OUT;
+                    }
                     else if (terminalNode.Symbol.Type == INOUT)
+                    {
                         parameterInfo.ParameterType = ParameterType.IN | ParameterType.OUT;
+                    }
                 }
+            }
         }
 
         private SelectStatement ParseSelectStatement(SelectstmtContext node)
@@ -419,11 +438,13 @@ namespace SqlAnalyser.Core
             var limit = select?.select_limit()?.limit_clause();
 
             if (limit != null)
+            {
                 statement.LimitInfo = new SelectLimitInfo
                 {
                     StartRowIndex = new TokenInfo(limit.select_offset_value()),
                     RowCount = new TokenInfo(limit.select_limit_value())
                 };
+            }
 
             return statement;
         }
@@ -433,6 +454,7 @@ namespace SqlAnalyser.Core
             var statements = new List<Statement>();
 
             foreach (var child in node.children)
+            {
                 if (child is SelectstmtContext select)
                 {
                     statements.Add(ParseSelectStatement(select));
@@ -453,18 +475,25 @@ namespace SqlAnalyser.Core
                 {
                     var statement = ParseCreateStatement(create);
 
-                    if (statement != null) statements.Add(statement);
+                    if (statement != null)
+                    {
+                        statements.Add(statement);
+                    }
                 }
                 else if (child is TruncatestmtContext truncate)
                 {
                     var statement = ParseTuncateStatement(truncate);
 
-                    if (statement != null) statements.Add(statement);
+                    if (statement != null)
+                    {
+                        statements.Add(statement);
+                    }
                 }
                 else if (child is DropstmtContext drop)
                 {
                     statements.Add(ParseDropStatetment(drop));
                 }
+            }
 
             return statements;
         }
@@ -474,8 +503,12 @@ namespace SqlAnalyser.Core
             var statement = new SelectStatement();
 
             foreach (var child in node.children)
+            {
                 if (child is Simple_selectContext simple)
+                {
                     statement = ParseSimpleSelect(simple);
+                }
+            }
 
             return statement;
         }
@@ -496,10 +529,18 @@ namespace SqlAnalyser.Core
                 ColumnName colName = null;
 
                 if (col is Target_labelContext lable)
+                {
                     colName = ParseColumnName(lable);
-                else if (col is Target_starContext star) colName = ParseColumnName(star);
+                }
+                else if (col is Target_starContext star)
+                {
+                    colName = ParseColumnName(star);
+                }
 
-                if (colName != null) statement.Columns.Add(colName);
+                if (colName != null)
+                {
+                    statement.Columns.Add(colName);
+                }
             }
 
             if (intos != null && intos.Length > 0)
@@ -513,6 +554,7 @@ namespace SqlAnalyser.Core
                     if (exprs != null)
                     {
                         foreach (var child in exprs.children)
+                        {
                             if (child is ParserRuleContext pr && !string.IsNullOrEmpty(child.GetText()))
                             {
                                 var text = pr.GetText();
@@ -524,10 +566,12 @@ namespace SqlAnalyser.Core
 
                                 statement.Intos.Add(token);
                             }
+                        }
                     }
                     else if (into.children != null)
                     {
                         foreach (var child in into.children)
+                        {
                             if (child is OpttempTableNameContext tn)
                             {
                                 var token = new TokenInfo(tn) { Type = TokenType.TableName };
@@ -535,13 +579,17 @@ namespace SqlAnalyser.Core
                                 statement.Intos.Add(token);
                                 break;
                             }
+                        }
                     }
                 }
             }
 
             statement.FromItems = ParseFromClause(from);
 
-            if (where != null) statement.Where = ParseCondition(where.a_expr());
+            if (where != null)
+            {
+                statement.Where = ParseCondition(where.a_expr());
+            }
 
             if (groupBy != null && groupBy.group_by_list() != null)
             {
@@ -555,10 +603,16 @@ namespace SqlAnalyser.Core
 
                     statement.GroupBy.Add(gpb);
 
-                    if (!AnalyserHelper.IsValidColumnName(gpb)) AddChildTableAndColumnNameToken(item, gpb);
+                    if (!AnalyserHelper.IsValidColumnName(gpb))
+                    {
+                        AddChildTableAndColumnNameToken(item, gpb);
+                    }
                 }
 
-                if (having != null && having.a_expr() != null) statement.Having = ParseCondition(having.a_expr());
+                if (having != null && having.a_expr() != null)
+                {
+                    statement.Having = ParseCondition(having.a_expr());
+                }
             }
 
             return statement;
@@ -574,17 +628,24 @@ namespace SqlAnalyser.Core
 
             statement.TableName = ParseTableName(tableName);
 
-            if (columns != null) statement.Columns.AddRange(columns.Select(item => new ColumnName(item)));
+            if (columns != null)
+            {
+                statement.Columns.AddRange(columns.Select(item => new ColumnName(item)));
+            }
 
             if (valueClause != null)
             {
                 var values = valueClause.values_clause();
 
                 if (values != null)
+                {
                     statement.Values.AddRange(values.expr_list()
                         .Select(item => new TokenInfo(item) { Type = TokenType.InsertValue }));
+                }
                 else
+                {
                     statement.SelectStatements = new List<SelectStatement> { ParseSimpleSelect(valueClause) };
+                }
             }
 
             return statement;
@@ -606,6 +667,7 @@ namespace SqlAnalyser.Core
             statement.FromItems.Add(new FromItem { TableName = tableName });
 
             if (sets != null)
+            {
                 foreach (var set in sets)
                 {
                     var nvi = new NameValueItem
@@ -630,10 +692,17 @@ namespace SqlAnalyser.Core
 
                     statement.SetItems.Add(nvi);
                 }
+            }
 
-            if (from != null) statement.FromItems.AddRange(ParseFromClause(from));
+            if (from != null)
+            {
+                statement.FromItems.AddRange(ParseFromClause(from));
+            }
 
-            if (where != null) statement.Condition = ParseCondition(where.a_expr());
+            if (where != null)
+            {
+                statement.Condition = ParseCondition(where.a_expr());
+            }
 
             return statement;
         }
@@ -648,7 +717,10 @@ namespace SqlAnalyser.Core
 
             TokenInfo condition = null;
 
-            if (where != null) condition = ParseCondition(where.a_expr());
+            if (where != null)
+            {
+                condition = ParseCondition(where.a_expr());
+            }
 
             statement.TableName = ParseTableName(tableName);
 
@@ -687,7 +759,10 @@ namespace SqlAnalyser.Core
                 statement.FromItems.Add(fromItem);
             }
 
-            if (!conditionUsed) statement.Condition = condition;
+            if (!conditionUsed)
+            {
+                statement.Condition = condition;
+            }
 
             return statement;
         }
@@ -697,9 +772,15 @@ namespace SqlAnalyser.Core
             CreateStatement statement = null;
 
             foreach (var child in node.children)
+            {
                 if (child is TerminalNodeImpl tni)
+                {
                     if (tni.GetText().ToUpper() == "TABLE")
+                    {
                         statement = ParseCreateTable(node);
+                    }
+                }
+            }
 
             return statement;
         }
@@ -717,7 +798,10 @@ namespace SqlAnalyser.Core
 
             Action<ConstraintInfo> checkForeginKey = constraintInfo =>
             {
-                if (constraintInfo.ForeignKey == null) constraintInfo.ForeignKey = new ForeignKeyInfo();
+                if (constraintInfo.ForeignKey == null)
+                {
+                    constraintInfo.ForeignKey = new ForeignKeyInfo();
+                }
             };
 
             Action<ConstraintInfo, IParseTree> setConstraintInfo = (constraintInfo, node) =>
@@ -726,7 +810,10 @@ namespace SqlAnalyser.Core
                 {
                     var constraintType = GetConstraintType(tni);
 
-                    if (constraintType != ConstraintType.None) constraintInfo.Type = constraintType;
+                    if (constraintType != ConstraintType.None)
+                    {
+                        constraintInfo.Type = constraintType;
+                    }
                 }
                 else if (node is Qualified_nameContext qn)
                 {
@@ -747,7 +834,10 @@ namespace SqlAnalyser.Core
                     }
                     else
                     {
-                        if (constraintInfo.ColumnNames == null) constraintInfo.ColumnNames = new List<ColumnName>();
+                        if (constraintInfo.ColumnNames == null)
+                        {
+                            constraintInfo.ColumnNames = new List<ColumnName>();
+                        }
 
                         constraintInfo.ColumnNames.AddRange(cl.columnElem().Select(item => new ColumnName(item)));
                     }
@@ -774,7 +864,10 @@ namespace SqlAnalyser.Core
                     var columnName = columnDefinition.colid();
 
                     //ANTLR can't parse table check constraint correctly(it takes that as a column).
-                    if (columnName.GetText().ToUpper() == "CONSTRAINT") continue;
+                    if (columnName.GetText().ToUpper() == "CONSTRAINT")
+                    {
+                        continue;
+                    }
 
                     var columnInfo = new ColumnInfo();
 
@@ -785,6 +878,7 @@ namespace SqlAnalyser.Core
                     columnInfo.DataType = new TokenInfo(dataType) { Type = TokenType.DataType };
 
                     if (constraints != null)
+                    {
                         foreach (var constraint in constraints)
                         {
                             var text = constraint.GetText().ToUpper();
@@ -808,7 +902,10 @@ namespace SqlAnalyser.Core
 
                                     var cn = constraint.name();
 
-                                    if (cn != null) constraintInfo.Name = new NameToken(cn);
+                                    if (cn != null)
+                                    {
+                                        constraintInfo.Name = new NameToken(cn);
+                                    }
 
                                     foreach (var c in ce.children)
                                     {
@@ -817,7 +914,9 @@ namespace SqlAnalyser.Core
                                         if (c is A_exprContext aexpr)
                                         {
                                             if (constraintInfo.Type == ConstraintType.Check)
+                                            {
                                                 constraintInfo.Definition = new TokenInfo(aexpr);
+                                            }
                                         }
                                         else if (c is B_exprContext bexpr)
                                         {
@@ -831,12 +930,18 @@ namespace SqlAnalyser.Core
                                     }
 
                                     if (columnInfo.Constraints == null)
+                                    {
                                         columnInfo.Constraints = new List<ConstraintInfo>();
+                                    }
 
-                                    if (!ignore) columnInfo.Constraints.Add(constraintInfo);
+                                    if (!ignore)
+                                    {
+                                        columnInfo.Constraints.Add(constraintInfo);
+                                    }
                                 }
                             }
                         }
+                    }
 
                     tableInfo.Columns.Add(columnInfo);
                 }
@@ -846,12 +951,20 @@ namespace SqlAnalyser.Core
 
                     var cn = tableConstraint.name();
 
-                    if (cn != null) constraintInfo.Name = new NameToken(cn);
+                    if (cn != null)
+                    {
+                        constraintInfo.Name = new NameToken(cn);
+                    }
 
                     foreach (var child in tableConstraint.constraintelem().children)
+                    {
                         setConstraintInfo(constraintInfo, child);
+                    }
 
-                    if (tableInfo.Constraints == null) tableInfo.Constraints = new List<ConstraintInfo>();
+                    if (tableInfo.Constraints == null)
+                    {
+                        tableInfo.Constraints = new List<ConstraintInfo>();
+                    }
 
                     tableInfo.Constraints.Add(constraintInfo);
                 }
@@ -867,11 +980,13 @@ namespace SqlAnalyser.Core
             TruncateStatement statement = null;
 
             if (node.opt_table() != null)
+            {
                 statement = new TruncateStatement
                 {
                     TableName = ParseTableName(node.relation_expr_list().relation_expr()?.FirstOrDefault()
                         ?.qualified_name())
                 };
+            }
 
             return statement;
         }
@@ -879,6 +994,7 @@ namespace SqlAnalyser.Core
         private TokenInfo ParseCondition(ParserRuleContext node)
         {
             if (node != null)
+            {
                 if (node is A_exprContext ||
                     node is A_expr_qualContext
                    )
@@ -889,10 +1005,14 @@ namespace SqlAnalyser.Core
 
                     token.Type = isIfCondition ? TokenType.IfCondition : TokenType.SearchCondition;
 
-                    if (!isIfCondition) AddChildTableAndColumnNameToken(node, token);
+                    if (!isIfCondition)
+                    {
+                        AddChildTableAndColumnNameToken(node, token);
+                    }
 
                     return token;
                 }
+            }
 
             return null;
         }
@@ -904,6 +1024,7 @@ namespace SqlAnalyser.Core
             var tableRefs = node.from_list()?.table_ref();
 
             if (tableRefs != null)
+            {
                 foreach (var tableRef in tableRefs)
                 {
                     var fromItem = new FromItem();
@@ -912,6 +1033,7 @@ namespace SqlAnalyser.Core
 
                     fromItems.Add(fromItem);
                 }
+            }
 
             return fromItems;
         }
@@ -925,8 +1047,13 @@ namespace SqlAnalyser.Core
             var tableRefs = node.table_ref();
 
             if (relationExp != null)
+            {
                 fromItem.TableName = ParseTableName(node);
-            else if (selectWithParens != null) fromItem.TableName = ParseTableName(selectWithParens);
+            }
+            else if (selectWithParens != null)
+            {
+                fromItem.TableName = ParseTableName(selectWithParens);
+            }
 
             if (alias != null)
             {
@@ -949,12 +1076,19 @@ namespace SqlAnalyser.Core
                 {
                     var childTableRefs = tableRefs[0].table_ref();
 
-                    if (relationExp != null) fromItem.TableName = ParseTableName(node);
+                    if (relationExp != null)
+                    {
+                        fromItem.TableName = ParseTableName(node);
+                    }
 
                     if (childTableRefs.Length == 0)
+                    {
                         joinItem.TableName = ParseTableName(tableRefs[0]);
+                    }
                     else
+                    {
                         ParseTableRef(fromItem, tableRefs[0]);
+                    }
                 }
                 else if (tableRefs.Length == 2)
                 {
@@ -971,9 +1105,13 @@ namespace SqlAnalyser.Core
                     }
 
                     if (lastTableRef.table_ref().Length == 0)
+                    {
                         joinItem.TableName = ParseTableName(lastTableRef);
+                    }
                     else
+                    {
                         ParseTableRef(fromItem, lastTableRef);
+                    }
                 }
 
                 fromItem.JoinItems.Add(joinItem);
@@ -981,8 +1119,12 @@ namespace SqlAnalyser.Core
             else
             {
                 if (tableRefs.Length > 0)
+                {
                     foreach (var tableRef in tableRefs)
+                    {
                         ParseTableRef(fromItem, tableRef);
+                    }
+                }
             }
         }
 
@@ -1027,7 +1169,10 @@ namespace SqlAnalyser.Core
 
         protected override bool IsFunction(IParseTree node)
         {
-            if (node is Func_exprContext || node is Func_applicationContext) return true;
+            if (node is Func_exprContext || node is Func_applicationContext)
+            {
+                return true;
+            }
 
             return false;
         }
@@ -1081,7 +1226,9 @@ namespace SqlAnalyser.Core
             Action<Opt_alias_clauseContext> setAlias = alias =>
             {
                 if (tableName != null && alias != null && !string.IsNullOrEmpty(alias.GetText()))
+                {
                     tableName.Alias = new TokenInfo(alias);
+                }
             };
 
             if (node != null)
@@ -1108,7 +1255,10 @@ namespace SqlAnalyser.Core
                 {
                     tableName = new TableName(swp);
 
-                    if (AnalyserHelper.IsSubQuery(swp)) AddChildTableAndColumnNameToken(swp, tableName);
+                    if (AnalyserHelper.IsSubQuery(swp))
+                    {
+                        AddChildTableAndColumnNameToken(swp, tableName);
+                    }
                 }
                 else if (node is Relation_expr_opt_aliasContext reo)
                 {
@@ -1116,20 +1266,30 @@ namespace SqlAnalyser.Core
 
                     var alias = reo.colid();
 
-                    if (alias != null) tableName.Alias = new TokenInfo(alias);
+                    if (alias != null)
+                    {
+                        tableName.Alias = new TokenInfo(alias);
+                    }
                 }
                 else if (node is Qualified_nameContext qualified)
                 {
                     if (qualified.indirection() != null)
+                    {
                         tableName = new TableName(GetIndirectionAttrName(qualified.indirection()))
                         {
                             Schema = qualified.colid().GetText()
                         };
+                    }
                     else
+                    {
                         tableName = new TableName(qualified.colid());
+                    }
                 }
 
-                if (!strict && tableName == null) tableName = new TableName(node);
+                if (!strict && tableName == null)
+                {
+                    tableName = new TableName(node);
+                }
             }
 
             return tableName;
@@ -1146,7 +1306,10 @@ namespace SqlAnalyser.Core
                     columnName = new ColumnName(colRef);
                     var indirection = colRef.indirection();
 
-                    if (indirection != null) columnName.TableName = new TableName(colRef.colid());
+                    if (indirection != null)
+                    {
+                        columnName.TableName = new TableName(colRef.colid());
+                    }
                 }
                 else if (node is Target_labelContext label)
                 {
@@ -1172,14 +1335,20 @@ namespace SqlAnalyser.Core
                     var cid = st.colid();
                     var indirection = st.opt_indirection();
 
-                    if (indirection != null) columnName.TableName = new TableName(cid);
+                    if (indirection != null)
+                    {
+                        columnName.TableName = new TableName(cid);
+                    }
                 }
                 else if (node is Target_starContext star)
                 {
                     columnName = new ColumnName(star);
                 }
 
-                if (!strict && columnName == null) columnName = new ColumnName(node);
+                if (!strict && columnName == null)
+                {
+                    columnName = new ColumnName(node);
+                }
             }
 
             return columnName;
@@ -1203,10 +1372,20 @@ namespace SqlAnalyser.Core
         private ParserRuleContext FindContext(ParserRuleContext node, Type type)
         {
             if (node != null && node.children != null)
+            {
                 foreach (var child in node.children)
+                {
                     if (child.GetType() == type)
+                    {
                         return child as ParserRuleContext;
-                    else if (!(child is TerminalNodeImpl)) return FindSelectClause(child as ParserRuleContext);
+                    }
+
+                    if (!(child is TerminalNodeImpl))
+                    {
+                        return FindSelectClause(child as ParserRuleContext);
+                    }
+                }
+            }
 
             return null;
         }
@@ -1214,7 +1393,9 @@ namespace SqlAnalyser.Core
         protected override TokenInfo ParseTableAlias(ParserRuleContext node)
         {
             if (node is Alias_clauseContext alias)
+            {
                 return new TokenInfo(alias.colid()) { Type = TokenType.TableAlias };
+            }
 
             return null;
         }

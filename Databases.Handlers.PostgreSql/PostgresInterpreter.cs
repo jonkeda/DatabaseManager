@@ -32,7 +32,9 @@ namespace DatabaseInterpreter.Core
         protected override string GetUserDefinedColumnName(string columnName, string columnDataType)
         {
             if (!DataTypeHelper.IsGeometryType(columnDataType))
+            {
                 columnName = $@"{columnName}::CHARACTER VARYING AS {columnName}";
+            }
 
             return columnName;
         }
@@ -138,11 +140,14 @@ namespace DatabaseInterpreter.Core
             var sb = CreateSqlBuilder();
 
             if (isSimpleMode)
+            {
                 sb.Append(@"SELECT n.nspname AS ""Schema"",t.typname AS ""TypeName""
                          FROM pg_catalog.pg_type t
                          JOIN pg_catalog.pg_namespace n ON  n.oid = t.typnamespace
                          WHERE 1=1");
+            }
             else
+            {
                 sb.Append(@"SELECT n.nspname AS ""Schema"",t.typname AS ""TypeName"",a.attname AS ""Name"",
                         pg_catalog.format_type(a.atttypid, null) AS ""DataType"",
                         COALESCE(information_schema._pg_char_max_length(a.atttypid, a.atttypmod),-1) AS ""MaxLength"",
@@ -153,6 +158,7 @@ namespace DatabaseInterpreter.Core
                         JOIN pg_catalog.pg_type t ON a.attrelid = t.typrelid
                         JOIN pg_catalog.pg_namespace n ON  n.oid = t.typnamespace        
                         WHERE a.attnum > 0 AND NOT a.attisdropped");
+            }
 
             sb.Append(
                 @"AND t.typtype='c' AND ( t.typrelid = 0 OR ( SELECT c.relkind = 'c' FROM pg_catalog.pg_class c WHERE c.oid = t.typrelid ) )
@@ -163,7 +169,9 @@ namespace DatabaseInterpreter.Core
             sb.Append(GetFilterNamesCondition(filter, filter?.UserDefinedTypeNames, "t.typname"));
 
             if (Setting.ExcludePostgresExtensionObjects)
+            {
                 sb.Append(GetSqlForExcludeExtensionUserDefinedTypes("t.typname"));
+            }
 
             sb.Append($"ORDER BY t.typname{(isSimpleMode ? "" : ",a.attname")}");
 
@@ -248,7 +256,9 @@ namespace DatabaseInterpreter.Core
             sb.Append(GetFilterNamesCondition(filter, filter?.SequenceNames, "s.sequence_name"));
 
             if (Setting.ExcludePostgresExtensionObjects)
+            {
                 sb.Append(GetSqlForExcludeExtensionObjects(DatabaseObjectType.Sequence, "s.sequence_name"));
+            }
 
             sb.Append("ORDER BY s.sequence_name");
 
@@ -306,9 +316,12 @@ namespace DatabaseInterpreter.Core
             var sb = CreateSqlBuilder();
 
             if (isSimpleMode)
+            {
                 sb.Append(
                     @"SELECT table_schema AS ""Schema"", table_name AS ""Name"" FROM information_schema.tables t");
+            }
             else
+            {
                 sb.Append(@"SELECT n1.nspname AS ""Schema"", c.relname AS ""Name"", d.description AS ""Comment"",
                         1 AS ""IdentitySeed"", 1 AS ""IdentityIncrement""
                         FROM information_schema.tables t
@@ -316,6 +329,7 @@ namespace DatabaseInterpreter.Core
                         INNER JOIN pg_catalog.pg_class c ON n1.oid = c.relnamespace AND t.table_name=c.relname
                         INNER JOIN pg_catalog.pg_namespace n2  ON c.relnamespace=n2.oid
                         LEFT JOIN pg_description d ON d.objoid = c.oid AND d.objsubid=0");
+            }
 
             sb.Append($"WHERE t.table_type='BASE TABLE' AND UPPER(t.table_catalog)=UPPER('{ConnectionInfo.Database}')");
 
@@ -324,7 +338,9 @@ namespace DatabaseInterpreter.Core
             sb.Append(GetFilterNamesCondition(filter, filter?.TableNames, "t.table_name"));
 
             if (Setting.ExcludePostgresExtensionObjects)
+            {
                 sb.Append(GetSqlForExcludeExtensionObjects(DatabaseObjectType.Table, "t.table_name"));
+            }
 
             sb.Append("ORDER BY t.table_name");
 
@@ -623,8 +639,10 @@ namespace DatabaseInterpreter.Core
             var definition = "";
 
             if (!isSimpleMode)
+            {
                 definition =
                     $@",CONCAT('CREATE OR REPLACE VIEW ""',v.table_schema,'"".""',v.table_name,'"" AS{Environment.NewLine}',v.view_definition) AS ""Definition""";
+            }
 
             sb.Append($@"SELECT v.table_schema AS ""Schema"",v.table_name AS ""Name""{definition}
                          FROM information_schema.views v
@@ -636,7 +654,9 @@ namespace DatabaseInterpreter.Core
             sb.Append(GetFilterNamesCondition(filter, filter?.ViewNames, "v.table_name"));
 
             if (Setting.ExcludePostgresExtensionObjects)
+            {
                 sb.Append(GetSqlForExcludeExtensionObjects(DatabaseObjectType.View, "v.table_name"));
+            }
 
             sb.Append("ORDER BY v.table_name");
 
@@ -661,7 +681,10 @@ namespace DatabaseInterpreter.Core
                     break;
             }
 
-            if (string.IsNullOrEmpty(kind)) return string.Empty;
+            if (string.IsNullOrEmpty(kind))
+            {
+                return string.Empty;
+            }
 
             var sql = $@"AND {columnName} NOT IN(
                                  SELECT c.relname
@@ -719,7 +742,9 @@ namespace DatabaseInterpreter.Core
                 appendCondition();
 
                 if (Setting.ExcludePostgresExtensionObjects)
+                {
                     sb.Append(GetSqlForExcludeExtensionsRoutines("r.routine_name", isFunction));
+                }
             }
             else
             {
@@ -808,7 +833,9 @@ namespace DatabaseInterpreter.Core
             sb.Append(GetFilterNamesCondition(filter, routineNames, "r.routine_name"));
 
             if (Setting.ExcludePostgresExtensionObjects)
+            {
                 sb.Append(GetSqlForExcludeExtensionObjects(databaseObjectType, "r.routine_name"));
+            }
 
             sb.Append("ORDER BY p.specific_name,p.ordinal_position");
 
@@ -916,7 +943,10 @@ namespace DatabaseInterpreter.Core
         public override async Task BulkCopyAsync(DbConnection connection, DataTable dataTable,
             BulkCopyInfo bulkCopyInfo)
         {
-            if (!(connection is NpgsqlConnection conn)) return;
+            if (!(connection is NpgsqlConnection conn))
+            {
+                return;
+            }
 
             using (var bulkCopy = new PostgreBulkCopy(conn, bulkCopyInfo.Transaction as NpgsqlTransaction))
             {
@@ -944,7 +974,9 @@ namespace DatabaseInterpreter.Core
                                      || item.DataType == typeof(SqlHierarchyId)
                                      || DataTypeHelper.IsGeometryType(item.DataType.Name)
                 ))
+            {
                 return dataTable;
+            }
 
             var changedColumns = new Dictionary<int, DataTableColumnChangeInfo>();
             var changedValues = new Dictionary<(int RowIndex, int ColumnIndex), dynamic>();
@@ -1098,12 +1130,19 @@ namespace DatabaseInterpreter.Core
                             }
 
                             if (DataTypeHelper.IsGeometryType(dataType) && newColumnType != null && newValue == null)
+                            {
                                 newValue = DBNull.Value;
+                            }
 
                             if (newColumnType != null && !changedColumns.ContainsKey(i))
+                            {
                                 changedColumns.Add(i, new DataTableColumnChangeInfo { Type = newColumnType });
+                            }
 
-                            if (newValue != null) changedValues.Add((rowIndex, i), newValue);
+                            if (newValue != null)
+                            {
+                                changedValues.Add((rowIndex, i), newValue);
+                            }
                         }
                     }
                 }
@@ -1111,7 +1150,10 @@ namespace DatabaseInterpreter.Core
                 rowIndex++;
             }
 
-            if (changedColumns.Count == 0) return dataTable;
+            if (changedColumns.Count == 0)
+            {
+                return dataTable;
+            }
 
             var dtChanged = DataTableHelper.GetChangedDataTable(dataTable, changedColumns, changedValues);
 
@@ -1155,8 +1197,11 @@ namespace DatabaseInterpreter.Core
             if (column.IsComputed)
             {
                 if (!isLowDbVersion)
+                {
                     return
                         $"{GetQuotedString(column.Name)} {column.DataType} {requiredClause} GENERATED ALWAYS AS ({column.ComputeExp}) STORED";
+                }
+
                 return $"{GetQuotedString(column.Name)} {column.DataType} NULL";
             }
 
@@ -1175,10 +1220,17 @@ namespace DatabaseInterpreter.Core
                 else
                 {
                     if (dataType == "integer")
+                    {
                         dataType = "serial";
+                    }
                     else if (dataType == "bigint")
+                    {
                         dataType = "bigserial";
-                    else if (dataType == "smallint") dataType = "smallserial";
+                    }
+                    else if (dataType == "smallint")
+                    {
+                        dataType = "smallserial";
+                    }
                 }
             }
 
@@ -1196,7 +1248,10 @@ namespace DatabaseInterpreter.Core
 
         public override string ParseDataType(TableColumn column)
         {
-            if (DataTypeHelper.IsUserDefinedType(column)) return GetQuotedString(column.DataType);
+            if (DataTypeHelper.IsUserDefinedType(column))
+            {
+                return GetQuotedString(column.DataType);
+            }
 
             var dataType = column.DataType;
 
@@ -1214,15 +1269,23 @@ namespace DatabaseInterpreter.Core
                         var argItems = args.Split(',');
 
                         foreach (var argItem in argItems)
+                        {
                             if (argItem == "dayScale")
+                            {
                                 format = format.Replace("$dayScale$",
                                     (column.Precision.HasValue ? column.Precision.Value : 0).ToString());
+                            }
                             else if (argItem == "precision")
+                            {
                                 format = format.Replace("$precision$",
                                     (column.Precision.HasValue ? column.Precision.Value : 0).ToString());
+                            }
                             else if (argItem == "scale")
+                            {
                                 format = format.Replace("$scale$",
                                     (column.Scale.HasValue ? column.Scale.Value : 0).ToString());
+                            }
+                        }
 
                         dataType = format;
                     }
@@ -1231,7 +1294,10 @@ namespace DatabaseInterpreter.Core
                 {
                     var dataLength = GetColumnDataLength(column);
 
-                    if (!string.IsNullOrEmpty(dataLength) && dataLength != "-1") dataType += $"({dataLength})";
+                    if (!string.IsNullOrEmpty(dataLength) && dataLength != "-1")
+                    {
+                        dataType += $"({dataLength})";
+                    }
                 }
             }
 
@@ -1250,20 +1316,26 @@ namespace DatabaseInterpreter.Core
             var dataTypeSpec = GetDataTypeSpecification(dataTypeInfo.DataType);
 
             if (dataTypeSpec != null)
+            {
                 if (!string.IsNullOrEmpty(dataTypeSpec.Args))
                 {
                     if (string.IsNullOrEmpty(dataTypeInfo.Args))
                     {
                         if (isChar || isBinary)
+                        {
                             dataLength = column.MaxLength.ToString();
+                        }
                         else if (!IsNoLengthDataType(dataType))
+                        {
                             dataLength = GetDataTypePrecisionScale(column, dataTypeInfo.DataType);
+                        }
                     }
                     else
                     {
                         dataLength = dataTypeInfo.Args;
                     }
                 }
+            }
 
             return dataLength;
         }
@@ -1272,7 +1344,10 @@ namespace DatabaseInterpreter.Core
         {
             var dataTypeSpec = GetDataTypeSpecification(column.DataType.ToLower());
 
-            if (dataTypeSpec != null) return dataTypeSpec.AllowIdentity;
+            if (dataTypeSpec != null)
+            {
+                return dataTypeSpec.AllowIdentity;
+            }
 
             return false;
         }

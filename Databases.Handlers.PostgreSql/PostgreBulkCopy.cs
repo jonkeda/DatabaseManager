@@ -38,8 +38,7 @@ namespace DatabaseInterpreter.Core
         }
 
         public PostgreBulkCopy(NpgsqlConnection connection) : this(connection, null)
-        {
-        }
+        { }
 
         public PostgreBulkCopy(NpgsqlConnection connection, NpgsqlTransaction transaction = null)
         {
@@ -55,7 +54,9 @@ namespace DatabaseInterpreter.Core
             set
             {
                 if (value == null || value.Length == 0)
+                {
                     throw new ArgumentException("Destination table name cannot be null or empty string");
+                }
 
                 destinationTableName = value;
             }
@@ -71,7 +72,10 @@ namespace DatabaseInterpreter.Core
         {
             if (connection != null)
             {
-                if (ownsTheConnection) connection.Dispose();
+                if (ownsTheConnection)
+                {
+                    connection.Dispose();
+                }
 
                 connection = null;
             }
@@ -79,20 +83,31 @@ namespace DatabaseInterpreter.Core
 
         private void ValidateConnection()
         {
-            if (connection == null) throw new Exception("Postgres Database Connection is required");
+            if (connection == null)
+            {
+                throw new Exception("Postgres Database Connection is required");
+            }
 
             if (ExternalTransaction != null && ExternalTransaction.Connection != connection)
+            {
                 throw new Exception("Postgres Transaction mismatch with Oracle Database Connection");
+            }
         }
 
         private async Task OpenConnectionAsync()
         {
-            if (ownsTheConnection && connection.State != ConnectionState.Open) await connection.OpenAsync();
+            if (ownsTheConnection && connection.State != ConnectionState.Open)
+            {
+                await connection.OpenAsync();
+            }
         }
 
         public async Task<ulong> WriteToServerAsync(DataTable table)
         {
-            if (table == null) throw new ArgumentNullException(nameof(table));
+            if (table == null)
+            {
+                throw new ArgumentNullException(nameof(table));
+            }
 
             return await CopyData(table);
         }
@@ -142,7 +157,10 @@ namespace DatabaseInterpreter.Core
         private string GetColumnName(string columnName)
         {
             if (ColumnNameNeedQuoted || columnName.Contains(" "))
+            {
                 return $@"""{columnName}""";
+            }
+
             return columnName;
         }
 
@@ -217,9 +235,13 @@ namespace DatabaseInterpreter.Core
                     var mappedDataType = GetMappedDataType(targetColumnDataType);
 
                     if (mappedDataType.HasValue)
+                    {
                         dbType = mappedDataType.Value;
+                    }
                     else
+                    {
                         dbType = NpgsqlDbType.Smallint;
+                    }
                 }
 
                 if (t == typeof(long))
@@ -227,45 +249,65 @@ namespace DatabaseInterpreter.Core
                     var mappedDataType = GetMappedDataType(targetColumnDataType);
 
                     if (mappedDataType.HasValue)
+                    {
                         dbType = mappedDataType.Value;
+                    }
                     else
+                    {
                         dbType = NpgsqlDbType.Bigint;
+                    }
                 }
                 else if (t == typeof(float))
                 {
                     var mappedDataType = GetMappedDataType(targetColumnDataType);
 
                     if (mappedDataType.HasValue)
+                    {
                         dbType = mappedDataType.Value;
+                    }
                     else
+                    {
                         dbType = NpgsqlDbType.Real;
+                    }
                 }
                 else if (t == typeof(double))
                 {
                     var mappedDataType = GetMappedDataType(targetColumnDataType);
 
                     if (mappedDataType.HasValue)
+                    {
                         dbType = mappedDataType.Value;
+                    }
                     else
+                    {
                         dbType = NpgsqlDbType.Double;
+                    }
                 }
                 else if (t == typeof(decimal))
                 {
                     var mappedDataType = GetMappedDataType(targetColumnDataType);
 
                     if (mappedDataType.HasValue)
+                    {
                         dbType = mappedDataType.Value;
+                    }
                     else
+                    {
                         dbType = NpgsqlDbType.Numeric;
+                    }
                 }
                 else if (t == typeof(DateTime))
                 {
                     var mappedDataType = GetMappedDataType(targetColumnDataType);
 
                     if (mappedDataType.HasValue)
+                    {
                         dbType = mappedDataType.Value;
+                    }
                     else
+                    {
                         dbType = NpgsqlDbType.Timestamp;
+                    }
                 }
                 else if (Enum.TryParse(t.Name, out NpgsqlDbType _))
                 {
@@ -273,7 +315,10 @@ namespace DatabaseInterpreter.Core
                 }
             }
 
-            if (dbType == NpgsqlDbType.Unknown) dbType = NpgsqlDbType.Varchar;
+            if (dbType == NpgsqlDbType.Unknown)
+            {
+                dbType = NpgsqlDbType.Varchar;
+            }
 
             return (value, dbType);
         }
@@ -285,7 +330,10 @@ namespace DatabaseInterpreter.Core
 
         private NpgsqlDbType? GetMappedDataType(string dataType)
         {
-            if (dataType != null && DataTypeMappings.TryGetValue(dataType, out var type)) return type;
+            if (dataType != null && DataTypeMappings.TryGetValue(dataType, out var type))
+            {
+                return type;
+            }
 
             return default;
         }

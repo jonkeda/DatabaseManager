@@ -12,15 +12,22 @@ namespace DatabaseInterpreter.Core
             var port = connectionInfo.Port;
             var timeout = DbInterpreter.Setting.CommandTimeout;
 
-            if (string.IsNullOrEmpty(port)) port = PostgresInterpreter.DEFAULT_PORT.ToString();
+            if (string.IsNullOrEmpty(port))
+            {
+                port = PostgresInterpreter.DEFAULT_PORT.ToString();
+            }
 
             var sb = new StringBuilder(
                 $"Host={server};Port={port};Database={connectionInfo.Database};CommandTimeout={timeout};");
 
             if (connectionInfo.IntegratedSecurity)
+            {
                 sb.Append($"Integrated Security=True;Username={connectionInfo.UserId};");
+            }
             else
+            {
                 sb.Append($"Username={connectionInfo.UserId};Password={connectionInfo.Password};");
+            }
 
             return sb.ToString();
         }

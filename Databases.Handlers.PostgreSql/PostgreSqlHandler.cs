@@ -16,8 +16,7 @@ namespace Databases.Handlers.TSql
         PostgresDiagnosis>
     {
         public PostgreSqlHandler() : base(DatabaseType.Postgres)
-        {
-        }
+        { }
 
 
         public override SqlAnalyserBase GetSqlAnalyser(string content)
@@ -47,7 +46,10 @@ namespace Databases.Handlers.TSql
         protected override DbProviderFactory CreateDbProviderFactory(string providerName)
         {
             if (providerName.Contains("npgsql"))
+            {
                 return NpgsqlFactory.Instance;
+            }
+
             return null;
         }
     }

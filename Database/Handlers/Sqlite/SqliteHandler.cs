@@ -2,6 +2,9 @@
 using SqlAnalyser.Core;
 using DatabaseInterpreter.Model;
 using DatabaseManager.Core;
+using System.Data.Common;
+using CsvHelper;
+using Microsoft.Data.Sqlite;
 
 namespace Databases.Handlers.Sqlite
 {
@@ -37,6 +40,13 @@ namespace Databases.Handlers.Sqlite
         public override DbScriptGenerator CreateDbScriptGenerator(DbInterpreter dbInterpreter)
         {
             return new SqliteScriptGenerator(dbInterpreter);
+        }
+
+        protected override DbProviderFactory CreateDbProviderFactory(string providerName)
+        {
+            if (providerName.Contains("sqlite")) 
+                return SqliteFactory.Instance;
+            return null;
         }
 
     }

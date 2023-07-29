@@ -702,9 +702,10 @@ namespace DatabaseInterpreter.Core
             if (dataTable == null || dataTable.Rows.Count <= 0) return;
 
             var bulkCopy = new MySqlBulkCopy(connection as MySqlConnection,
-                bulkCopyInfo.Transaction as MySqlTransaction);
-
-            bulkCopy.DestinationTableName = GetQuotedString(bulkCopyInfo.DestinationTableName);
+                bulkCopyInfo.Transaction as MySqlTransaction)
+            {
+                DestinationTableName = GetQuotedString(bulkCopyInfo.DestinationTableName)
+            };
 
             var i = 0;
             foreach (DataColumn column in dataTable.Columns)

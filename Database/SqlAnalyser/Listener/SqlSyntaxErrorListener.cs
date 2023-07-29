@@ -16,14 +16,15 @@ namespace SqlAnalyser.Core
 
             if (offendingSymbol is CommonToken token)
             {
-                var errorItem = new SqlSyntaxErrorItem();
-
-                errorItem.StartIndex = token.StartIndex;
-                errorItem.StopIndex = token.StopIndex;
-                errorItem.Line = token.Line;
-                errorItem.Column = token.Column + 1;
-                errorItem.Text = token.Text;
-                errorItem.Message = msg;
+                var errorItem = new SqlSyntaxErrorItem
+                {
+                    StartIndex = token.StartIndex,
+                    StopIndex = token.StopIndex,
+                    Line = token.Line,
+                    Column = token.Column + 1,
+                    Text = token.Text,
+                    Message = msg
+                };
 
                 Error.Items.Add(errorItem);
             }

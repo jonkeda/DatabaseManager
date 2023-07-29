@@ -400,8 +400,10 @@ namespace SqlAnalyser.Core
 
                 foreach (var cte in cteList)
                 {
-                    var withStatement = new WithStatement();
-                    withStatement.Name = new TableName(cte.name());
+                    var withStatement = new WithStatement
+                    {
+                        Name = new TableName(cte.name())
+                    };
 
                     statement.WithStatements.Add(withStatement);
                 }
@@ -599,9 +601,10 @@ namespace SqlAnalyser.Core
             if (sets != null)
                 foreach (var set in sets)
                 {
-                    var nvi = new NameValueItem();
-
-                    nvi.Name = ParseColumnName(set.set_target());
+                    var nvi = new NameValueItem
+                    {
+                        Name = ParseColumnName(set.set_target())
+                    };
 
                     var value = set.a_expr();
 
@@ -656,9 +659,10 @@ namespace SqlAnalyser.Core
 
                 foreach (var from in froms)
                 {
-                    var joinItem = new JoinItem();
-
-                    joinItem.TableName = ParseTableName(from);
+                    var joinItem = new JoinItem
+                    {
+                        TableName = ParseTableName(from)
+                    };
 
                     if (count == 1)
                     {
@@ -857,10 +861,10 @@ namespace SqlAnalyser.Core
 
             if (node.opt_table() != null)
             {
-                statement = new TruncateStatement();
-
-                statement.TableName =
-                    ParseTableName(node.relation_expr_list().relation_expr()?.FirstOrDefault()?.qualified_name());
+                statement = new TruncateStatement
+                {
+                    TableName = ParseTableName(node.relation_expr_list().relation_expr()?.FirstOrDefault()?.qualified_name())
+                };
             }
 
             return statement;
@@ -929,9 +933,11 @@ namespace SqlAnalyser.Core
             {
                 var joinType = node.join_type();
 
-                var joinItem = new JoinItem();
-                joinItem.Type = GetJoinType(joinType.LastOrDefault());
-                joinItem.Condition = ParseCondition(joinEq.LastOrDefault()?.a_expr());
+                var joinItem = new JoinItem
+                {
+                    Type = GetJoinType(joinType.LastOrDefault()),
+                    Condition = ParseCondition(joinEq.LastOrDefault()?.a_expr())
+                };
 
                 if (tableRefs.Length == 1)
                 {
@@ -1037,15 +1043,21 @@ namespace SqlAnalyser.Core
 
                     if (ids.Length == 2)
                     {
-                        seqName = new NameToken(ids[1]) { Type = TokenType.SequenceName };
-                        seqName.StartIndex = exp.Start.StartIndex + ids[0].Length + 1;
+                        seqName = new NameToken(ids[1])
+                        {
+                            Type = TokenType.SequenceName,
+                            StartIndex = exp.Start.StartIndex + ids[0].Length + 1
+                        };
                         seqName.StopIndex = seqName.StartIndex + ids[1].Length + 1;
                         seqName.Schema = ids[0];
                     }
                     else
                     {
-                        seqName = new NameToken(ids[0]) { Type = TokenType.SequenceName };
-                        seqName.StartIndex = exp.Start.StartIndex + 1;
+                        seqName = new NameToken(ids[0])
+                        {
+                            Type = TokenType.SequenceName,
+                            StartIndex = exp.Start.StartIndex + 1
+                        };
                         seqName.StopIndex = seqName.StartIndex;
                     }
 
@@ -1104,8 +1116,10 @@ namespace SqlAnalyser.Core
                 {
                     if (qualified.indirection() != null)
                     {
-                        tableName = new TableName(GetIndirectionAttrName(qualified.indirection()));
-                        tableName.Schema = qualified.colid().GetText();
+                        tableName = new TableName(GetIndirectionAttrName(qualified.indirection()))
+                        {
+                            Schema = qualified.colid().GetText()
+                        };
                     }
                     else
                     {

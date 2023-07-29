@@ -318,9 +318,11 @@ namespace SqlAnalyser.Core
                     {
                         if (statement.UnionStatements == null) statement.UnionStatements = new List<UnionStatement>();
 
-                        var union = new UnionStatement { Type = isUnionAll ? UnionType.UNION_ALL : UnionType.UNION };
-
-                        union.SelectStatement = ParseSelectCore(core);
+                        var union = new UnionStatement
+                        {
+                            Type = isUnionAll ? UnionType.UNION_ALL : UnionType.UNION,
+                            SelectStatement = ParseSelectCore(core)
+                        };
 
                         statement.UnionStatements.Add(union);
                     }
@@ -386,8 +388,10 @@ namespace SqlAnalyser.Core
             if (tableNames != null && tableNames.Length > 0)
                 foreach (var tableName in tableNames)
                 {
-                    var fromItem = new FromItem();
-                    fromItem.TableName = ParseTableName(tableName);
+                    var fromItem = new FromItem
+                    {
+                        TableName = ParseTableName(tableName)
+                    };
 
                     statement.FromItems.Add(fromItem);
                 }
@@ -507,9 +511,10 @@ namespace SqlAnalyser.Core
 
             for (var i = 0; i < columns.Length; i++)
             {
-                var item = new NameValueItem();
-
-                item.Name = ParseColumnName(columns[i]);
+                var item = new NameValueItem
+                {
+                    Name = ParseColumnName(columns[i])
+                };
 
                 var expr = exprs[i];
 
@@ -603,9 +608,10 @@ namespace SqlAnalyser.Core
 
             foreach (var column in columns)
             {
-                var columnInfo = new ColumnInfo();
-
-                columnInfo.Name = new ColumnName(column.column_name());
+                var columnInfo = new ColumnInfo
+                {
+                    Name = new ColumnName(column.column_name())
+                };
 
                 var typeNames = column.type_name().name();
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Text.RegularExpressions;
-using DatabaseInterpreter.Model;
 
 namespace DatabaseInterpreter.Utility
 {

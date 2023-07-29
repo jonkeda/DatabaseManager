@@ -4,6 +4,6 @@
     {
         public SqlSyntaxError Error { get; set; }
         public bool HasError => Error != null;
-        public CommonScript Script { get; internal set; }
+        public CommonScript Script { get; set; }
     }
 }

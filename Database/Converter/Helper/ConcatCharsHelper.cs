@@ -355,10 +355,12 @@ namespace DatabaseConverter.Core
 
             Action<string, TokenSymbolItemType> addItem = (content, type) =>
             {
-                var contentItem = new TokenSymbolItemInfo();
-                contentItem.Index = tokenSymbolItems.Count();
-                contentItem.Content = content;
-                contentItem.Type = type;
+                var contentItem = new TokenSymbolItemInfo
+                {
+                    Index = tokenSymbolItems.Count(),
+                    Content = content,
+                    Type = type
+                };
 
                 tokenSymbolItems.Add(contentItem);
             };
@@ -516,9 +518,11 @@ namespace DatabaseConverter.Core
                     if (fowardChars == concatChars)
                         if (singleQuotationCharCount % 2 == 0 && leftParenthesisCount == rightParenthesisCount)
                         {
-                            var item = new TokenSymbolItemInfo();
-                            item.Content = sb.ToString();
-                            item.Index = items.Count;
+                            var item = new TokenSymbolItemInfo
+                            {
+                                Content = sb.ToString(),
+                                Index = items.Count
+                            };
 
                             items.Add(item);
 
@@ -535,9 +539,11 @@ namespace DatabaseConverter.Core
 
             if (sb.Length > 0) //last one
             {
-                var item = new TokenSymbolItemInfo();
-                item.Content = sb.ToString();
-                item.Index = items.Count;
+                var item = new TokenSymbolItemInfo
+                {
+                    Content = sb.ToString(),
+                    Index = items.Count
+                };
 
                 items.Add(item);
             }

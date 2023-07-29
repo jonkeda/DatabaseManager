@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using Microsoft.SqlServer.Types;
-using MySqlConnector;
 using Npgsql;
 using PgGeom = NetTopologySuite.Geometries;
 
@@ -928,8 +927,7 @@ namespace DatabaseInterpreter.Core
         {
             var columns = dataTable.Columns.Cast<DataColumn>();
 
-            if (!columns.Any(item => item.DataType == typeof(MySqlDateTime)
-                                     || item.DataType == typeof(byte[])
+            if (!columns.Any(item => item.DataType == typeof(byte[])
                                      || item.DataType == typeof(string)
                                      || item.DataType == typeof(Guid)
                                      || item.DataType == typeof(decimal)
@@ -962,20 +960,7 @@ namespace DatabaseInterpreter.Core
                             var dataType = tableColumn.DataType.ToLower();
                             dynamic newValue = null;
 
-                            if (type == typeof(MySqlDateTime))
-                            {
-                                var mySqlDateTime = (MySqlDateTime)value;
-
-                                if (dataType.Contains("date") || dataType.Contains("timestamp"))
-                                {
-                                    var dateTime = mySqlDateTime.GetDateTime();
-
-                                    newColumnType = typeof(DateTime);
-
-                                    newValue = dateTime;
-                                }
-                            }
-                            else if (type == typeof(SqlHierarchyId))
+                            if (type == typeof(SqlHierarchyId))
                             {
                                 newValue = ((SqlHierarchyId)value).ToString();
                                 newColumnType = typeof(string);

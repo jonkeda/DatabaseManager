@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using DatabaseInterpreter.Model;
 using DatabaseManager.Helper;
 using DatabaseManager.Model;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using SqlAnalyser.Model;
 
@@ -60,7 +61,7 @@ namespace SqlAnalyser.Core
             return statement.SetItems.Any(item => item.Name?.Symbol?.Contains(",") == true);
         }
 
-        public static string ParseCompositeUpdateSet(StatementScriptBuilder builder, UpdateStatement statement)
+        public static string ParseCompositeUpdateSet(DatabaseType builder, UpdateStatement statement)
         {
             var sb = new StringBuilder();
 
@@ -107,13 +108,13 @@ namespace SqlAnalyser.Core
                 buildWhere();
             };
 
-            if (builder is TSqlStatementScriptBuilder || builder is SqliteStatementScriptBuilder)
+            if (builder == DatabaseType.SqlServer || builder == DatabaseType.Sqlite)
             {
                 buildSet();
 
                 buildFromAndWhere();
             }
-            else if (builder is MySqlStatementScriptBuilder)
+            else if (builder == DatabaseType.MySql)
             {
                 var fromTables = getFromTables();
 
@@ -125,7 +126,7 @@ namespace SqlAnalyser.Core
 
                 buildWhere();
             }
-            else if (builder is PostgreSqlStatementScriptBuilder)
+            else if (builder == DatabaseType.Postgres)
             {
                 for (var i = 0; i < colNames.Length; i++)
                     if (colNames[i].Contains("."))

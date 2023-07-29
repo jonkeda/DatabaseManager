@@ -2,6 +2,9 @@
 using SqlAnalyser.Core;
 using DatabaseInterpreter.Model;
 using DatabaseManager.Core;
+using System.Data.Common;
+using CsvHelper;
+using MySqlConnector;
 
 namespace Databases.Handlers.MySql
 {
@@ -36,6 +39,14 @@ namespace Databases.Handlers.MySql
         public override DbScriptGenerator CreateDbScriptGenerator(DbInterpreter dbInterpreter)
         {
             return new MySqlScriptGenerator(dbInterpreter);
-        }        
+        }
+
+        protected override DbProviderFactory CreateDbProviderFactory(string providerName)
+        {
+            if (providerName.Contains("mysql"))
+                return MySqlConnectorFactory.Instance;
+            return null;
+        }
+
     }
 }

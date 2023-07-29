@@ -359,12 +359,13 @@ namespace DatabaseManager.Core
             foreach (var col in columns)
                 if (col.Alias != null && !col.Alias.Symbol.StartsWith( interpreter.QuotationLeftChar.ToString()))
                 {
-                    var detail = new ScriptDiagnoseResultDetail();
-
-                    detail.ObjectType = DatabaseObjectType.Column;
-                    detail.InvalidName = col.FieldName;
-                    detail.Name = interpreter.GetQuotedString(col.FieldName);
-                    detail.Index = col.Alias.StartIndex.Value;
+                    var detail = new ScriptDiagnoseResultDetail
+                    {
+                        ObjectType = DatabaseObjectType.Column,
+                        InvalidName = col.FieldName,
+                        Name = interpreter.GetQuotedString(col.FieldName),
+                        Index = col.Alias.StartIndex.Value
+                    };
 
                     details.Add(detail);
                 }
@@ -634,9 +635,10 @@ namespace DatabaseManager.Core
 
             foreach (var rs in routineScripts)
             {
-                var result = new ScriptDiagnoseResult();
-
-                result.DbObject = rs;
+                var result = new ScriptDiagnoseResult
+                {
+                    DbObject = rs
+                };
 
                 var definition = rs.Definition;
 

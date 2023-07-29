@@ -186,7 +186,7 @@ namespace SqlAnalyser.Core
                 }
                 else
                 {
-                    AppendLine(StatementScriptBuilderHelper.ParseCompositeUpdateSet(this, update));
+                    AppendLine(StatementScriptBuilderHelper.ParseCompositeUpdateSet(DatabaseType.Postgres, update));
 
                     return this;
                 }
@@ -358,9 +358,11 @@ namespace SqlAnalyser.Core
                     {
                         isIntegerIterate = true;
 
-                        var declareVariable = new DeclareVariableStatement();
-                        declareVariable.Name = loop.LoopCursorInfo.IteratorName;
-                        declareVariable.DataType = new TokenInfo("INTEGER");
+                        var declareVariable = new DeclareVariableStatement
+                        {
+                            Name = loop.LoopCursorInfo.IteratorName,
+                            DataType = new TokenInfo("INTEGER")
+                        };
 
                         DeclareVariableStatements.Add(declareVariable);
 
@@ -778,7 +780,7 @@ namespace SqlAnalyser.Core
                         var defaultValue = string.IsNullOrEmpty(column.DefaultValue?.Symbol)
                             ? ""
                             : $" DEFAULT {StringHelper.GetParenthesisedString(column.DefaultValue.Symbol)}";
-                        var constraint = GetConstriants(column.Constraints, true);
+                        var constraint = GetConstraints(column.Constraints, true);
                         var strConstraint = string.IsNullOrEmpty(constraint) ? "" : $" {constraint}";
 
                         sb.AppendLine(
@@ -788,7 +790,7 @@ namespace SqlAnalyser.Core
                     i++;
                 }
 
-                if (hasTableConstraints) sb.AppendLine(GetConstriants(table.Constraints));
+                if (hasTableConstraints) sb.AppendLine(GetConstraints(table.Constraints));
 
                 sb.AppendLine(")");
             }

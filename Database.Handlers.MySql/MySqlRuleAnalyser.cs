@@ -247,9 +247,11 @@ namespace SqlAnalyser.Core
                     if (objNames != null)
                         foreach (var objName in objNames)
                         {
-                            var dropStatement = new DropStatement();
-                            dropStatement.ObjectType = objType;
-                            dropStatement.ObjectName = new NameToken(objName) { Type = tokenType };
+                            var dropStatement = new DropStatement
+                            {
+                                ObjectType = objType,
+                                ObjectName = new NameToken(objName) { Type = tokenType }
+                            };
 
                             statements.Add(dropStatement);
                         }
@@ -415,12 +417,12 @@ namespace SqlAnalyser.Core
             if (parameters != null)
                 foreach (var parameter in parameters)
                 {
-                    var parameterInfo = new Parameter();
-
-                    parameterInfo.Name = new TokenInfo(parameter.parameterName()) { Type = TokenType.ParameterName };
-
-                    parameterInfo.DataType = new TokenInfo(parameter.typeWithOptCollate().GetText())
-                        { Type = TokenType.DataType };
+                    var parameterInfo = new Parameter
+                    {
+                        Name = new TokenInfo(parameter.parameterName()) { Type = TokenType.ParameterName },
+                        DataType = new TokenInfo(parameter.typeWithOptCollate().GetText())
+                            { Type = TokenType.DataType }
+                    };
 
                     SetParameterType(parameterInfo, parameter.children);
 
@@ -557,10 +559,11 @@ namespace SqlAnalyser.Core
 
         private DeclareCursorStatement ParseDeclareCursor(CursorDeclarationContext node)
         {
-            var statement = new DeclareCursorStatement();
-
-            statement.CursorName = new TokenInfo(node.identifier()) { Type = TokenType.CursorName };
-            statement.SelectStatement = ParseSelectStatement(node.selectStatement());
+            var statement = new DeclareCursorStatement
+            {
+                CursorName = new TokenInfo(node.identifier()) { Type = TokenType.CursorName },
+                SelectStatement = ParseSelectStatement(node.selectStatement())
+            };
 
             return statement;
         }
@@ -578,18 +581,21 @@ namespace SqlAnalyser.Core
 
         private OpenCursorStatement ParseOpenCursorSatement(CursorOpenContext node)
         {
-            var statement = new OpenCursorStatement();
-
-            statement.CursorName = new TokenInfo(node.identifier()) { Type = TokenType.CursorName };
+            var statement = new OpenCursorStatement
+            {
+                CursorName = new TokenInfo(node.identifier()) { Type = TokenType.CursorName }
+            };
 
             return statement;
         }
 
         private FetchCursorStatement ParseFetchCursorSatement(CursorFetchContext node)
         {
-            var statement = new FetchCursorStatement();
+            var statement = new FetchCursorStatement
+            {
+                CursorName = new TokenInfo(node.identifier()) { Type = TokenType.CursorName }
+            };
 
-            statement.CursorName = new TokenInfo(node.identifier()) { Type = TokenType.CursorName };
             statement.Variables.AddRange(node.identifierList().identifier()
                 .Select(item => new TokenInfo(item) { Type = TokenType.VariableName }));
 
@@ -598,18 +604,21 @@ namespace SqlAnalyser.Core
 
         private CloseCursorStatement ParseCloseCursorSatement(CursorCloseContext node)
         {
-            var statement = new CloseCursorStatement { IsEnd = true };
-
-            statement.CursorName = new TokenInfo(node.identifier()) { Type = TokenType.CursorName };
+            var statement = new CloseCursorStatement
+            {
+                IsEnd = true,
+                CursorName = new TokenInfo(node.identifier()) { Type = TokenType.CursorName }
+            };
 
             return statement;
         }
 
         private CallStatement ParseCallStatement(CallStatementContext node)
         {
-            var statement = new CallStatement();
-
-            statement.Name = new TokenInfo(node.procedureRef()) { Type = TokenType.RoutineName };
+            var statement = new CallStatement
+            {
+                Name = new TokenInfo(node.procedureRef()) { Type = TokenType.RoutineName }
+            };
 
             var expressions = node.exprList()?.expr();
 
@@ -622,9 +631,10 @@ namespace SqlAnalyser.Core
 
         private InsertStatement ParseInsertStatement(InsertStatementContext node)
         {
-            var statement = new InsertStatement();
-
-            statement.TableName = ParseTableName(node.tableRef());
+            var statement = new InsertStatement
+            {
+                TableName = ParseTableName(node.tableRef())
+            };
 
             var insertFrom = node.insertFromConstructor();
             var fields = insertFrom.fields();
@@ -665,9 +675,10 @@ namespace SqlAnalyser.Core
             {
                 var valueExp = setItem.expr();
 
-                var item = new NameValueItem();
-
-                item.Name = ParseColumnName(setItem.columnRef());
+                var item = new NameValueItem
+                {
+                    Name = ParseColumnName(setItem.columnRef())
+                };
 
                 var isSubquery = AnalyserHelper.IsSubQuery(valueExp);
 
@@ -777,11 +788,11 @@ namespace SqlAnalyser.Core
                     }
                     else
                     {
-                        var unionStatement = new UnionStatement();
-
-                        unionStatement.Type = unionType;
-
-                        unionStatement.SelectStatement = ParseQuerySpecification(queryPrimary.querySpecification());
+                        var unionStatement = new UnionStatement
+                        {
+                            Type = unionType,
+                            SelectStatement = ParseQuerySpecification(queryPrimary.querySpecification())
+                        };
 
                         statement.UnionStatements.Add(unionStatement);
 
@@ -1014,17 +1025,19 @@ namespace SqlAnalyser.Core
                 foreach (var child in sv.children)
                     if (child is UserVariableContext variable)
                     {
-                        var statement = new SetStatement();
-
-                        statement.Key = new TokenInfo(variable) { Type = TokenType.UserVariableName };
+                        var statement = new SetStatement
+                        {
+                            Key = new TokenInfo(variable) { Type = TokenType.UserVariableName }
+                        };
 
                         statements.Add(statement);
                     }
                     else if (child is InternalVariableNameContext internalVariable)
                     {
-                        var statement = new SetStatement();
-
-                        statement.Key = new TokenInfo(internalVariable);
+                        var statement = new SetStatement
+                        {
+                            Key = new TokenInfo(internalVariable)
+                        };
 
                         statements.Add(statement);
                     }
@@ -1126,11 +1139,12 @@ namespace SqlAnalyser.Core
 
         private DeclareVariableStatement ParseDeclareStatement(VariableDeclarationContext node)
         {
-            var statement = new DeclareVariableStatement();
-
-            statement.Name = new TokenInfo(node.identifierList().identifier().First())
-                { Type = TokenType.VariableName };
-            statement.DataType = new TokenInfo(node.dataType());
+            var statement = new DeclareVariableStatement
+            {
+                Name = new TokenInfo(node.identifierList().identifier().First())
+                    { Type = TokenType.VariableName },
+                DataType = new TokenInfo(node.dataType())
+            };
 
             var defaultValue = node.expr();
 
@@ -1208,18 +1222,22 @@ namespace SqlAnalyser.Core
 
         private CaseStatement ParseCaseStatement(CaseStatementContext node)
         {
-            var statement = new CaseStatement();
-
-            statement.VariableName = new TokenInfo(node.expr()) { Type = TokenType.VariableName };
+            var statement = new CaseStatement
+            {
+                VariableName = new TokenInfo(node.expr()) { Type = TokenType.VariableName }
+            };
 
             var whens = node.whenExpression();
             var thens = node.thenStatement();
 
             for (var i = 0; i < whens.Length; i++)
             {
-                var elseIfItem = new IfStatementItem { Type = i == 0 ? IfStatementType.IF : IfStatementType.ELSEIF };
+                var elseIfItem = new IfStatementItem
+                {
+                    Type = i == 0 ? IfStatementType.IF : IfStatementType.ELSEIF,
+                    Condition = new TokenInfo(whens[i].expr()) { Type = TokenType.IfCondition }
+                };
 
-                elseIfItem.Condition = new TokenInfo(whens[i].expr()) { Type = TokenType.IfCondition };
                 elseIfItem.Statements.AddRange(ParseCompoundStatementList(thens[i].compoundStatementList()));
 
                 statement.Items.Add(elseIfItem);
@@ -1255,9 +1273,10 @@ namespace SqlAnalyser.Core
 
         private LoopStatement ParseLoopStatement(LoopBlockContext node, LabelContext name)
         {
-            var statement = new LoopStatement();
-
-            statement.Name = new TokenInfo(name);
+            var statement = new LoopStatement
+            {
+                Name = new TokenInfo(name)
+            };
 
             var innerStatements = ParseCompoundStatementList(node.compoundStatementList());
 
@@ -1338,8 +1357,10 @@ namespace SqlAnalyser.Core
 
         private TransactionStatement ParseTransactionStatement(TransactionStatementContext node)
         {
-            var statement = new TransactionStatement();
-            statement.Content = new TokenInfo(node);
+            var statement = new TransactionStatement
+            {
+                Content = new TokenInfo(node)
+            };
 
             foreach (var child in node.children)
                 if (child is TerminalNodeImpl terminalNode)
@@ -1361,18 +1382,20 @@ namespace SqlAnalyser.Core
 
         private LeaveStatement ParseLeaveStatement(LeaveStatementContext node)
         {
-            var statement = new LeaveStatement();
-
-            statement.Content = new TokenInfo(node);
+            var statement = new LeaveStatement
+            {
+                Content = new TokenInfo(node)
+            };
 
             return statement;
         }
 
         private IterateStatement ParseIterateStatement(IterateStatementContext node)
         {
-            var statement = new IterateStatement();
-
-            statement.Content = new TokenInfo(node);
+            var statement = new IterateStatement
+            {
+                Content = new TokenInfo(node)
+            };
 
             return statement;
         }
@@ -1478,9 +1501,11 @@ namespace SqlAnalyser.Core
 
                 if (references != null)
                 {
-                    var constraintInfo = new ConstraintInfo { Type = ConstraintType.ForeignKey };
-
-                    constraintInfo.ForeignKey = ParseReferences(references.references());
+                    var constraintInfo = new ConstraintInfo
+                    {
+                        Type = ConstraintType.ForeignKey,
+                        ForeignKey = ParseReferences(references.references())
+                    };
 
                     checkConstraints();
 
@@ -1573,9 +1598,11 @@ namespace SqlAnalyser.Core
 
         private ForeignKeyInfo ParseReferences(ReferencesContext node)
         {
-            var fki = new ForeignKeyInfo();
+            var fki = new ForeignKeyInfo
+            {
+                RefTableName = new TableName(node.tableRef())
+            };
 
-            fki.RefTableName = new TableName(node.tableRef());
             fki.RefColumnNames.AddRange(node.identifierListWithParentheses().identifierList().identifier()
                 .Select(item => new ColumnName(item)));
 
@@ -1584,9 +1611,10 @@ namespace SqlAnalyser.Core
 
         private TruncateStatement ParseTruncateTableStatement(TruncateTableStatementContext node)
         {
-            var statement = new TruncateStatement();
-
-            statement.TableName = ParseTableName(node.tableRef());
+            var statement = new TruncateStatement
+            {
+                TableName = ParseTableName(node.tableRef())
+            };
 
             return statement;
         }
@@ -1690,8 +1718,10 @@ namespace SqlAnalyser.Core
                     }
                     else
                     {
-                        columnName = new ColumnName(qualifiedIdentifier);
-                        columnName.TableName = new TableName(id);
+                        columnName = new ColumnName(qualifiedIdentifier)
+                        {
+                            TableName = new TableName(id)
+                        };
                     }
                 }
                 else if (node is ColumnRefContext columnRef)

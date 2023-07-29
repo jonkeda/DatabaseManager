@@ -1,8 +1,8 @@
 ﻿using System.Data.Common;
 using DatabaseInterpreter.Model;
+using Databases.Handlers;
 using Microsoft.Data.SqlClient;
 using Microsoft.Data.Sqlite;
-using MySqlConnector;
 using Npgsql;
 using Oracle.ManagedDataAccess.Client;
 
@@ -27,18 +27,8 @@ namespace DatabaseInterpreter.Core
 
         public DbConnection CreateConnection()
         {
-            DbProviderFactory factory = null;
-
             var lowerProviderName = _dbProvider.ProviderName.ToLower();
-            if (lowerProviderName.Contains("oracle"))
-                factory = new OracleClientFactory();
-            else if (lowerProviderName.Contains("mysql"))
-                factory = MySqlConnectorFactory.Instance;
-            else if (lowerProviderName.Contains("sqlclient"))
-                factory = SqlClientFactory.Instance;
-            else if (lowerProviderName.Contains("npgsql"))
-                factory = NpgsqlFactory.Instance;
-            else if (lowerProviderName.Contains("sqlite")) factory = SqliteFactory.Instance;
+            DbProviderFactory factory = SqlHandler.CreateConnection(lowerProviderName);
 
             var connection = factory.CreateConnection();
 

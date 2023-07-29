@@ -150,9 +150,10 @@ namespace DatabaseManager.Core
                 if (!targetSchemaInfo.Tables.Any(item => IsNameEquals(item.Name, source.Name)))
                 {
                     var difference = new DbDifference
-                        { Type = nameof(Table), DatabaseObjectType = DatabaseObjectType.Table };
-                    difference.DifferenceType = DbDifferenceType.Added;
-                    difference.Source = source;
+                        { Type = nameof(Table), DatabaseObjectType = DatabaseObjectType.Table,
+                            DifferenceType = DbDifferenceType.Added,
+                            Source = source
+                        };
 
                     differences.Add(difference);
                 }
@@ -204,9 +205,10 @@ namespace DatabaseManager.Core
                 if (!targetObjects.Any(item => IsNameEquals(item.Name, source.Name)))
                 {
                     var difference = new DbDifference
-                        { Type = type, DatabaseObjectType = databaseObjectType, ParentName = source.TableName };
-                    difference.DifferenceType = DbDifferenceType.Added;
-                    difference.Source = source;
+                        { Type = type, DatabaseObjectType = databaseObjectType, ParentName = source.TableName,
+                            DifferenceType = DbDifferenceType.Added,
+                            Source = source
+                        };
 
                     differences.Add(difference);
                 }
@@ -247,9 +249,12 @@ namespace DatabaseManager.Core
             foreach (var source in sourceObjects)
                 if (!targetObjects.Any(item => IsNameEquals(item.Name, source.Name)))
                 {
-                    var difference = new DbDifference { Type = type, DatabaseObjectType = databaseObjectType };
-                    difference.DifferenceType = DbDifferenceType.Added;
-                    difference.Source = source;
+                    var difference = new DbDifference
+                    {
+                        Type = type, DatabaseObjectType = databaseObjectType,
+                        DifferenceType = DbDifferenceType.Added,
+                        Source = source
+                    };
 
                     differences.Add(difference);
                 }
@@ -264,11 +269,13 @@ namespace DatabaseManager.Core
 
         private bool IsDbObjectEquals(DatabaseObject source, DatabaseObject target)
         {
-            var config = new ComparisonConfig();
-            config.MembersToIgnore = new List<string> { nameof(DatabaseObject.Schema), nameof(DatabaseObject.Order) };
-            config.CaseSensitive = false;
-            config.IgnoreStringLeadingTrailingWhitespace = true;
-            config.TreatStringEmptyAndNullTheSame = true;
+            var config = new ComparisonConfig
+            {
+                MembersToIgnore = new List<string> { nameof(DatabaseObject.Schema), nameof(DatabaseObject.Order) },
+                CaseSensitive = false,
+                IgnoreStringLeadingTrailingWhitespace = true,
+                TreatStringEmptyAndNullTheSame = true
+            };
             config.CustomComparers.Add(new TableColumnComparer(RootComparerFactory.GetRootComparer()));
 
             var compareLogic = new CompareLogic(config);

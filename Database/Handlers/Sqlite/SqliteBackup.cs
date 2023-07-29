@@ -1,8 +1,5 @@
 ﻿using System;
-using System.IO;
-using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
-using DatabaseManager.Helper;
 using DatabaseManager.Model;
 
 namespace DatabaseManager.Core

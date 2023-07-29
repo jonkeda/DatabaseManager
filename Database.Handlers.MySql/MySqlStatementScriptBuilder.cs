@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using SqlAnalyser.Model;
 
@@ -51,7 +52,7 @@ namespace SqlAnalyser.Core
 
                 if (isCompositeColumnName)
                 {
-                    Append(StatementScriptBuilderHelper.ParseCompositeUpdateSet(this, update));
+                    Append(StatementScriptBuilderHelper.ParseCompositeUpdateSet(DatabaseType.MySql, update));
 
                     return this;
                 }
@@ -275,9 +276,11 @@ namespace SqlAnalyser.Core
                             {
                                 isIntegerIterate = true;
 
-                                var declareVariable = new DeclareVariableStatement();
-                                declareVariable.Name = loop.LoopCursorInfo.IteratorName;
-                                declareVariable.DataType = new TokenInfo("INT");
+                                var declareVariable = new DeclareVariableStatement
+                                {
+                                    Name = loop.LoopCursorInfo.IteratorName,
+                                    DataType = new TokenInfo("INT")
+                                };
 
                                 DeclareVariableStatements.Add(declareVariable);
 
@@ -734,7 +737,7 @@ namespace SqlAnalyser.Core
                         var defaultValue = string.IsNullOrEmpty(column.DefaultValue?.Symbol)
                             ? ""
                             : $" DEFAULT {StringHelper.GetParenthesisedString(column.DefaultValue.Symbol)}";
-                        var constraint = GetConstriants(column.Constraints, true);
+                        var constraint = GetConstraints(column.Constraints, true);
                         var strConstraint = string.IsNullOrEmpty(constraint) ? "" : $" {constraint}";
 
                         if (column.IsIdentity && !strConstraint.Contains("PRIMARY"))
@@ -770,7 +773,7 @@ namespace SqlAnalyser.Core
                             !(item.Type == ConstraintType.PrimaryKey &&
                               item.ColumnNames.Any(t => t.Symbol == primaryKeyColumn))).ToList();
 
-                    sb.AppendLine(GetConstriants(tableConstraints));
+                    sb.AppendLine(GetConstraints(tableConstraints));
                 }
 
                 sb.Append(")");
@@ -787,6 +790,12 @@ namespace SqlAnalyser.Core
             sb.AppendLine(";");
 
             return sb.ToString();
+        }
+
+        protected override void AddConstraintDefinition(bool isForColumn, string name, StringBuilder sb,
+            string definition)
+        {
+            sb.Append($" {definition}");
         }
     }
 }

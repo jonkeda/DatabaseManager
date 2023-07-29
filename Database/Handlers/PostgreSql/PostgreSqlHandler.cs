@@ -2,6 +2,9 @@
 using SqlAnalyser.Core;
 using DatabaseInterpreter.Model;
 using DatabaseManager.Core;
+using System.Data.Common;
+using CsvHelper;
+using Npgsql;
 
 namespace Databases.Handlers.TSql
 {
@@ -40,6 +43,13 @@ namespace Databases.Handlers.TSql
         public override DbScriptGenerator CreateDbScriptGenerator(DbInterpreter dbInterpreter)
         {
             return new PostgresScriptGenerator(dbInterpreter);
+        }
+
+        protected override DbProviderFactory CreateDbProviderFactory(string providerName)
+        {
+            if (providerName.Contains("npgsql"))
+                return NpgsqlFactory.Instance;
+            return null;
         }
 
     }

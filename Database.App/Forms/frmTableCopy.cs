@@ -96,9 +96,9 @@ public partial class frmTableCopy : Form, IObserver<FeedbackInfo>
 
             targetOption.TableScriptsGenerateOption.GenerateIdentity = chkGenerateIdentity.Checked;
 
-            var source = new DbConveterInfo
+            var source = new DbConverterInfo
                 { DbInterpreter = DbInterpreterHelper.GetDbInterpreter(DatabaseType, ConnectionInfo, sourceOption) };
-            var target = new DbConveterInfo
+            var target = new DbConverterInfo
             {
                 DbInterpreter =
                     DbInterpreterHelper.GetDbInterpreter(targetDatabaseType, targetConnectionInfo, targetOption)

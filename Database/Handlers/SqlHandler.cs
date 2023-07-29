@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Data.Common;
 using DatabaseInterpreter.Core;
-using Databases.Handlers.MySql;
+//using Databases.Handlers.MySql;
 using Databases.Handlers.PlSql;
 using Databases.Handlers.Sqlite;
 using Databases.Handlers.TSql;
@@ -31,16 +32,12 @@ namespace Databases.Handlers
         public abstract DbDiagnosis CreateDbDiagnosis(ConnectionInfo connectionInfo);
         public abstract DbInterpreter CreateDbInterpreter(ConnectionInfo connectionInfo, DbInterpreterOption option);
         public abstract DbScriptGenerator CreateDbScriptGenerator(DbInterpreter dbInterpreter);
+        protected abstract DbProviderFactory CreateDbProviderFactory(string providerName);
 
         private static readonly SqlHandlerDictionary Handlers = new SqlHandlerDictionary();
 
         static SqlHandler()
         {
-            RegisterHandler(new TSqlHandler());
-            RegisterHandler(new PlSqlHandler());
-            RegisterHandler(new MySqlHandler());
-            RegisterHandler(new SqliteHandler());
-            RegisterHandler(new PostgreSqlHandler());
 
         }
 
@@ -57,6 +54,18 @@ namespace Databases.Handlers
             }
 
             throw new KeyNotFoundException($"The handler for {databaseType} is not found.");
+        }
+
+        public static DbProviderFactory CreateConnection(string providerName)
+        {
+            foreach (var handler in Handlers.Values)
+            {
+                var provider = handler.CreateDbProviderFactory(providerName);
+                if (provider != null) 
+                    return provider;  
+            }
+
+            return null;
         }
 
     }

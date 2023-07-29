@@ -21,7 +21,7 @@ namespace DatabaseConverter.Core
         private DbTransaction transaction;
         private DatabaseObject translateDbObject;
 
-        public DbConverter(DbConveterInfo source, DbConveterInfo target)
+        public DbConverter(DbConverterInfo source, DbConverterInfo target)
         {
             Source = source;
             Target = target;
@@ -29,7 +29,7 @@ namespace DatabaseConverter.Core
             Init();
         }
 
-        public DbConverter(DbConveterInfo source, DbConveterInfo target, DbConverterOption option)
+        public DbConverter(DbConverterInfo source, DbConverterInfo target, DbConverterOption option)
         {
             Source = source;
             Target = target;
@@ -45,8 +45,8 @@ namespace DatabaseConverter.Core
 
         public bool CancelRequested { get; private set; }
 
-        public DbConveterInfo Source { get; set; }
-        public DbConveterInfo Target { get; set; }
+        public DbConverterInfo Source { get; set; }
+        public DbConverterInfo Target { get; set; }
 
         public DbConverterOption Option { get; set; } = new DbConverterOption();
 
@@ -280,10 +280,10 @@ namespace DatabaseConverter.Core
             #region Translate
 
             var translateEngine = new TranslateEngine(sourceSchemaInfo, targetSchemaInfo, sourceInterpreter,
-                targetInterpreter, Option);
-
-            translateEngine.ContinueWhenErrorOccurs =
-                Option.ContinueWhenErrorOccurs || (!executeScriptOnTargetServer && !onlyForTranslate);
+                targetInterpreter, Option)
+            {
+                ContinueWhenErrorOccurs = Option.ContinueWhenErrorOccurs || (!executeScriptOnTargetServer && !onlyForTranslate)
+            };
 
             var translateDbObjectType = TranslateEngine.SupportDatabaseObjectType;
 
@@ -842,9 +842,11 @@ namespace DatabaseConverter.Core
             var errMsg = ExceptionHelper.GetExceptionDetails(ex);
             Feedback(this, errMsg, FeedbackInfoType.Error);
 
-            var result = new DbConvertResult();
-            result.InfoType = DbConvertResultInfoType.Error;
-            result.Message = errMsg;
+            var result = new DbConvertResult
+            {
+                InfoType = DbConvertResultInfoType.Error,
+                Message = errMsg
+            };
 
             return result;
         }

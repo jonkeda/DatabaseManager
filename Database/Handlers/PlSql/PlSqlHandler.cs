@@ -2,6 +2,9 @@
 using SqlAnalyser.Core;
 using DatabaseInterpreter.Model;
 using DatabaseManager.Core;
+using System.Data.Common;
+using CsvHelper;
+using Oracle.ManagedDataAccess.Client;
 
 namespace Databases.Handlers.PlSql
 {
@@ -39,5 +42,11 @@ namespace Databases.Handlers.PlSql
             return new OracleScriptGenerator(dbInterpreter);
         }
 
+        protected override DbProviderFactory CreateDbProviderFactory(string providerName)
+        {
+            if (providerName.Contains("oracle"))
+                return new OracleClientFactory();
+            return null;
+        }
     }
 }

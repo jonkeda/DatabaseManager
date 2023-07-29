@@ -4,7 +4,7 @@ using DatabaseInterpreter.Model;
 
 namespace DatabaseConverter.Model
 {
-    public class DbConveterInfo
+    public class DbConverterInfo
     {
         public DatabaseObjectType DatabaseObjectType = DatabaseObjectType.None;
 

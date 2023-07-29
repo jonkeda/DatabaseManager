@@ -18,7 +18,7 @@ namespace DatabaseConverter.Core
             this.constraints = constraints;
         }
 
-        internal List<TableColumn> TableCoumns { get; set; }
+        internal List<TableColumn> TableColumns { get; set; }
 
         public override void Translate()
         {
@@ -69,9 +69,9 @@ namespace DatabaseConverter.Core
                         }
 
                     if (targetDbInterpreter.DatabaseType == DatabaseType.Postgres)
-                        if (TableCoumns != null)
+                        if (TableColumns != null)
                         {
-                            var isMoneyConstraint = TableCoumns.Any(item =>
+                            var isMoneyConstraint = TableColumns.Any(item =>
                                 item.TableName == constraint.TableName &&
                                 item.DataType == "money" && constraint.Definition.Contains(item.Name)
                             );

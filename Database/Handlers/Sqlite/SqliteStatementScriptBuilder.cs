@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
+using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using SqlAnalyser.Model;
 
@@ -71,7 +72,7 @@ namespace SqlAnalyser.Core
                 }
                 else if (update.SetItems.Count > 0)
                 {
-                    Append(StatementScriptBuilderHelper.ParseCompositeUpdateSet(this, update));
+                    Append(StatementScriptBuilderHelper.ParseCompositeUpdateSet(DatabaseType.Sqlite, update));
 
                     return this;
                 }
@@ -190,9 +191,10 @@ namespace SqlAnalyser.Core
                 var i = 0;
                 foreach (var item in @case.Items)
                 {
-                    var ifItem = new IfStatementItem();
-
-                    ifItem.Type = i == 0 ? IfStatementType.IF : item.Type;
+                    var ifItem = new IfStatementItem
+                    {
+                        Type = i == 0 ? IfStatementType.IF : item.Type
+                    };
 
                     if (item.Type != IfStatementType.ELSE)
                         ifItem.Condition = new TokenInfo($"{variableName}={item.Condition}")
@@ -370,7 +372,7 @@ namespace SqlAnalyser.Core
                         var defaultValue = string.IsNullOrEmpty(column.DefaultValue?.Symbol)
                             ? ""
                             : $" DEFAULT {StringHelper.GetParenthesisedString(column.DefaultValue.Symbol)}";
-                        var constraint = GetConstriants(column.Constraints, true);
+                        var constraint = GetConstraints(column.Constraints, true);
                         var strConstraint = string.IsNullOrEmpty(constraint) ? "" : $" {constraint}";
 
                         sb.AppendLine(
@@ -380,7 +382,7 @@ namespace SqlAnalyser.Core
                     i++;
                 }
 
-                if (hasTableConstraints) sb.AppendLine(GetConstriants(table.Constraints));
+                if (hasTableConstraints) sb.AppendLine(GetConstraints(table.Constraints));
 
                 sb.Append(")");
             }

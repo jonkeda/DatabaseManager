@@ -7,11 +7,11 @@ using SqlAnalyser.Model;
 
 namespace SqlAnalyser.Core
 {
-    public class StatementScriptBuilder : IDisposable
+    public abstract class StatementScriptBuilder : IDisposable
     {
         internal int Level;
         internal int LoopCount;
-        internal string Indent => " ".PadLeft((Level + 1) * 2);
+        protected string Indent => " ".PadLeft((Level + 1) * 2);
         public StringBuilder Script { get; } = new StringBuilder();
 
         public RoutineType RoutineType { get; set; }
@@ -326,15 +326,15 @@ namespace SqlAnalyser.Core
             return $"{prefix}{LoopCount}";
         }
 
-        protected string GetConstriants(List<ConstraintInfo> constaints, bool isForColumn = false)
+        protected string GetConstraints(List<ConstraintInfo> constraints, bool isForColumn = false)
         {
-            if (constaints == null || constaints.Count == 0) return string.Empty;
+            if (constraints == null || constraints.Count == 0) return string.Empty;
 
             var sb = new StringBuilder();
 
             var i = 0;
 
-            foreach (var constraint in constaints)
+            foreach (var constraint in constraints)
             {
                 var name = string.IsNullOrEmpty(constraint.Name?.Symbol) ? "" : $" {constraint.Name.Symbol}";
 
@@ -376,26 +376,24 @@ namespace SqlAnalyser.Core
                         break;
                 }
 
-                if (this is MySqlStatementScriptBuilder && isForColumn)
-                {
-                    sb.Append($" {definition}");
-                }
-                else
-                {
-                    var hasName = !string.IsNullOrEmpty(name);
+                AddConstraintDefinition(isForColumn, name, sb, definition);
 
-                    if (hasName && isForColumn)
-                        sb.Append($" {definition}");
-                    else
-                        sb.Append($"{(hasName ? "CONSTRAINT" : "")} {(!hasName ? "" : $"{name} ")}{definition}".Trim());
-                }
-
-                if (i < constaints.Count - 1) sb.AppendLine(",");
+                if (i < constraints.Count - 1) sb.AppendLine(",");
 
                 i++;
             }
 
             return sb.ToString();
+        }
+
+        protected virtual void AddConstraintDefinition(bool isForColumn, string name, StringBuilder sb, string definition)
+        {
+            var hasName = !string.IsNullOrEmpty(name);
+
+            if (hasName && isForColumn)
+                sb.Append($" {definition}");
+            else
+                sb.Append($"{(hasName ? "CONSTRAINT" : "")} {(!hasName ? "" : $"{name} ")}{definition}".Trim());
         }
     }
 }

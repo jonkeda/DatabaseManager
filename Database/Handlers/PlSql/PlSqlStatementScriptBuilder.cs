@@ -63,10 +63,10 @@ namespace SqlAnalyser.Core
                 {
                     var nameValues = new List<NameValueItem>();
 
-                    var nameValueItem = new NameValueItem();
-
-                    nameValueItem.Name =
-                        new TokenInfo($"({string.Join(",", update.SetItems.Select(item => item.Name))})");
+                    var nameValueItem = new NameValueItem
+                    {
+                        Name = new TokenInfo($"({string.Join(",", update.SetItems.Select(item => item.Name))})")
+                    };
 
                     var colNames = string.Join(",", update.SetItems.Select(item => item.Value));
 
@@ -838,7 +838,7 @@ namespace SqlAnalyser.Core
                         var defaultValue = string.IsNullOrEmpty(column.DefaultValue?.Symbol)
                             ? ""
                             : $" DEFAULT {StringHelper.GetParenthesisedString(column.DefaultValue.Symbol)}";
-                        var constraint = GetConstriants(column.Constraints, true);
+                        var constraint = GetConstraints(column.Constraints, true);
                         var strConstraint = string.IsNullOrEmpty(constraint) ? "" : $" {constraint}";
 
                         sb.AppendLine(
@@ -848,7 +848,7 @@ namespace SqlAnalyser.Core
                     i++;
                 }
 
-                if (hasTableConstraints) sb.AppendLine(GetConstriants(table.Constraints));
+                if (hasTableConstraints) sb.AppendLine(GetConstraints(table.Constraints));
 
                 sb.AppendLine(")");
 

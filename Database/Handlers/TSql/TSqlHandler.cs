@@ -2,6 +2,9 @@
 using SqlAnalyser.Core;
 using DatabaseInterpreter.Model;
 using DatabaseManager.Core;
+using System.Data.Common;
+using CsvHelper;
+using Microsoft.Data.SqlClient;
 
 namespace Databases.Handlers.TSql
 {
@@ -38,6 +41,13 @@ namespace Databases.Handlers.TSql
         public override DbScriptGenerator CreateDbScriptGenerator(DbInterpreter dbInterpreter)
         {
             return new SqlServerScriptGenerator(dbInterpreter);
+        }
+
+        protected override DbProviderFactory CreateDbProviderFactory(string providerName)
+        {
+            if (providerName.Contains("sqlclient"))
+                return SqlClientFactory.Instance;
+            return null;
         }
 
     }

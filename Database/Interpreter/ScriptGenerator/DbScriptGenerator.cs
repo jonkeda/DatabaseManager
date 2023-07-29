@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using Microsoft.SqlServer.Types;
-using MySqlConnector;
 using NpgsqlTypes;
 using PgGeom = NetTopologySuite.Geometries;
 
@@ -493,6 +492,8 @@ namespace DatabaseInterpreter.Core
             return null;
         }
 
+        public static readonly DateTime MySqlInterpreterTimestamp_Max_Value = DateTime.Parse("2038-01-19 03:14:07");
+
         private object ParseValue(TableColumn column, object value, bool bytesAsString = false)
         {
             if (value != null)
@@ -561,17 +562,18 @@ namespace DatabaseInterpreter.Core
 
                     case nameof(DateTime):
                     case nameof(DateTimeOffset):
-                    case nameof(MySqlDateTime):
+                    //case nameof(MySqlDateTime):
 
                         if (databaseType == DatabaseType.Oracle)
                         {
-                            if (type.Name == nameof(MySqlDateTime))
+/*                            if (type.Name == nameof(MySqlDateTime))
                             {
                                 var dateTime = ((MySqlDateTime)value).GetDateTime();
 
                                 strValue = GetOracleDatetimeConvertString(dateTime);
                             }
-                            else if (type.Name == nameof(DateTime))
+                            else 
+*/                            if (type.Name == nameof(DateTime))
                             {
                                 var dateTime = Convert.ToDateTime(value);
 
@@ -598,15 +600,15 @@ namespace DatabaseInterpreter.Core
                             {
                                 var dt = (DateTime)value;
 
-                                if (dt > MySqlInterpreter.Timestamp_Max_Value.ToLocalTime())
-                                    value = MySqlInterpreter.Timestamp_Max_Value.ToLocalTime();
+                                if (dt > MySqlInterpreterTimestamp_Max_Value.ToLocalTime())
+                                    value = MySqlInterpreterTimestamp_Max_Value.ToLocalTime();
                             }
                             else if (type.Name == nameof(DateTimeOffset))
                             {
                                 var dtOffset = DateTimeOffset.Parse(value.ToString());
 
-                                if (dtOffset > MySqlInterpreter.Timestamp_Max_Value.ToLocalTime())
-                                    dtOffset = MySqlInterpreter.Timestamp_Max_Value.ToLocalTime();
+                                if (dtOffset > MySqlInterpreterTimestamp_Max_Value.ToLocalTime())
+                                    dtOffset = MySqlInterpreterTimestamp_Max_Value.ToLocalTime();
 
                                 strValue =
                                     $"'{dtOffset.DateTime.Add(dtOffset.Offset).ToString("yyyy-MM-dd HH:mm:ss.ffffff")}'";

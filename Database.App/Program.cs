@@ -2,6 +2,11 @@ using System;
 using System.Windows.Forms;
 using DatabaseInterpreter.Core;
 using DatabaseManager.Core;
+using Databases.Handlers;
+using Databases.Handlers.MySql;
+using Databases.Handlers.PlSql;
+using Databases.Handlers.Sqlite;
+using Databases.Handlers.TSql;
 
 namespace DatabaseManager;
 
@@ -13,6 +18,13 @@ internal static class Program
     [STAThread]
     private static void Main()
     {
+        SqlHandler.RegisterHandler(new TSqlHandler());
+        SqlHandler.RegisterHandler(new PlSqlHandler());
+        SqlHandler.RegisterHandler(new MySqlHandler());
+        SqlHandler.RegisterHandler(new SqliteHandler());
+        SqlHandler.RegisterHandler(new PostgreSqlHandler());
+
+
         DbInterpreter.Setting = SettingManager.GetInterpreterSetting();
 
         Application.SetHighDpiMode(HighDpiMode.SystemAware);

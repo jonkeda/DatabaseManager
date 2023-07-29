@@ -507,8 +507,10 @@ namespace SqlAnalyser.Core
             if (handlers != null && handlers.Length > 0)
                 foreach (var handler in handlers)
                 {
-                    var exceptionItem = new ExceptionItem();
-                    exceptionItem.Name = new TokenInfo(handler.exception_name().First());
+                    var exceptionItem = new ExceptionItem
+                    {
+                        Name = new TokenInfo(handler.exception_name().First())
+                    };
                     exceptionItem.Statements.AddRange(ParseSeqStatement(handler.seq_of_statements()));
 
                     statement.Items.Add(exceptionItem);
@@ -548,9 +550,11 @@ namespace SqlAnalyser.Core
             {
                 if (objName != null)
                 {
-                    var dropStatement = new DropStatement();
-                    dropStatement.ObjectType = objType;
-                    dropStatement.ObjectName = new NameToken(objName) { Type = tokenType };
+                    var dropStatement = new DropStatement
+                    {
+                        ObjectType = objType,
+                        ObjectName = new NameToken(objName) { Type = tokenType }
+                    };
 
                     statements.Add(dropStatement);
                 }
@@ -753,9 +757,10 @@ namespace SqlAnalyser.Core
 
         private CallStatement ParseExecuteImmediate(Execute_immediateContext node)
         {
-            var statement = new CallStatement();
-
-            statement.IsExecuteSql = true;
+            var statement = new CallStatement
+            {
+                IsExecuteSql = true
+            };
 
             statement.Parameters.Add(new CallParameter { Value = new TokenInfo(node.expression()) });
 
@@ -806,18 +811,21 @@ namespace SqlAnalyser.Core
 
         private OpenCursorStatement ParseOpenCursorStatement(Open_statementContext node)
         {
-            var statement = new OpenCursorStatement();
-
-            statement.CursorName = new TokenInfo(node.cursor_name()) { Type = TokenType.CursorName };
+            var statement = new OpenCursorStatement
+            {
+                CursorName = new TokenInfo(node.cursor_name()) { Type = TokenType.CursorName }
+            };
 
             return statement;
         }
 
         private FetchCursorStatement ParseFetchCursorStatement(Fetch_statementContext node)
         {
-            var statement = new FetchCursorStatement();
+            var statement = new FetchCursorStatement
+            {
+                CursorName = new TokenInfo(node.cursor_name()) { Type = TokenType.CursorName }
+            };
 
-            statement.CursorName = new TokenInfo(node.cursor_name()) { Type = TokenType.CursorName };
             statement.Variables.AddRange(node.variable_name()
                 .Select(item => new TokenInfo(item) { Type = TokenType.VariableName }));
 
@@ -826,9 +834,11 @@ namespace SqlAnalyser.Core
 
         private CloseCursorStatement ParseCloseCursorStatement(Close_statementContext node)
         {
-            var statement = new CloseCursorStatement { IsEnd = true };
-
-            statement.CursorName = new TokenInfo(node.cursor_name()) { Type = TokenType.CursorName };
+            var statement = new CloseCursorStatement
+            {
+                IsEnd = true,
+                CursorName = new TokenInfo(node.cursor_name()) { Type = TokenType.CursorName }
+            };
 
             return statement;
         }
@@ -952,8 +962,10 @@ namespace SqlAnalyser.Core
         {
             var statements = new List<DeleteStatement>();
 
-            var statement = new DeleteStatement();
-            statement.TableName = ParseTableName(node.general_table_ref());
+            var statement = new DeleteStatement
+            {
+                TableName = ParseTableName(node.general_table_ref())
+            };
 
             var condition = node.where_clause()?.expression();
 
@@ -1066,9 +1078,11 @@ namespace SqlAnalyser.Core
                     {
                         if (statements == null) statements = new List<Statement>();
 
-                        var withStatement = new WithStatement { SelectStatements = new List<SelectStatement>() };
-
-                        withStatement.Name = new TableName(fe.query_name()) { Type = TokenType.General };
+                        var withStatement = new WithStatement
+                        {
+                            SelectStatements = new List<SelectStatement>(),
+                            Name = new TableName(fe.query_name()) { Type = TokenType.General }
+                        };
 
                         withStatement.SelectStatements.Add(ParseSubquery(fe.subquery()));
 
@@ -1184,9 +1198,11 @@ namespace SqlAnalyser.Core
                 {
                     if (isUnion)
                     {
-                        var unionStatement = new UnionStatement();
-                        unionStatement.Type = unionType;
-                        unionStatement.SelectStatement = ParseSubqueryBasic(basic);
+                        var unionStatement = new UnionStatement
+                        {
+                            Type = unionType,
+                            SelectStatement = ParseSubqueryBasic(basic)
+                        };
 
                         statement = unionStatement;
                     }
@@ -1206,9 +1222,10 @@ namespace SqlAnalyser.Core
 
             foreach (var table in tables)
             {
-                var fromItem = new FromItem();
-
-                fromItem.TableName = ParseTableName(table);
+                var fromItem = new FromItem
+                {
+                    TableName = ParseTableName(table)
+                };
 
                 var joins = table.join_clause();
                 var pivot = table.pivot_clause();
@@ -1262,14 +1279,20 @@ namespace SqlAnalyser.Core
                 }
                 else if (pivot != null)
                 {
-                    var joinItem = new JoinItem { Type = JoinType.PIVOT };
-                    joinItem.PivotItem = ParsePivot(pivot);
+                    var joinItem = new JoinItem
+                    {
+                        Type = JoinType.PIVOT,
+                        PivotItem = ParsePivot(pivot)
+                    };
                     fromItem.JoinItems.Add(joinItem);
                 }
                 else if (unpivot != null)
                 {
-                    var joinItem = new JoinItem { Type = JoinType.UNPIVOT };
-                    joinItem.UnPivotItem = ParseUnPivot(unpivot);
+                    var joinItem = new JoinItem
+                    {
+                        Type = JoinType.UNPIVOT,
+                        UnPivotItem = ParseUnPivot(unpivot)
+                    };
                     fromItem.JoinItems.Add(joinItem);
                 }
 
@@ -1280,8 +1303,10 @@ namespace SqlAnalyser.Core
             {
                 fromItems.Clear();
 
-                var fromItem = new FromItem();
-                fromItem.TableName = new TableName(tableList);
+                var fromItem = new FromItem
+                {
+                    TableName = new TableName(tableList)
+                };
 
                 AddChildTableAndColumnNameToken(tableList, fromItem.TableName);
 
@@ -1337,11 +1362,13 @@ namespace SqlAnalyser.Core
 
         private UnPivotItem ParseUnPivot(Unpivot_clauseContext node)
         {
-            var unpivotItem = new UnPivotItem();
-            unpivotItem.ValueColumnName = ParseColumnName(node.column_name());
-            unpivotItem.ForColumnName = ParseColumnName(node.pivot_for_clause().column_name());
-            unpivotItem.InColumnNames = node.unpivot_in_clause().unpivot_in_elements()
-                .Select(item => ParseColumnName(item.column_name())).ToList();
+            var unpivotItem = new UnPivotItem
+            {
+                ValueColumnName = ParseColumnName(node.column_name()),
+                ForColumnName = ParseColumnName(node.pivot_for_clause().column_name()),
+                InColumnNames = node.unpivot_in_clause().unpivot_in_elements()
+                    .Select(item => ParseColumnName(item.column_name())).ToList()
+            };
 
             return unpivotItem;
         }
@@ -1353,9 +1380,10 @@ namespace SqlAnalyser.Core
             foreach (var child in node.children)
                 if (child is General_elementContext element)
                 {
-                    var statement = new SetStatement();
-
-                    statement.Key = new TokenInfo(element) { Type = TokenType.VariableName };
+                    var statement = new SetStatement
+                    {
+                        Key = new TokenInfo(element) { Type = TokenType.VariableName }
+                    };
 
                     statements.Add(statement);
                 }
@@ -1374,9 +1402,10 @@ namespace SqlAnalyser.Core
             foreach (var child in node.children)
                 if (child is Variable_declarationContext variable)
                 {
-                    var declareStatement = new DeclareVariableStatement();
-
-                    declareStatement.Name = new TokenInfo(variable.identifier()) { Type = TokenType.VariableName };
+                    var declareStatement = new DeclareVariableStatement
+                    {
+                        Name = new TokenInfo(variable.identifier()) { Type = TokenType.VariableName }
+                    };
 
                     var typeSpec = variable.type_spec();
                     declareStatement.DataType = new TokenInfo(typeSpec);
@@ -1392,11 +1421,12 @@ namespace SqlAnalyser.Core
                 }
                 else if (child is Cursor_declarationContext cursor)
                 {
-                    var declareCursorStatement = new DeclareCursorStatement();
-
-                    declareCursorStatement.CursorName = new TokenInfo(cursor.identifier())
-                        { Type = TokenType.CursorName };
-                    declareCursorStatement.SelectStatement = ParseSelectStatement(cursor.select_statement());
+                    var declareCursorStatement = new DeclareCursorStatement
+                    {
+                        CursorName = new TokenInfo(cursor.identifier())
+                            { Type = TokenType.CursorName },
+                        SelectStatement = ParseSelectStatement(cursor.select_statement())
+                    };
 
                     statement = declareCursorStatement;
                 }
@@ -1496,8 +1526,11 @@ namespace SqlAnalyser.Core
 
                 foreach (var when in whens)
                 {
-                    var ifItem = new IfStatementItem { Type = IfStatementType.IF };
-                    ifItem.Condition = new TokenInfo(when.expression().First()) { Type = TokenType.IfCondition };
+                    var ifItem = new IfStatementItem
+                    {
+                        Type = IfStatementType.IF,
+                        Condition = new TokenInfo(when.expression().First()) { Type = TokenType.IfCondition }
+                    };
                     ifItem.Statements.AddRange(ParseSeqStatement(when.seq_of_statements()));
                     statement.Items.Add(ifItem);
                 }
@@ -1598,8 +1631,10 @@ namespace SqlAnalyser.Core
 
         private TransactionStatement ParseTransactionStatement(Transaction_control_statementsContext node)
         {
-            var statement = new TransactionStatement();
-            statement.Content = new TokenInfo(node);
+            var statement = new TransactionStatement
+            {
+                Content = new TokenInfo(node)
+            };
 
             if (node.set_transaction_command() != null)
                 statement.CommandType = TransactionCommandType.SET;
@@ -1612,18 +1647,20 @@ namespace SqlAnalyser.Core
 
         private GotoStatement ParseLabelDeclareStatement(Label_declarationContext node)
         {
-            var statement = new GotoStatement();
-
-            statement.Label = new TokenInfo(node.label_name());
+            var statement = new GotoStatement
+            {
+                Label = new TokenInfo(node.label_name())
+            };
 
             return statement;
         }
 
         private GotoStatement ParseGotoStatement(Goto_statementContext node)
         {
-            var statement = new GotoStatement();
-
-            statement.Label = new TokenInfo(node.label_name());
+            var statement = new GotoStatement
+            {
+                Label = new TokenInfo(node.label_name())
+            };
 
             return statement;
         }
@@ -1698,16 +1735,21 @@ namespace SqlAnalyser.Core
 
                                         if (constraintType != ConstraintType.None)
                                         {
-                                            constraintInfo = new ConstraintInfo();
-                                            constraintInfo.Type = constraintType;
+                                            constraintInfo = new ConstraintInfo
+                                            {
+                                                Type = constraintType
+                                            };
 
                                             break;
                                         }
                                     }
                                     else if (c is Check_constraintContext check)
                                     {
-                                        constraintInfo = new ConstraintInfo { Type = ConstraintType.Check };
-                                        constraintInfo.Definition = new TokenInfo(check.condition());
+                                        constraintInfo = new ConstraintInfo
+                                        {
+                                            Type = ConstraintType.Check,
+                                            Definition = new TokenInfo(check.condition())
+                                        };
                                     }
 
                                 if (constraintInfo != null)
@@ -1753,9 +1795,10 @@ namespace SqlAnalyser.Core
 
                         var constaintName = constraint.constraint_name();
 
-                        var constraintInfo = new ConstraintInfo();
-
-                        constraintInfo.Name = new NameToken(constaintName);
+                        var constraintInfo = new ConstraintInfo
+                        {
+                            Name = new NameToken(constaintName)
+                        };
 
                         foreach (var child in constraint.children)
                             if (child is TerminalNodeImpl tni)
@@ -1823,9 +1866,10 @@ namespace SqlAnalyser.Core
 
         private TruncateStatement ParseTruncateTableStatement(Truncate_tableContext node)
         {
-            var statement = new TruncateStatement();
-
-            statement.TableName = ParseTableName(node.tableview_name());
+            var statement = new TruncateStatement
+            {
+                TableName = ParseTableName(node.tableview_name())
+            };
 
             return statement;
         }
@@ -2076,8 +2120,11 @@ namespace SqlAnalyser.Core
 
                     if (ids.Length == 3)
                     {
-                        seqName = new NameToken(ids[1]) { Type = TokenType.SequenceName };
-                        seqName.Schema = ids[0].GetText();
+                        seqName = new NameToken(ids[1])
+                        {
+                            Type = TokenType.SequenceName,
+                            Schema = ids[0].GetText()
+                        };
                     }
                     else
                     {

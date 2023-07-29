@@ -20,8 +20,11 @@
     <PackageReference Include="ObjectListView.Repack.Core3" Version="2.9.2" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Database.Handlers.MySql\Databases.Handlers.MySql.csproj" />
+    <ProjectReference Include="..\Database.Handlers.PlSql\Databases.Handlers.PlSql.csproj" />
+    <ProjectReference Include="..\Database.Handlers.Sqlite\Databases.Handlers.Sqlite.csproj" />
     <ProjectReference Include="..\Database.Profile\Database.Profile.csproj" />
-    <ProjectReference Include="..\Database\Database.csproj" />
+    <ProjectReference Include="..\Database\Databases.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Controls\PropertyGrid\FilteredPropertyGrid.cs">

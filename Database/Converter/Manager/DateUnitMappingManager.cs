@@ -32,20 +32,22 @@ namespace DatabaseConverter.Core
 
             foreach (var element in elements)
             {
-                var mapping = new DateUnitMapping();
-
-                mapping.Name = element.Attribute("name").Value;
+                var mapping = new DateUnitMapping
+                {
+                    Name = element.Attribute("name").Value
+                };
 
                 var items = element.Elements();
 
                 foreach (var item in items)
                 {
-                    var mappingItem = new DateUnitMappingItem();
-
-                    mappingItem.DbType = item.Name.ToString();
-                    mappingItem.Unit = item.Value;
-                    mappingItem.CaseSensitive = ValueHelper.IsTrueValue(item.Attribute("caseSensitive")?.Value);
-                    mappingItem.Formal = ValueHelper.IsTrueValue(item.Attribute("formal")?.Value);
+                    var mappingItem = new DateUnitMappingItem
+                    {
+                        DbType = item.Name.ToString(),
+                        Unit = item.Value,
+                        CaseSensitive = ValueHelper.IsTrueValue(item.Attribute("caseSensitive")?.Value),
+                        Formal = ValueHelper.IsTrueValue(item.Attribute("formal")?.Value)
+                    };
 
                     mapping.Items.Add(mappingItem);
                 }

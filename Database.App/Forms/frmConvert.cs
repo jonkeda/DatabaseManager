@@ -248,12 +248,12 @@ public partial class frmConvert : Form, IObserver<FeedbackInfo>
             return;
         }
 
-        var source = new DbConveterInfo
+        var source = new DbConverterInfo
         {
             DbInterpreter =
                 DbInterpreterHelper.GetDbInterpreter(sourceDbType, sourceDbConnectionInfo, sourceScriptOption)
         };
-        var target = new DbConveterInfo
+        var target = new DbConverterInfo
         {
             DbInterpreter =
                 DbInterpreterHelper.GetDbInterpreter(targetDbType, targetDbConnectionInfo, targetScriptOption)

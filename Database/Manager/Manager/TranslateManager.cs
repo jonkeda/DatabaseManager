@@ -23,11 +23,11 @@ namespace DatabaseManager.Core
             var targetScriptOption = new DbInterpreterOption
                 { ScriptOutputMode = GenerateScriptOutputMode.WriteToString };
 
-            var source = new DbConveterInfo
+            var source = new DbConverterInfo
             {
                 DbInterpreter = DbInterpreterHelper.GetDbInterpreter(sourceDbType, connectionInfo, sourceScriptOption)
             };
-            var target = new DbConveterInfo
+            var target = new DbConverterInfo
             {
                 DbInterpreter =
                     DbInterpreterHelper.GetDbInterpreter(targetDbType, new ConnectionInfo(), targetScriptOption)

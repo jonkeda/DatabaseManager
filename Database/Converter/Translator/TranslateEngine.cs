@@ -70,7 +70,7 @@ namespace DatabaseConverter.Core
                 var constraintTranslator =
                     new ConstraintTranslator(sourceInterpreter, targetInterpreter, targetSchemaInfo.TableConstraints)
                         { ContinueWhenErrorOccurs = ContinueWhenErrorOccurs };
-                constraintTranslator.TableCoumns = targetSchemaInfo.TableColumns;
+                constraintTranslator.TableColumns = targetSchemaInfo.TableColumns;
                 Translate(constraintTranslator);
             }
 

@@ -1,10 +1,6 @@
 ﻿using System.Data.Common;
 using DatabaseInterpreter.Model;
 using Databases.Handlers;
-using Microsoft.Data.SqlClient;
-using Microsoft.Data.Sqlite;
-using Npgsql;
-using Oracle.ManagedDataAccess.Client;
 
 namespace DatabaseInterpreter.Core
 {

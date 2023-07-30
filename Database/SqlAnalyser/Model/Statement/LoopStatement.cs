@@ -2,11 +2,16 @@
 
 namespace Databases.SqlAnalyser.Model.Statement
 {
-    public class LoopStatement : WhileStatement
+    public class LoopStatement : WhileStatement, IStatementScriptBuilder
     {
         public LoopType Type { get; set; }
         public TokenInfo Name { get; set; }
         public LoopCursorInfo LoopCursorInfo { get; set; }
+
+        public void Build(FullStatementScriptBuilder builder)
+        {
+            builder.Builds(this);
+        }
     }
 
     public class LoopCursorInfo

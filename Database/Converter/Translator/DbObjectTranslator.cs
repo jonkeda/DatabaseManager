@@ -11,7 +11,6 @@ using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using Databases.SqlAnalyser.Model.Script;
 using PoorMansTSqlFormatterRedux;
-using SqlAnalyser.Model;
 
 namespace DatabaseConverter.Core
 {

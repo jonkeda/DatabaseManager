@@ -1,5 +1,4 @@
 ﻿using Databases.SqlAnalyser.Model.Token;
-using SqlAnalyser.Model;
 
 namespace Databases.SqlAnalyser.Model.Script
 {

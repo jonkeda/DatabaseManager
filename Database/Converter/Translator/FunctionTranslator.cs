@@ -7,7 +7,6 @@ using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using Databases.SqlAnalyser.Model.Script;
 using Databases.SqlAnalyser.Model.Token;
-using SqlAnalyser.Model;
 
 namespace DatabaseConverter.Core
 {

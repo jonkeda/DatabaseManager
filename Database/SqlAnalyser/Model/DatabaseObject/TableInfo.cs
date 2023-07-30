@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using Databases.SqlAnalyser.Model.Statement;
 using Databases.SqlAnalyser.Model.Token;
-using SqlAnalyser.Model;
 
 namespace Databases.SqlAnalyser.Model.DatabaseObject
 {

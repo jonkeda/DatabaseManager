@@ -7,7 +7,6 @@ using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using Databases.SqlAnalyser.Model.Statement;
 using Databases.SqlAnalyser.Model.Token;
-using SqlAnalyser.Model;
 
 namespace Databases.SqlAnalyser
 {

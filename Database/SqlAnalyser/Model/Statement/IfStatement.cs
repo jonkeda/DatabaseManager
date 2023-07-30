@@ -3,9 +3,14 @@ using Databases.SqlAnalyser.Model.Token;
 
 namespace Databases.SqlAnalyser.Model.Statement
 {
-    public class IfStatement : Statement
+    public class IfStatement : Statement, IStatementScriptBuilder
     {
         public List<IfStatementItem> Items { get; set; } = new List<IfStatementItem>();
+
+        public void Build(FullStatementScriptBuilder builder)
+        {
+            builder.Builds(this);
+        }
     }
 
     public class IfStatementItem

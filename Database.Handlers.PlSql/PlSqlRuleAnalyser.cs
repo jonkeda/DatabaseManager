@@ -5,7 +5,6 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using DatabaseInterpreter.Model;
 using Databases.SqlAnalyser;
-using Databases.SqlAnalyser.Listener;
 using Databases.SqlAnalyser.Model;
 using Databases.SqlAnalyser.Model.DatabaseObject;
 using Databases.SqlAnalyser.Model.Script;

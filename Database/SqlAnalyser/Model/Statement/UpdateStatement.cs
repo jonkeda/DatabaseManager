@@ -3,7 +3,7 @@ using Databases.SqlAnalyser.Model.Token;
 
 namespace Databases.SqlAnalyser.Model.Statement
 {
-    public class UpdateStatement : Statement
+    public class UpdateStatement : Statement, IStatementScriptBuilder
     {
         public List<TableName> TableNames { get; set; } = new List<TableName>();
         public List<NameValueItem> SetItems { get; set; } = new List<NameValueItem>();
@@ -11,6 +11,11 @@ namespace Databases.SqlAnalyser.Model.Statement
         public TokenInfo Condition { get; set; }
         public TokenInfo Option { get; set; }
         public bool HasFromItems => FromItems != null && FromItems.Count > 0;
+
+        public void Build(FullStatementScriptBuilder builder)
+        {
+            builder.Builds(this);
+        }
     }
 
     public class NameValueItem

@@ -2,7 +2,7 @@
 
 namespace Databases.SqlAnalyser.Model.Statement
 {
-    public class SetStatement : Statement
+    public class SetStatement : Statement, IStatementScriptBuilder
     {
         public TokenInfo Key { get; set; }
         public TokenInfo Value { get; set; }
@@ -12,6 +12,11 @@ namespace Databases.SqlAnalyser.Model.Statement
         public SelectStatement ValueStatement { get; set; }
 
         public UserVariableDataType UserVariableDataType { get; set; } = UserVariableDataType.Unknown;
+
+        public void Build(FullStatementScriptBuilder builder)
+        {
+            builder.Builds(this);
+        }
     }
 
     public enum UserVariableDataType

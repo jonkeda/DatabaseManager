@@ -9,10 +9,47 @@ using Databases.SqlAnalyser.Model.Script;
 using Databases.SqlAnalyser.Model.Statement;
 using Databases.SqlAnalyser.Model.Statement.Cursor;
 using Databases.SqlAnalyser.Model.Token;
-using SqlAnalyser.Model;
 
 namespace Databases.SqlAnalyser
 {
+    public interface IStatementScriptBuilder
+    {
+        void Build(FullStatementScriptBuilder builder);
+    }
+
+    public abstract class FullStatementScriptBuilder : StatementScriptBuilder
+    {
+        public abstract void Builds(UnionStatement union);
+        public abstract void Builds(GotoStatement gts);
+        public abstract void Builds(PreparedStatement prepared);
+        public abstract void Builds(RaiseErrorStatement error);
+        public abstract void Builds(DropStatement drop);
+        public abstract void Builds(TruncateStatement truncate);
+        public abstract void Builds(CloseCursorStatement closeCursor);
+        public abstract void Builds(FetchCursorStatement fetchCursor);
+        public abstract void Builds(OpenCursorStatement openCursor);
+        public abstract void Builds(DeclareCursorStatement declareCursor);
+        public abstract void Builds(TryCatchStatement tryCatch);
+        public abstract void Builds(ExceptionStatement exception);
+        public abstract void Builds(LeaveStatement leave);
+        public abstract void Builds(BreakStatement @break);
+        public abstract void Builds(TransactionStatement transaction);
+        public abstract void Builds(CallStatement call);
+        public abstract void Builds(ReturnStatement @return);
+        public abstract void Builds(WhileStatement @while);
+        public abstract void Builds(LoopExitStatement loopExit);
+        public abstract void Builds(LoopStatement loop);
+        public abstract void Builds(SetStatement set);
+        public abstract void Builds(CaseStatement @case);
+        public abstract void Builds(IfStatement @if);
+        public abstract void Builds(CreateTableStatement createTable);
+        public abstract void Builds(DeclareTableStatement declareTable);
+        public abstract void Builds(DeclareVariableStatement declareVar);
+        public abstract void Builds(DeleteStatement delete);
+        public abstract void Builds(UpdateStatement update);
+        public abstract void Builds(InsertStatement insert);
+    }
+
     public abstract class StatementScriptBuilder : IDisposable
     {
         internal int Level;

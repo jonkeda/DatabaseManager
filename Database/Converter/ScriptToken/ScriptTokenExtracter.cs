@@ -4,7 +4,6 @@ using Databases.SqlAnalyser.Model.DatabaseObject;
 using Databases.SqlAnalyser.Model.Script;
 using Databases.SqlAnalyser.Model.Statement;
 using Databases.SqlAnalyser.Model.Token;
-using SqlAnalyser.Model;
 
 namespace DatabaseConverter.Core
 {

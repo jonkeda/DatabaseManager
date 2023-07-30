@@ -2,10 +2,15 @@
 
 namespace Databases.SqlAnalyser.Model.Statement
 {
-    public class TransactionStatement : Statement
+    public class TransactionStatement : Statement, IStatementScriptBuilder
     {
         public TransactionCommandType CommandType { get; set; }
         public TokenInfo Content { get; set; }
+
+        public void Build(FullStatementScriptBuilder builder)
+        {
+            builder.Builds(this);
+        }
     }
 
     public enum TransactionCommandType

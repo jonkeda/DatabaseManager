@@ -10,7 +10,6 @@ using DatabaseInterpreter.Utility;
 using Databases.Handlers;
 using Databases.SqlAnalyser;
 using Databases.SqlAnalyser.Model.Token;
-using SqlAnalyser.Model;
 
 namespace DatabaseConverter.Core
 {

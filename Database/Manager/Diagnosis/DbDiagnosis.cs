@@ -11,7 +11,6 @@ using DatabaseInterpreter.Utility;
 using DatabaseManager.Model;
 using Databases.Handlers;
 using Databases.SqlAnalyser.Model.Statement;
-using SqlAnalyser.Model;
 
 namespace DatabaseManager.Core
 {

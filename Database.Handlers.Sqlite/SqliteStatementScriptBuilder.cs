@@ -134,6 +134,11 @@ namespace SqlAnalyser.Core
             throw new NotImplementedException();
         }
 
+        public override void Builds(DeclareCursorHandlerStatement declareCursorHandler)
+        {
+            throw new NotImplementedException();
+        }
+
         public override void Builds(CaseStatement @case)
         {
             var variableName = @case.VariableName.ToString();

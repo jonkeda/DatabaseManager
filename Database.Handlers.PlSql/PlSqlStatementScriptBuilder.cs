@@ -668,6 +668,11 @@ namespace SqlAnalyser.Core
             throw new NotImplementedException();
         }
 
+        public override void Builds(DeclareCursorHandlerStatement declareCursorHandler)
+        {
+            throw new NotImplementedException();
+        }
+
         public override void Builds(UnionStatement union)
         {
             AppendLine(GetUnionTypeName(union.Type));

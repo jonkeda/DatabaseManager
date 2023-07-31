@@ -701,6 +701,11 @@ namespace SqlAnalyser.Core
             throw new NotImplementedException();
         }
 
+        public override void Builds(DeclareCursorHandlerStatement declareCursorHandler)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
 
 

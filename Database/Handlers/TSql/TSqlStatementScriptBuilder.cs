@@ -201,6 +201,11 @@ namespace SqlAnalyser.Core
             AppendLine("CONTINUE;");
         }
 
+        public override void Builds(DeclareCursorHandlerStatement declareCursorHandler)
+        {
+            throw new NotImplementedException();
+        }
+
         public override void Builds(BreakStatement @break)
         {
             AppendLine("BREAK;");

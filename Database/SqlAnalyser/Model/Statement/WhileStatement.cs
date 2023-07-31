@@ -9,7 +9,7 @@ namespace Databases.SqlAnalyser.Model.Statement
 
         public List<Statement> Statements { get; set; } = new List<Statement>();
 
-        public void Build(FullStatementScriptBuilder builder)
+        public virtual void Build(FullStatementScriptBuilder builder)
         {
             builder.Builds(this);
         }

@@ -13,8 +13,6 @@ using DatabaseInterpreter.Utility;
 using Databases.Config;
 using Databases.Interpreter.Builder;
 using Microsoft.SqlServer.Types;
-using NpgsqlTypes;
-using PgGeom = NetTopologySuite.Geometries;
 
 namespace DatabaseInterpreter.Core
 {
@@ -753,13 +751,6 @@ namespace DatabaseInterpreter.Core
                         break;
                     case nameof(SqlGeography):
                     case nameof(SqlGeometry):
-                    case nameof(PgGeom.Point):
-                    case nameof(PgGeom.LineString):
-                    case nameof(PgGeom.Polygon):
-                    case nameof(PgGeom.MultiPoint):
-                    case nameof(PgGeom.MultiLineString):
-                    case nameof(PgGeom.MultiPolygon):
-                    case nameof(PgGeom.GeometryCollection):
                         var srid = 0;
 
                         if (value is SqlGeography sgg1)
@@ -770,10 +761,10 @@ namespace DatabaseInterpreter.Core
                         {
                             srid = sgm1.STSrid.Value;
                         }
-                        else if (value is PgGeom.Geometry g)
+/*                        else if (value is PgGeom.Geometry g)
                         {
                             srid = g.SRID;
-                        }
+                        }*/
                         /*
                                                 if (this.databaseType == DatabaseType.MySql)
                                                 {
@@ -792,12 +783,6 @@ namespace DatabaseInterpreter.Core
 
                         break;
                     case nameof(SqlHierarchyId):
-                    case nameof(NpgsqlLine):
-                    case nameof(NpgsqlBox):
-                    case nameof(NpgsqlCircle):
-                    case nameof(NpgsqlPath):
-                    case nameof(NpgsqlLSeg):
-                    case nameof(NpgsqlTsVector):
                         needQuotated = true;
                         strValue = value.ToString();
 

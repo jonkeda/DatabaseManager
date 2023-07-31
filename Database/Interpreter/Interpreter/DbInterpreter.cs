@@ -11,9 +11,7 @@ using Databases;
 using Databases.Config;
 using Databases.Exceptions;
 using Databases.Interpreter.Builder;
-using Npgsql;
-//using DatabaseInterpreter.Geometry;
-using PgGeom = NetTopologySuite.Geometries;
+using Databases.Interpreter.Connection;
 
 namespace DatabaseInterpreter.Core
 {
@@ -707,7 +705,7 @@ namespace DatabaseInterpreter.Core
         {
             if (DatabaseType == DatabaseType.Postgres)
             {
-                NpgsqlConnection.GlobalTypeMapper.UseNetTopologySuite(geographyAsDefault: false);
+                //NpgsqlConnection.GlobalTypeMapper.UseNetTopologySuite(geographyAsDefault: false);
             }
 
             if (DatabaseType == DatabaseType.Oracle)

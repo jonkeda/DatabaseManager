@@ -11,11 +11,10 @@ using System.Threading.Tasks;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using Databases.Interpreter.Builder;
+using Databases.Interpreter.Connection;
 using Microsoft.Data.SqlClient;
 using Microsoft.SqlServer.Types;
 using Newtonsoft.Json;
-using NpgsqlTypes;
-using PgGeom = NetTopologySuite.Geometries;
 
 namespace DatabaseInterpreter.Core
 {
@@ -881,12 +880,6 @@ namespace DatabaseInterpreter.Core
                                      || item.DataType == typeof(Array)
                                      || item.DataType == typeof(BitArray)
                                      || item.DataType.Name.Contains("Geometry")
-                                     || item.DataType == typeof(NpgsqlTsVector)
-                                     || item.DataType == typeof(NpgsqlLine)
-                                     || item.DataType == typeof(NpgsqlBox)
-                                     || item.DataType == typeof(NpgsqlCircle)
-                                     || item.DataType == typeof(NpgsqlPath)
-                                     || item.DataType == typeof(NpgsqlLSeg)
                     //|| item.DataType == typeof(SdoGeometry)
                     //|| item.DataType == typeof(StGeometry)
                 )
@@ -1040,13 +1033,14 @@ namespace DatabaseInterpreter.Core
                                     newValue = PostgresGeometryHelper.ToSqlGeometry(value as PgGeom.Geometry);
                                 }
                             }
-*/ else if (value is NpgsqlTsVector || value is NpgsqlLine || value is NpgsqlBox || value is NpgsqlCircle
+*/ 
+/*                            else if (value is NpgsqlTsVector || value is NpgsqlLine || value is NpgsqlBox || value is NpgsqlCircle
             || value is NpgsqlPath || value is NpgsqlLSeg)
                             {
                                 newColumnType = typeof(string);
                                 newValue = value.ToString();
                             }
-/*                            else if (value is SdoGeometry)
+*//*                            else if (value is SdoGeometry)
                             {
                                 if (dataType == "geography")
                                 {

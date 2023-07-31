@@ -10,9 +10,9 @@ using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using Databases;
 using Databases.Interpreter.Builder;
+using Databases.Interpreter.Connection;
 using Microsoft.SqlServer.Types;
 using Npgsql;
-using PgGeom = NetTopologySuite.Geometries;
 
 namespace DatabaseInterpreter.Core
 {
@@ -1007,7 +1007,7 @@ namespace DatabaseInterpreter.Core
                                 newValue = ((SqlHierarchyId)value).ToString();
                                 newColumnType = typeof(string);
                             }
-                            else if (type == typeof(SqlGeography))
+                           /* else if (type == typeof(SqlGeography))
                             {
                                 newColumnType = typeof(PgGeom.Geometry);
 
@@ -1015,7 +1015,7 @@ namespace DatabaseInterpreter.Core
 
                                 if (!geography.IsNull)
                                 {
-/*                                    if (dataType == "geography")
+*//*                                    if (dataType == "geography")
                                     {
                                         newValue = SqlGeographyHelper.ToPostgresGeography(geography);
                                     }
@@ -1023,7 +1023,7 @@ namespace DatabaseInterpreter.Core
                                     {
                                         newValue = SqlGeographyHelper.ToPostgresGeometry(geography);
                                     }
-*/
+*//*
                                 }
                                 else
                                 {
@@ -1037,7 +1037,7 @@ namespace DatabaseInterpreter.Core
 
                                 if (!geometry.IsNull)
                                 {
-/*                                    if (dataType == "geography")
+*//*                                    if (dataType == "geography")
                                     {
                                         newValue = SqlGeometryHelper.ToPostgresGeography(geometry);
                                     }
@@ -1045,13 +1045,13 @@ namespace DatabaseInterpreter.Core
                                     {
                                         newValue = SqlGeometryHelper.ToPostgresGeometry(geometry);
                                     }
-*/
+*//*
                                 }
                                 else
                                 {
                                     newValue = DBNull.Value;
                                 }
-                            }
+                            }*/
                             else if (type == typeof(byte[]))
                             {
                                 var sourcedDbType = bulkCopyInfo.SourceDatabaseType;

@@ -114,14 +114,14 @@ namespace DatabaseInterpreter.Core
 
         private async Task<ulong> CopyData(DataTable table)
         {
-            NpgsqlConnection.GlobalTypeMapper.UseNetTopologySuite();
+            //NpgsqlConnection.GlobalTypeMapper.UseNetTopologySuite();
 
             var columnList = GetColumnList(table);
 
             ValidateConnection();
             await OpenConnectionAsync();
 
-            connection.TypeMapper.UseNetTopologySuite();
+            //connection.TypeMapper.UseNetTopologySuite();
 
             var commandText = $"COPY {DestinationTableName}({columnList}) FROM STDIN (FORMAT BINARY)";
 

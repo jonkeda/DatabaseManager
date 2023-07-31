@@ -22,19 +22,10 @@ add "ColumnName" for "TableConstraint"</PackageReleaseNotes>
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.0.0" />
     <PackageReference Include="Microsoft.SqlServer.Types" Version="160.1000.6" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
-    <PackageReference Include="Npgsql" Version="6.0.7" />
-    <PackageReference Include="Npgsql.NetTopologySuite" Version="6.0.7" />
     <PackageReference Include="PoorMansTSqlFormatterRedux" Version="1.0.3" />
     <PackageReference Include="SharpZipLib.NETStandard" Version="1.0.7" />
     <PackageReference Include="SqlParserSharp" Version="2.1.0" />
     <PackageReference Include="TSQL.Parser" Version="2.5.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Interpreter\Builder\Connection\" />
-    <Folder Include="Interpreter\Builder\Script\" />
-    <Folder Include="Interpreter\Builder\Sql\" />
-    <Folder Include="Interpreter\Config\" />
   </ItemGroup>
 
   <ItemGroup>

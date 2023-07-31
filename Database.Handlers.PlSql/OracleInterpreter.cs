@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using Databases.Interpreter.Builder;
+using Databases.Interpreter.Connection;
 using Microsoft.SqlServer.Types;
 using Oracle.ManagedDataAccess.Client;
-using PgGeom = NetTopologySuite.Geometries;
 
 namespace DatabaseInterpreter.Core
 {
@@ -934,7 +934,6 @@ namespace DatabaseInterpreter.Core
                                      || item.DataType.Name == nameof(SqlGeography)
                                      || item.DataType.Name == nameof(SqlGeometry)
                                      || item.DataType == typeof(byte[])
-                                     || item.DataType == typeof(PgGeom.Geometry)
                 ))
             {
                 return dataTable;

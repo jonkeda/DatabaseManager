@@ -9,10 +9,9 @@ using Dapper;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using Databases.Interpreter.Builder;
+using Databases.Interpreter.Connection;
 using Microsoft.SqlServer.Types;
 using MySqlConnector;
-//using DatabaseInterpreter.Geometry;
-using PgGeom = NetTopologySuite.Geometries;
 
 namespace DatabaseInterpreter.Core
 {
@@ -843,10 +842,10 @@ namespace DatabaseInterpreter.Core
                                 newValue = DBNull.Value;
                             }
                         }
-                        else if (value is PgGeom.Geometry geom)
+/*                        else if (value is PgGeom.Geometry geom)
                         {
                             //newValue = PostgresGeometryHelper.ToMySqlGeometry(geom);
-                        }
+                        }*/
                         /*                       else if (value is SdoGeometry sdo)
                                                {
                                                    newValue = OracleSdoGeometryHelper.ToMySqlGeometry(sdo);

@@ -76,10 +76,8 @@ namespace DatabaseInterpreter.Core
                 return DatabaseObjectType.Type;
             }
 
-            if (Enum.TryParse<DatabaseObjectType>(typeName, out _))
+            if (Enum.TryParse<DatabaseObjectType>(typeName, out DatabaseObjectType databaseObjectType))
             {
-                var databaseObjectType = (DatabaseObjectType)Enum.Parse(typeof(DatabaseObjectType), typeName);
-
                 return databaseObjectType;
             }
 

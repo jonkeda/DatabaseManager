@@ -9,6 +9,7 @@ using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using Databases.Config;
 using Databases.Interpreter.Builder;
+using Databases.Interpreter.Connection;
 
 namespace DatabaseInterpreter.Core
 {

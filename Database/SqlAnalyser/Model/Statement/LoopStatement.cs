@@ -8,7 +8,7 @@ namespace Databases.SqlAnalyser.Model.Statement
         public TokenInfo Name { get; set; }
         public LoopCursorInfo LoopCursorInfo { get; set; }
 
-        public void Build(FullStatementScriptBuilder builder)
+        public override void Build(FullStatementScriptBuilder builder)
         {
             builder.Builds(this);
         }

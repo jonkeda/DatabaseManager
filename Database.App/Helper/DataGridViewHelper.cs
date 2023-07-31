@@ -8,7 +8,6 @@ using System.Windows.Forms;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using Microsoft.SqlServer.Types;
-using PgGeom = NetTopologySuite.Geometries;
 
 namespace DatabaseManager.Helper;
 
@@ -75,11 +74,7 @@ public class DataGridViewHelper
                             var geom = value as SqlGeometry;
                             newValue = geom.IsNull ? "" : geom.ToString();
                         }
-                        else if (type == typeof(PgGeom.Geometry))
-                        {
-                            newColumnType = typeof(string);
-                            newValue = (value as PgGeom.Geometry)?.AsText();
-                        }
+
 
                         if (newColumnType != null && !changedColumns.ContainsKey(i))
                             changedColumns.Add(i, new DataTableColumnChangeInfo { Type = newColumnType });

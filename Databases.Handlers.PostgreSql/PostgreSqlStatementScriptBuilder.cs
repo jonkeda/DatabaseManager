@@ -31,127 +31,6 @@ namespace SqlAnalyser.Core
             {
                 BuildSelectStatement(select, appendSeparator);
             }
-            else if (statement is UnionStatement union)
-            {
-                Builds(union);
-            }
-            else if (statement is InsertStatement insert)
-            {
-                Builds(insert);
-            }
-            else if (statement is UpdateStatement update)
-            {
-                Builds(update);
-            }
-            else if (statement is DeleteStatement delete)
-            {
-                Builds(delete);
-            }
-            else if (statement is DeclareVariableStatement declareVar)
-            {
-                Builds(declareVar);
-            }
-            else if (statement is DeclareTableStatement declareTable)
-            {
-                Builds(declareTable);
-            }
-            else if (statement is CreateTableStatement createTable)
-            {
-                Builds(createTable);
-            }
-            else if (statement is IfStatement @if)
-            {
-                Builds(@if);
-            }
-            else if (statement is CaseStatement @case)
-            {
-                Builds(@case);
-            }
-            else if (statement is SetStatement set)
-            {
-                Builds(set);
-            }
-            else if (statement is LoopStatement loop)
-            {
-                Builds(loop);
-            }
-            else if (statement is LoopExitStatement loopExit)
-            {
-                Builds(loopExit);
-            }
-            else if (statement is WhileStatement @while)
-            {
-                Builds(@while);
-            }
-            else if (statement is ReturnStatement @return)
-            {
-                Builds(@return);
-            }
-            else if (statement is PrintStatement print)
-            {
-                PrintMessage(print.Content.Symbol);
-            }
-            else if (statement is CallStatement call)
-            {
-                Builds(call);
-            }
-            else if (statement is TransactionStatement transaction)
-            {
-                Builds(transaction);
-            }
-            else if (statement is BreakStatement @break)
-            {
-                Builds(@break);
-            }
-            else if (statement is LeaveStatement leave)
-            {
-                Builds(leave);
-            }
-            else if (statement is ExceptionStatement exception)
-            {
-                Builds(exception);
-            }
-            else if (statement is TryCatchStatement tryCatch)
-            {
-                Builds(tryCatch);
-            }
-            else if (statement is DeclareCursorStatement declareCursor)
-            {
-                Builds(declareCursor);
-            }
-            else if (statement is OpenCursorStatement openCursor)
-            {
-                Builds(openCursor);
-            }
-            else if (statement is FetchCursorStatement fetchCursor)
-            {
-                Builds(fetchCursor);
-            }
-            else if (statement is CloseCursorStatement closeCursor)
-            {
-                Builds(closeCursor);
-            }
-            else if (statement is TruncateStatement truncate)
-            {
-                Builds(truncate);
-            }
-            else if (statement is DropStatement drop)
-            {
-                Builds(drop);
-            }
-            else if (statement is RaiseErrorStatement error)
-            {
-                Builds(error);
-            }
-            else if (statement is PreparedStatement prepared)
-            {
-                Builds(prepared);
-            }
-            else if (statement is GotoStatement gts)
-            {
-                Builds(gts);
-            }
-
             return this;
         }
 
@@ -805,6 +684,21 @@ namespace SqlAnalyser.Core
             {
                 AppendLine($"VALUES({string.Join(",", insert.Values.Select(item => item))});");
             }
+        }
+
+        public override void Builds(DeallocateCursorStatement deallocateCursor)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Builds(PrintStatement print)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Builds(ContinueStatement @continue)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion

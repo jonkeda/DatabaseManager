@@ -48,6 +48,9 @@ namespace Databases.SqlAnalyser
         public abstract void Builds(DeleteStatement delete);
         public abstract void Builds(UpdateStatement update);
         public abstract void Builds(InsertStatement insert);
+        public abstract void Builds(DeallocateCursorStatement deallocateCursor);
+        public abstract void Builds(PrintStatement print);
+        public abstract void Builds(ContinueStatement @continue);
     }
 
     public abstract class StatementScriptBuilder : IDisposable
@@ -531,5 +534,6 @@ namespace Databases.SqlAnalyser
                 sb.Append($"{(hasName ? "CONSTRAINT" : "")} {(!hasName ? "" : $"{name} ")}{definition}".Trim());
             }
         }
+        
     }
 }

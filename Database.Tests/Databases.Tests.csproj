@@ -52,4 +52,8 @@
     <ProjectReference Include="..\Database\Databases.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Translator\Operators\" />
+  </ItemGroup>
+
 </Project>

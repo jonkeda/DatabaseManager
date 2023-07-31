@@ -52,6 +52,7 @@ namespace Databases.SqlAnalyser
         public abstract void Builds(PrintStatement print);
         public abstract void Builds(ContinueStatement @continue);
         public abstract void Builds(DeclareCursorHandlerStatement declareCursorHandler);
+        public abstract void Builds(SelectStatement select);
     }
 
     public abstract class StatementScriptBuilder : IDisposable

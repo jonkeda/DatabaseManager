@@ -19,12 +19,12 @@ namespace SqlAnalyser.Core
             {
                 builder.Build(this);
             }
-            else if (statement is SelectStatement select)
-            {
-                BuildSelectStatement(select, appendSeparator);
-            }
-
             return this;
+        }
+
+        public override void Builds(SelectStatement select)
+        {
+            BuildSelectStatement(select, true);
         }
 
         public override void Builds(RaiseErrorStatement error)

@@ -3,7 +3,7 @@ using Databases.SqlAnalyser.Model.Token;
 
 namespace Databases.SqlAnalyser.Model.Statement
 {
-    public class SelectStatement : Statement
+    public class SelectStatement : Statement, IStatementScriptBuilder
     {
         public List<ColumnName> Columns { get; set; } = new List<ColumnName>();
         public List<TokenInfo> Intos { get; set; }
@@ -22,6 +22,11 @@ namespace Databases.SqlAnalyser.Model.Statement
         public bool HasFromItems => FromItems != null && FromItems.Count > 0;
 
         public bool NoTableName => TableName == null && !HasFromItems;
+
+        public void Build(FullStatementScriptBuilder builder)
+        {
+            builder.Builds(this);
+        }
     }
 
     public class SelectTopInfo

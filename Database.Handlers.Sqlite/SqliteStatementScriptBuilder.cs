@@ -15,8 +15,6 @@ namespace SqlAnalyser.Core
     {
         public override StatementScriptBuilder Build(Statement statement, bool appendSeparator = true)
         {
-            base.Build(statement, appendSeparator);
-
             if (statement is IStatementScriptBuilder builder)
             {
                 builder.Build(this);

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Model.Schema;
 using Databases.SqlAnalyser;
 using Databases.SqlAnalyser.Model;
 using Databases.SqlAnalyser.Model.DatabaseObject;
@@ -12,10 +12,9 @@ using Databases.SqlAnalyser.Model.Script;
 using Databases.SqlAnalyser.Model.Statement;
 using Databases.SqlAnalyser.Model.Statement.Cursor;
 using Databases.SqlAnalyser.Model.Token;
-using SqlAnalyser.Model;
 using static TSqlParser;
 
-namespace SqlAnalyser.Core
+namespace Databases.Handlers.TSql
 {
     public class TSqlRuleAnalyser : SqlRuleAnalyser
     {

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace DatabaseManager.Model
+namespace Databases.Manager.Model.TableDesigner
 {
     public class SchemaDesignerInfo
     {

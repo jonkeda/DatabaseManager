@@ -1,10 +1,9 @@
 ﻿using System.Data.Common;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
 using Databases.Handlers;
-using Databases.Interpreter.Builder;
+using Databases.Interpreter;
+using Databases.Model.Connection;
 
-namespace Databases.Interpreter.Connection
+namespace Databases.Connection
 {
     public class DbConnector
     {

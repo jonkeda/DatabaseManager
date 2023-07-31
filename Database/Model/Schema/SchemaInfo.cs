@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
+using Databases.Model.DatabaseObject;
 
-namespace DatabaseInterpreter.Model
+namespace Databases.Model.Schema
 {
     public class SchemaInfo
     {
         public List<UserDefinedType> UserDefinedTypes { get; set; } = new List<UserDefinedType>();
         public List<Sequence> Sequences { get; set; } = new List<Sequence>();
-        public List<Function> Functions { get; set; } = new List<Function>();
+        public List<DatabaseObject.Function> Functions { get; set; } = new List<DatabaseObject.Function>();
         public List<Table> Tables { get; set; } = new List<Table>();
         public List<View> Views { get; set; } = new List<View>();
         public List<TableTrigger> TableTriggers { get; set; } = new List<TableTrigger>();

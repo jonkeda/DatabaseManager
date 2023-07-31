@@ -1,4 +1,6 @@
-﻿namespace DatabaseManager
+﻿using Databases.Model.Enum;
+
+namespace DatabaseManager
 {
     partial class frmAccountInfo
     {
@@ -47,7 +49,7 @@
             // 
             // ucAccountInfo
             // 
-            this.ucAccountInfo.DatabaseType = DatabaseInterpreter.Model.DatabaseType.SqlServer;
+            this.ucAccountInfo.DatabaseType = DatabaseType.SqlServer;
             this.ucAccountInfo.Location = new System.Drawing.Point(4, 17);
             this.ucAccountInfo.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.ucAccountInfo.Name = "ucAccountInfo";

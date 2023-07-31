@@ -1,12 +1,13 @@
 using System;
 using System.Windows.Forms;
-using DatabaseInterpreter.Core;
-using DatabaseManager.Core;
 using Databases.Handlers;
 using Databases.Handlers.MySql;
 using Databases.Handlers.PlSql;
+using Databases.Handlers.PostgreSql;
 using Databases.Handlers.Sqlite;
 using Databases.Handlers.TSql;
+using Databases.Interpreter;
+using Databases.Manager.Manager;
 
 namespace DatabaseManager;
 

@@ -1,4 +1,6 @@
-﻿namespace DatabaseManager
+﻿using Databases.Model.Enum;
+
+namespace DatabaseManager
 {
     partial class frmTableCopy
     {
@@ -152,7 +154,7 @@
             // 
             this.ucConnection.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.ucConnection.DatabaseType = DatabaseInterpreter.Model.DatabaseType.Unknown;
+            this.ucConnection.DatabaseType = DatabaseType.Unknown;
             this.ucConnection.Enabled = false;
             this.ucConnection.EnableDatabaseType = true;
             this.ucConnection.Location = new System.Drawing.Point(12, 42);

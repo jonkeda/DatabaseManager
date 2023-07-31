@@ -1,4 +1,4 @@
-﻿namespace DatabaseManager.Model
+﻿namespace Databases.Manager.Model.DbObjectDisplay
 {
     public class ContentSaveResult
     {

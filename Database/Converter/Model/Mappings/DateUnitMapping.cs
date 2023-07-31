@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace DatabaseConverter.Core.Model
+namespace Databases.Converter.Model.Mappings
 {
     public class DateUnitMapping
     {

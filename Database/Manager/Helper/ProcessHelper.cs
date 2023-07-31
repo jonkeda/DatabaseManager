@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace DatabaseManager.Helper
+namespace Databases.Manager.Helper
 {
     public class ProcessHelper
     {

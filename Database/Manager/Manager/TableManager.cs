@@ -3,13 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Model;
-using Databases;
+using Databases.Handlers.TSql;
+using Databases.Interpreter;
+using Databases.Interpreter.Helper;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Interpreter.Utility.Model;
+using Databases.Manager.Model.DbObjectDisplay;
+using Databases.Manager.Model.TableDesigner;
+using Databases.Manager.Script;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DatabaseObject.Fiction;
+using Databases.Model.Enum;
+using Databases.Model.Schema;
+using Databases.ScriptGenerator;
 
-namespace DatabaseManager.Core
+namespace Databases.Manager.Manager
 {
     public class TableManager
     {
@@ -92,7 +100,7 @@ namespace DatabaseManager.Core
 
                 scriptsData.Table = table;
 
-                var scripts = new List<Script>();
+                var scripts = new List<Databases.Model.Script.Script>();
 
                 if (isNew)
                 {
@@ -345,7 +353,7 @@ namespace DatabaseManager.Core
             }
         }
 
-        public Script GetColumnRenameScript(Table table, TableColumn oldColumn, TableColumn newColumn)
+        public Databases.Model.Script.Script GetColumnRenameScript(Table table, TableColumn oldColumn, TableColumn newColumn)
         {
             return scriptGenerator.RenameTableColumn(table, oldColumn, newColumn.Name);
         }
@@ -363,10 +371,10 @@ namespace DatabaseManager.Core
             return defaultValueConstraints;
         }
 
-        public List<Script> GetColumnAlterScripts(Table oldTable, Table newTable, TableColumn oldColumn,
+        public List<Databases.Model.Script.Script> GetColumnAlterScripts(Table oldTable, Table newTable, TableColumn oldColumn,
             TableColumn newColumn, List<TableDefaultValueConstraint> defaultValueConstraints)
         {
-            var scripts = new List<Script>();
+            var scripts = new List<Databases.Model.Script.Script>();
 
             var databaseType = dbInterpreter.DatabaseType;
 
@@ -442,10 +450,10 @@ namespace DatabaseManager.Core
             return value.Replace(" ", "").Trim();
         }
 
-        public List<Script> GetPrimaryKeyAlterScripts(TablePrimaryKey oldPrimaryKey, TablePrimaryKey newPrimaryKey,
+        public List<Databases.Model.Script.Script> GetPrimaryKeyAlterScripts(TablePrimaryKey oldPrimaryKey, TablePrimaryKey newPrimaryKey,
             bool onlyCompareColumns)
         {
-            var scripts = new List<Script>();
+            var scripts = new List<Databases.Model.Script.Script>();
 
             var primaryKeyChanged =
                 !SchemaInfoHelper.IsPrimaryKeyEquals(oldPrimaryKey, newPrimaryKey, onlyCompareColumns);
@@ -488,9 +496,9 @@ namespace DatabaseManager.Core
             return scripts;
         }
 
-        public List<Script> GetForeignKeyAlterScripts(TableForeignKey oldForeignKey, TableForeignKey newForeignKey)
+        public List<Databases.Model.Script.Script> GetForeignKeyAlterScripts(TableForeignKey oldForeignKey, TableForeignKey newForeignKey)
         {
-            var scripts = new List<Script>();
+            var scripts = new List<Databases.Model.Script.Script>();
 
             if (oldForeignKey != null)
             {
@@ -507,9 +515,9 @@ namespace DatabaseManager.Core
             return scripts;
         }
 
-        public List<Script> GetIndexAlterScripts(TableIndex oldIndex, TableIndex newIndex)
+        public List<Databases.Model.Script.Script> GetIndexAlterScripts(TableIndex oldIndex, TableIndex newIndex)
         {
-            var scripts = new List<Script>();
+            var scripts = new List<Databases.Model.Script.Script>();
 
             if (oldIndex != null)
             {
@@ -526,9 +534,9 @@ namespace DatabaseManager.Core
             return scripts;
         }
 
-        public List<Script> GetConstraintAlterScripts(TableConstraint oldConstraint, TableConstraint newConstraint)
+        public List<Databases.Model.Script.Script> GetConstraintAlterScripts(TableConstraint oldConstraint, TableConstraint newConstraint)
         {
-            var scripts = new List<Script>();
+            var scripts = new List<Databases.Model.Script.Script>();
 
             if (oldConstraint != null)
             {
@@ -573,7 +581,7 @@ namespace DatabaseManager.Core
             return true;
         }
 
-        private void SetTableChildComment(List<Script> scripts, DbScriptGenerator scriptGenerator,
+        private void SetTableChildComment(List<Databases.Model.Script.Script> scripts, DbScriptGenerator scriptGenerator,
             TableChild tableChild, bool isNew)
         {
             if (dbInterpreter.DatabaseType == DatabaseType.SqlServer)

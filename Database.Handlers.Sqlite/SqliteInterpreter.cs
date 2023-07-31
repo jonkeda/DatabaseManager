@@ -5,13 +5,22 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
 using Databases.Config;
+using Databases.Connection;
+using Databases.Interpreter;
 using Databases.Interpreter.Builder;
-using Databases.Interpreter.Connection;
+using Databases.Interpreter.Helper;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Model.BulkCopy;
+using Databases.Model.Connection;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DatabaseObject.Fiction;
+using Databases.Model.Dependency;
+using Databases.Model.Enum;
+using Databases.Model.Option;
+using Databases.Model.Schema;
 
-namespace DatabaseInterpreter.Core
+namespace Databases.Handlers.Sqlite
 {
     public class SqliteInterpreter : DbInterpreter
     {

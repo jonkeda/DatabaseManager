@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using DatabaseInterpreter.Model;
+using Databases.Manager.Helper;
+using Databases.Model.Enum;
+using Databases.Model.Schema;
 
 namespace DatabaseManager.Helper;
 

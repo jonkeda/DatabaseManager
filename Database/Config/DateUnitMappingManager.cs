@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Xml.Linq;
-using DatabaseConverter.Core.Model;
-using DatabaseInterpreter.Utility;
+using Databases.Converter.Model.Mappings;
+using Databases.Interpreter.Utility.Helper;
 
 namespace Databases.Config
 {

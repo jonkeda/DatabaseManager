@@ -4,11 +4,11 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DatabaseInterpreter.Model;
+using Databases.Model.DatabaseObject;
 using Npgsql;
 using NpgsqlTypes;
 
-namespace DatabaseInterpreter.Core
+namespace Databases.Handlers.PostgreSql
 {
     public class PostgreBulkCopy : IDisposable
     {

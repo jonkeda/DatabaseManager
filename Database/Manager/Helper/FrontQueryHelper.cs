@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Text.RegularExpressions;
-using DatabaseInterpreter.Utility;
+using Databases.Interpreter.Utility.Helper;
 
-namespace DatabaseManager.Helper
+namespace Databases.Manager.Helper
 {
     public class FrontQueryHelper
     {

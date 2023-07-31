@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Model.Script;
 
 namespace Databases.Interpreter.Builder
 {

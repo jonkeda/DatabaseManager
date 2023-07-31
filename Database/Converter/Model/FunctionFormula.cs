@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DatabaseConverter.Model
+namespace Databases.Converter.Model
 {
     public class FunctionFormula
     {

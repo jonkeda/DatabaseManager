@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Model;
 using Databases.Config;
+using Databases.Interpreter;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Manager.Model.TableDesigner;
+using Databases.Model.DatabaseObject;
+using Databases.Model.Enum;
 
-namespace DatabaseManager.Core
+namespace Databases.Manager.Manager
 {
     public class ColumnManager
     {

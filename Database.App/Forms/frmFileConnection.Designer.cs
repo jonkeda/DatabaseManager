@@ -1,4 +1,6 @@
-﻿namespace DatabaseManager.Forms
+﻿using Databases.Model.Enum;
+
+namespace DatabaseManager.Forms
 {
     partial class frmFileConnection
     {
@@ -44,7 +46,7 @@
             // 
             // ucFileConnection
             // 
-            this.ucFileConnection.DatabaseType = DatabaseInterpreter.Model.DatabaseType.Unknown;
+            this.ucFileConnection.DatabaseType = DatabaseType.Unknown;
             this.ucFileConnection.Location = new System.Drawing.Point(5, 4);
             this.ucFileConnection.Name = "ucFileConnection";
             this.ucFileConnection.Size = new System.Drawing.Size(358, 136);

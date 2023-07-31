@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using DatabaseInterpreter.Model;
 using DatabaseManager.Profile;
+using Databases.Model.Enum;
+using Databases.Model.Schema;
 
 namespace DatabaseManager.Data;
 

@@ -1,7 +1,7 @@
-﻿namespace DatabaseInterpreter.Model
+﻿namespace Databases.Model.Script
 {
     public class DatabaseObjectScript<T> : Script
-        where T : DatabaseObject
+        where T : DatabaseObject.DatabaseObject
     {
         public DatabaseObjectScript(string script) : base(script)
         {

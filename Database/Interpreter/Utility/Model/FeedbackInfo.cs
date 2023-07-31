@@ -1,4 +1,4 @@
-﻿namespace DatabaseInterpreter.Utility
+﻿namespace Databases.Interpreter.Utility.Model
 {
     public delegate void FeedbackHandler(FeedbackInfo feedbackInfo);
 

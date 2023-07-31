@@ -1,9 +1,9 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using DatabaseInterpreter.Model;
+using Databases.Model.Connection;
 
-namespace DatabaseConverter.Profile
+namespace Databases.Converter.Profile
 {
     public class DataTransferErrorProfileManager
     {

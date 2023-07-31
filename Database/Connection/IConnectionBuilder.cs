@@ -1,6 +1,6 @@
-﻿using DatabaseInterpreter.Model;
+﻿using Databases.Model.Connection;
 
-namespace Databases.Interpreter.Builder
+namespace Databases.Connection
 {
     public interface IConnectionBuilder
     {

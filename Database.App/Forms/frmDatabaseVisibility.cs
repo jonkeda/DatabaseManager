@@ -4,12 +4,15 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
 using DatabaseManager.Data;
 using DatabaseManager.Model;
 using DatabaseManager.Profile;
+using Databases.Interpreter.Helper;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Model.Connection;
+using Databases.Model.DatabaseObject;
+using Databases.Model.Enum;
+using Databases.Model.Option;
 
 namespace DatabaseManager.Forms;
 
@@ -79,7 +82,7 @@ public partial class frmDatabaseVisibility : Form
         LoadRecords(databases);
     }
 
-    private async void LoadRecords(IEnumerable<DatabaseInterpreter.Model.Database> databases)
+    private async void LoadRecords(IEnumerable<Database> databases)
     {
         var databaseNames = databases.Select(item => item.Name);
 

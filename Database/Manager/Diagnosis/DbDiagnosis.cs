@@ -4,15 +4,25 @@ using System.Data.Common;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using DatabaseConverter.Core;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Model;
+using Databases.Converter.Helper;
 using Databases.Handlers;
+using Databases.Interpreter;
+using Databases.Interpreter.Helper;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Interpreter.Utility.Model;
+using Databases.Manager.Model;
+using Databases.Manager.Model.Diagnose;
+using Databases.Manager.Script;
+using Databases.Model.Connection;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DatabaseObject.Fiction;
+using Databases.Model.Dependency;
+using Databases.Model.Enum;
+using Databases.Model.Option;
+using Databases.Model.Schema;
 using Databases.SqlAnalyser.Model.Statement;
 
-namespace DatabaseManager.Core
+namespace Databases.Manager.Diagnosis
 {
     public abstract class DbDiagnosis
     {

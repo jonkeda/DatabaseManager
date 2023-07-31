@@ -5,15 +5,26 @@ using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
 using Databases;
 using Databases.Config;
+using Databases.Connection;
 using Databases.Exceptions;
 using Databases.Interpreter.Builder;
-using Databases.Interpreter.Connection;
+using Databases.Interpreter.Helper;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Interpreter.Utility.Model;
+using Databases.Model.BulkCopy;
+using Databases.Model.Command;
+using Databases.Model.Connection;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DataTable;
+using Databases.Model.DataType;
+using Databases.Model.Dependency;
+using Databases.Model.Enum;
+using Databases.Model.Option;
+using Databases.Model.Schema;
 
-namespace DatabaseInterpreter.Core
+namespace Databases.Interpreter
 {
     public abstract class DbInterpreter
     {
@@ -369,7 +380,7 @@ namespace DatabaseInterpreter.Core
                     schemaInfo.TablePrimaryKeys = await GetTablePrimaryKeysAsync(connection, filter);
                 }
 
-                if ((Option.SortObjectsByReference && schemaInfo.Tables.Count > 1) ||
+                if (Option.SortObjectsByReference && schemaInfo.Tables.Count > 1 ||
                     NeedFetchTableObjects(DatabaseObjectType.ForeignKey, filter, null))
                 {
                     schemaInfo.TableForeignKeys = await GetTableForeignKeysAsync(connection, filter);
@@ -1298,7 +1309,9 @@ namespace DatabaseInterpreter.Core
         {
             var info = new FeedbackInfo
             {
-                Owner = this, InfoType = infoType, Message = StringHelper.ToSingleEmptyLine(message),
+                Owner = this,
+                InfoType = infoType,
+                Message = StringHelper.ToSingleEmptyLine(message),
                 IgnoreError = skipError
             };
 

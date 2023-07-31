@@ -3,11 +3,15 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
 using DatabaseManager.Forms;
 using DatabaseManager.Helper;
-using View = DatabaseInterpreter.Model.View;
+using Databases.Interpreter.Helper;
+using Databases.Model.Connection;
+using Databases.Model.DatabaseObject;
+using Databases.Model.Enum;
+using Databases.Model.Option;
+using Databases.Model.Schema;
+using View = Databases.Model.DatabaseObject.View;
 
 namespace DatabaseManager.Controls;
 

@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using Newtonsoft.Json;
 
-namespace DatabaseInterpreter.Utility
+namespace Databases.Interpreter.Utility.Helper
 {
     public class ObjectHelper
     {

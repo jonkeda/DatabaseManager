@@ -5,13 +5,19 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using DatabaseConverter.Core;
-using DatabaseConverter.Model;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Core;
 using DatabaseManager.Helper;
+using Databases.Converter;
+using Databases.Converter.Helper;
+using Databases.Converter.Model;
+using Databases.Interpreter.Helper;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Interpreter.Utility.Model;
+using Databases.Manager.Manager;
+using Databases.Model.Connection;
+using Databases.Model.DatabaseObject;
+using Databases.Model.Enum;
+using Databases.Model.Option;
+using Databases.Model.Schema;
 
 namespace DatabaseManager;
 

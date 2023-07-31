@@ -1,4 +1,4 @@
-﻿namespace DatabaseInterpreter.Model
+﻿namespace Databases.Model.Schema
 {
     public class SchemaMappingInfo
     {

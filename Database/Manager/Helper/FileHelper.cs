@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using ICSharpCode.SharpZipLib.Zip;
 
-namespace DatabaseManager.Helper
+namespace Databases.Manager.Helper
 {
     public class FileHelper
     {

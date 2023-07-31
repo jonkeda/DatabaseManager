@@ -3,11 +3,12 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Core;
 using DatabaseManager.Helper;
+using Databases.Interpreter.Helper;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Manager.Manager;
+using Databases.Manager.Script;
+using Databases.Model.Enum;
 
 namespace DatabaseManager;
 

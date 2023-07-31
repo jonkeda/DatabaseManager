@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
-using DatabaseInterpreter.Model;
+using Databases.Model.Option;
+using Databases.Model.Schema;
 
-namespace DatabaseConverter.Core.Model
+namespace Databases.Converter.Model
 {
     public class DbConverterOption
     {

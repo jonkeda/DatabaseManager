@@ -1,11 +1,10 @@
 ﻿using System.IO;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Model;
-using Databases;
 using Databases.Config;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Manager.Model.Setting;
 using Newtonsoft.Json;
 
-namespace DatabaseManager.Core
+namespace Databases.Manager.Manager
 {
     public class SettingManager : ConfigManager
     {

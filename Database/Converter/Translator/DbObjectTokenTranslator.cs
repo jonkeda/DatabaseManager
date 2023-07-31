@@ -1,14 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using DatabaseConverter.Model;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
 using Databases.Config;
+using Databases.Converter.Model;
+using Databases.Interpreter;
+using Databases.Model.Enum;
+using Databases.Model.Function;
 using TSQL;
 using TSQL.Tokens;
 
-namespace DatabaseConverter.Core
+namespace Databases.Converter.Translator
 {
     public class DbObjectTokenTranslator : DbObjectTranslator
     {

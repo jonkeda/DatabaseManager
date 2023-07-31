@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
-using DatabaseInterpreter.Model;
+using Databases.Model.Connection;
+using Databases.Model.DatabaseObject;
+using Databases.Model.Enum;
 
-namespace DatabaseManager.Model
+namespace Databases.Manager.Model.DbObjectDisplay
 {
     public class DatabaseObjectDisplayInfo
     {

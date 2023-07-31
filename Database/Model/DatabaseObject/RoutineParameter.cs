@@ -1,4 +1,4 @@
-﻿namespace DatabaseInterpreter.Model
+﻿namespace Databases.Model.DatabaseObject
 {
     public class RoutineParameter : DatabaseObject
     {

@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
-using DatabaseInterpreter.Utility;
+using Databases.Interpreter.Utility.Helper;
 
 namespace DatabaseManager.Profile
 {

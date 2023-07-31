@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using DatabaseManager.Helper;
+using Databases.Manager.Helper;
 
-namespace DatabaseManager.Model
+namespace Databases.Manager.Model.Query
 {
     public class QueryConditionItem
     {

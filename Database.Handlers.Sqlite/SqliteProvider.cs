@@ -1,4 +1,6 @@
-﻿namespace DatabaseInterpreter.Core
+﻿using Databases.Interpreter;
+
+namespace Databases.Handlers.Sqlite
 {
     public class SqliteProvider : IDbProvider
     {

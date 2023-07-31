@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
 using DatabaseManager.Helper;
 using DatabaseManager.Model;
 using Databases.Config;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Manager.Helper;
+using Databases.Manager.Model.TableDesigner;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DataType;
+using Databases.Model.Enum;
 
 namespace DatabaseManager.Controls;
 

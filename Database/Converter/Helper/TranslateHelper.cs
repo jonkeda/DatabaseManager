@@ -3,15 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using DatabaseConverter.Core.Model;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
+using Databases.Converter.Model;
+using Databases.Converter.Translator;
 using Databases.Handlers;
+using Databases.Interpreter;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DataType;
+using Databases.Model.Enum;
 using Databases.SqlAnalyser;
 using Databases.SqlAnalyser.Model.Token;
 
-namespace DatabaseConverter.Core
+namespace Databases.Converter.Helper
 {
     public class TranslateHelper
     {

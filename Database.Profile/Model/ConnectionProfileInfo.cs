@@ -1,4 +1,4 @@
-﻿using DatabaseInterpreter.Model;
+﻿using Databases.Model.Connection;
 
 namespace DatabaseManager.Profile
 {

@@ -1,4 +1,4 @@
-﻿namespace DatabaseInterpreter.Model
+﻿namespace Databases.Model.Function
 {
     public class FunctionSpecification
     {

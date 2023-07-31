@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
+using Databases.Model.DatabaseObject.Fiction;
 
-namespace DatabaseInterpreter.Model
+namespace Databases.Model.DatabaseObject
 {
     public class TableIndex : TableChild
     {

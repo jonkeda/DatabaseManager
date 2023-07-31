@@ -27,8 +27,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlAnalyser.Core", "Databas
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DatabaseManager.Web", "DatabaseManager\DatabaseManager.Web\DatabaseManager.Web.csproj", "{EAE32449-11AE-48E1-B0DA-EA1C9A115539}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "04. Tests", "04. Tests", "{3219B8FB-7BE0-46E0-939D-B6B0182DDE70}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Databases.Tests", "Database.Tests\Databases.Tests.csproj", "{F9D90206-C8B4-4EF6-8F55-773A99AA55DB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Databases", "Database\Databases.csproj", "{469FA23B-4318-40A4-BE74-0BC7686C53E3}"

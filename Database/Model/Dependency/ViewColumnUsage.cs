@@ -1,4 +1,4 @@
-﻿namespace DatabaseInterpreter.Model
+﻿namespace Databases.Model.Dependency
 {
     public class ViewColumnUsage : DbObjectUsage
     {

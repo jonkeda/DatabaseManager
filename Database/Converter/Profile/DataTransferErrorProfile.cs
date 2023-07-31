@@ -1,4 +1,4 @@
-﻿namespace DatabaseConverter.Profile
+﻿namespace Databases.Converter.Profile
 {
     public class DataTransferErrorProfile
     {

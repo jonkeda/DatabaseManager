@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using DatabaseConverter.Model;
+using Databases.Converter.Model.Mappings;
 
 namespace Databases.Config
 {

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using System.Data;
+using Databases.Model.DatabaseObject;
 
-namespace DatabaseInterpreter.Model
+namespace Databases.Model.DataTable
 {
     public class TableDataReadInfo
     {
@@ -9,6 +9,6 @@ namespace DatabaseInterpreter.Model
         public List<TableColumn> Columns { get; set; }
         public long TotalCount { get; set; }
         public List<Dictionary<string, object>> Data { get; set; }
-        public DataTable DataTable { get; set; }
+        public System.Data.DataTable DataTable { get; set; }
     }
 }

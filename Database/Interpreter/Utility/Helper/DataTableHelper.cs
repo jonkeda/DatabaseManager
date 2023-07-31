@@ -3,9 +3,9 @@ using System.Data;
 using System.Globalization;
 using System.IO;
 using CsvHelper;
-using DatabaseInterpreter.Model;
+using Databases.Model.DataTable;
 
-namespace DatabaseInterpreter.Utility
+namespace Databases.Interpreter.Utility.Helper
 {
     public class DataTableHelper
     {

@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using DatabaseInterpreter.Model;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DataType;
 
-namespace DatabaseInterpreter.Utility
+namespace Databases.Interpreter.Utility.Helper
 {
     public class DataTypeHelper
     {

@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using DatabaseConverter.Model;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
 using Databases.Config;
+using Databases.Converter.Helper;
+using Databases.Converter.Model;
+using Databases.Converter.Model.Mappings;
+using Databases.Interpreter;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Model.Enum;
+using Databases.Model.Function;
 using Databases.SqlAnalyser.Model.Script;
 using Databases.SqlAnalyser.Model.Token;
 
-namespace DatabaseConverter.Core
+namespace Databases.Converter.Translator
 {
     public class FunctionTranslator : DbObjectTranslator
     {

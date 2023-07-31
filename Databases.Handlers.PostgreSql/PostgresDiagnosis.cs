@@ -1,6 +1,8 @@
-﻿using DatabaseInterpreter.Model;
+﻿using Databases.Manager.Diagnosis;
+using Databases.Model.Connection;
+using Databases.Model.Enum;
 
-namespace DatabaseManager.Core
+namespace Databases.Handlers.PostgreSql
 {
     public class PostgresDiagnosis : DbDiagnosis
     {

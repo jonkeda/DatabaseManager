@@ -1,6 +1,7 @@
 ﻿using Databases.Handlers;
+using Databases.Interpreter;
 
-namespace DatabaseInterpreter.Core
+namespace Databases.ScriptGenerator
 {
     public class DbScriptGeneratorHelper
     {

@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using DatabaseInterpreter.Model;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DatabaseObject.Fiction;
+using Databases.Model.Schema;
 
-namespace DatabaseInterpreter.Core
+namespace Databases.Interpreter.Helper
 {
     public class DbObjectHelper
     {

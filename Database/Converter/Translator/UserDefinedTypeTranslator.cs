@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
+using Databases.Interpreter;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DataType;
 
-namespace DatabaseConverter.Core
+namespace Databases.Converter.Translator
 {
     public class UserDefinedTypeTranslator : DbObjectTranslator
     {

@@ -1,7 +1,7 @@
-﻿using DatabaseInterpreter.Model;
+﻿using Databases.Model.Schema;
 using Databases.SqlAnalyser.Model;
 
-namespace DatabaseConverter.Model
+namespace Databases.Converter.Model
 {
     public class TranslateResult
     {

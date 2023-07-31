@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using DatabaseConverter.Core.Model;
-using DatabaseConverter.Model;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
+using Databases.Converter.Model;
+using Databases.Interpreter;
+using Databases.Interpreter.Utility.Model;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DatabaseObject.Fiction;
+using Databases.Model.Schema;
 
-namespace DatabaseConverter.Core
+namespace Databases.Converter.Translator
 {
     public class TranslateEngine
     {

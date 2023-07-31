@@ -1,6 +1,6 @@
 ﻿using Databases.SqlAnalyser.Model.Token;
 
-namespace SqlAnalyser.Model
+namespace Databases.SqlAnalyser.Model
 {
     public class CallParameter
     {

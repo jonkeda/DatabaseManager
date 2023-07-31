@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace DatabaseInterpreter.Model
+namespace Databases.Model.DataType
 {
     public class DataTypeSpecification
     {

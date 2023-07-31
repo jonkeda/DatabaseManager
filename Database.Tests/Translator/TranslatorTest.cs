@@ -1,10 +1,11 @@
-﻿using DatabaseInterpreter.Model;
-using DatabaseManager.Core;
-using Databases.Handlers.TSql;
+﻿using Databases.Handlers.TSql;
 using Databases.Handlers;
 using Databases.Handlers.MySql;
 using Databases.Handlers.PlSql;
+using Databases.Handlers.PostgreSql;
 using Databases.Handlers.Sqlite;
+using Databases.Manager.Manager;
+using Databases.Model.Enum;
 using Databases.Tests.Helpers;
 
 namespace Databases.Tests.Translator;

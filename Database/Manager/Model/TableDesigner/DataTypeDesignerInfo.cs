@@ -1,6 +1,6 @@
-﻿using DatabaseInterpreter.Model;
+﻿using Databases.Model.DataType;
 
-namespace DatabaseManager.Model
+namespace Databases.Manager.Model.TableDesigner
 {
     public class DataTypeDesignerInfo : DataTypeSpecification
     { }

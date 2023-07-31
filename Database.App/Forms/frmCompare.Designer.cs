@@ -1,4 +1,4 @@
-﻿using DatabaseInterpreter.Model;
+﻿using Databases.Model.Enum;
 
 namespace DatabaseManager
 {
@@ -333,7 +333,7 @@ namespace DatabaseManager
             // 
             this.targetDbProfile.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.targetDbProfile.DatabaseType = DatabaseInterpreter.Model.DatabaseType.Unknown;
+            this.targetDbProfile.DatabaseType = DatabaseType.Unknown;
             this.targetDbProfile.EnableDatabaseType = true;
             this.targetDbProfile.Location = new System.Drawing.Point(16, 36);
             this.targetDbProfile.Margin = new System.Windows.Forms.Padding(0);
@@ -347,7 +347,7 @@ namespace DatabaseManager
             // 
             this.sourceDbProfile.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.sourceDbProfile.DatabaseType = DatabaseInterpreter.Model.DatabaseType.Unknown;
+            this.sourceDbProfile.DatabaseType = DatabaseType.Unknown;
             this.sourceDbProfile.EnableDatabaseType = true;
             this.sourceDbProfile.Location = new System.Drawing.Point(16, 5);
             this.sourceDbProfile.Margin = new System.Windows.Forms.Padding(0);

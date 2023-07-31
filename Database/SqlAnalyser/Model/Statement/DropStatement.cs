@@ -1,4 +1,4 @@
-﻿using DatabaseInterpreter.Model;
+﻿using Databases.Model.Schema;
 using Databases.SqlAnalyser.Model.Token;
 
 namespace Databases.SqlAnalyser.Model.Statement

@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using DatabaseInterpreter.Model;
-using DatabaseManager.Model;
+using Databases.Manager.Model.Query;
+using Databases.Model.Enum;
 
-namespace DatabaseManager.Core
+namespace Databases.Manager.Condition
 {
     public class QueryConditionBuilder
     {

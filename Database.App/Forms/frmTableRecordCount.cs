@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Windows.Forms;
-using DatabaseInterpreter.Utility;
 using DatabaseManager.Model;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Manager.Model.Statistic;
 
 namespace DatabaseManager;
 

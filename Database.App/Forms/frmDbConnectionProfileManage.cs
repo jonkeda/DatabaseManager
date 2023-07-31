@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using DatabaseInterpreter.Model;
 using DatabaseManager.Profile;
+using Databases.Model.Enum;
 
 namespace DatabaseManager.Forms;
 

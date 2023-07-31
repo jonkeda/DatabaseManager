@@ -8,13 +8,20 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
 using Databases.Config;
+using Databases.Interpreter;
 using Databases.Interpreter.Builder;
+using Databases.Interpreter.Helper;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DatabaseObject.Fiction;
+using Databases.Model.Enum;
+using Databases.Model.Option;
+using Databases.Model.Schema;
+using Databases.Model.Script;
 using Microsoft.SqlServer.Types;
 
-namespace DatabaseInterpreter.Core
+namespace Databases.ScriptGenerator
 {
     public abstract class DbScriptGenerator
     {
@@ -23,7 +30,7 @@ namespace DatabaseInterpreter.Core
         protected DbInterpreterOption option;
         protected string scriptsDelimiter;
 
-        public DbScriptGenerator(DbInterpreter dbInterpreter)
+        protected DbScriptGenerator(DbInterpreter dbInterpreter)
         {
             this.dbInterpreter = dbInterpreter;
             option = dbInterpreter.Option;
@@ -489,7 +496,7 @@ namespace DatabaseInterpreter.Core
                         {
                             var needInsertParameter = NeedInsertParameter(column, parsedValue);
 
-                            if ((isBytes && !option.TreatBytesAsNullForExecuting) || needInsertParameter)
+                            if (isBytes && !option.TreatBytesAsNullForExecuting || needInsertParameter)
                             {
                                 var parameterName = $"P{pageNumber}_{rowIndex}_{column.Name}";
 
@@ -651,14 +658,14 @@ namespace DatabaseInterpreter.Core
 
                         if (databaseType == DatabaseType.Oracle)
                         {
-/*                            if (type.Name == nameof(MySqlDateTime))
-                            {
-                                var dateTime = ((MySqlDateTime)value).GetDateTime();
+                            /*                            if (type.Name == nameof(MySqlDateTime))
+                                                        {
+                                                            var dateTime = ((MySqlDateTime)value).GetDateTime();
 
-                                strValue = GetOracleDatetimeConvertString(dateTime);
-                            }
-                            else 
-*/
+                                                            strValue = GetOracleDatetimeConvertString(dateTime);
+                                                        }
+                                                        else 
+                            */
                             if (type.Name == nameof(DateTime))
                             {
                                 var dateTime = Convert.ToDateTime(value);
@@ -761,10 +768,10 @@ namespace DatabaseInterpreter.Core
                         {
                             srid = sgm1.STSrid.Value;
                         }
-/*                        else if (value is PgGeom.Geometry g)
-                        {
-                            srid = g.SRID;
-                        }*/
+                        /*                        else if (value is PgGeom.Geometry g)
+                                                {
+                                                    srid = g.SRID;
+                                                }*/
                         /*
                                                 if (this.databaseType == DatabaseType.MySql)
                                                 {

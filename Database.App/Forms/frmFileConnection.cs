@@ -2,10 +2,11 @@
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using DatabaseInterpreter.Model;
-using DatabaseManager.Core;
 using DatabaseManager.Data;
 using DatabaseManager.Profile;
+using Databases.Manager.Manager;
+using Databases.Model.Connection;
+using Databases.Model.Enum;
 
 namespace DatabaseManager.Forms;
 

@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using DatabaseManager.Model;
 using Databases.Config;
+using Databases.Manager.Model.Setting;
 using Newtonsoft.Json;
 
-namespace DatabaseManager.Core
+namespace Databases.Manager.Manager
 {
     public class BackupSettingManager : ConfigManager
     {

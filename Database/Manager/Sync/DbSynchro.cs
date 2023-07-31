@@ -2,12 +2,20 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Model;
+using Databases.Interpreter;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Interpreter.Utility.Model;
+using Databases.Manager.Manager;
+using Databases.Manager.Model;
+using Databases.Manager.Model.DbObjectDisplay;
+using Databases.Manager.Script;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DatabaseObject.Fiction;
+using Databases.Model.Schema;
+using Databases.Model.Script;
+using Databases.ScriptGenerator;
 
-namespace DatabaseManager.Core
+namespace Databases.Manager.Sync
 {
     public class DbSynchro
     {
@@ -64,11 +72,11 @@ namespace DatabaseManager.Core
             return new ContentSaveResult { ResultData = message };
         }
 
-        public async Task<List<Script>> GenerateChangedScripts(SchemaInfo schemaInfo, string targetDbSchema,
+        public async Task<List<Databases.Model.Script.Script>> GenerateChangedScripts(SchemaInfo schemaInfo, string targetDbSchema,
             IEnumerable<DbDifference> differences)
         {
-            var scripts = new List<Script>();
-            var tableScripts = new List<Script>();
+            var scripts = new List<Databases.Model.Script.Script>();
+            var tableScripts = new List<Databases.Model.Script.Script>();
 
             foreach (var difference in differences)
             {
@@ -98,9 +106,9 @@ namespace DatabaseManager.Core
             return scripts;
         }
 
-        public List<Script> GenereateScriptDbObjectChangedScripts(DbDifference difference, string targetDbSchema)
+        public List<Databases.Model.Script.Script> GenereateScriptDbObjectChangedScripts(DbDifference difference, string targetDbSchema)
         {
-            var scripts = new List<Script>();
+            var scripts = new List<Databases.Model.Script.Script>();
 
             var diffType = difference.DifferenceType;
 
@@ -126,9 +134,9 @@ namespace DatabaseManager.Core
             return scripts;
         }
 
-        public List<Script> GenereateUserDefinedTypeChangedScripts(DbDifference difference, string targetDbSchema)
+        public List<Databases.Model.Script.Script> GenereateUserDefinedTypeChangedScripts(DbDifference difference, string targetDbSchema)
         {
-            var scripts = new List<Script>();
+            var scripts = new List<Databases.Model.Script.Script>();
 
             var diffType = difference.DifferenceType;
 
@@ -154,10 +162,10 @@ namespace DatabaseManager.Core
             return scripts;
         }
 
-        public async Task<List<Script>> GenerateTableChangedScripts(SchemaInfo schemaInfo, DbDifference difference,
+        public async Task<List<Databases.Model.Script.Script>> GenerateTableChangedScripts(SchemaInfo schemaInfo, DbDifference difference,
             string targetDbSchema)
         {
-            var scripts = new List<Script>();
+            var scripts = new List<Databases.Model.Script.Script>();
 
             var diffType = difference.DifferenceType;
 
@@ -231,9 +239,9 @@ namespace DatabaseManager.Core
             return scripts;
         }
 
-        public async Task<List<Script>> GenerateTableChildChangedScripts(DbDifference difference)
+        public async Task<List<Databases.Model.Script.Script>> GenerateTableChildChangedScripts(DbDifference difference)
         {
-            var scripts = new List<Script>();
+            var scripts = new List<Databases.Model.Script.Script>();
 
             var targetTable = difference.Parent.Target as Table;
 

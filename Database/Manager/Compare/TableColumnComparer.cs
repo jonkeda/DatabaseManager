@@ -1,10 +1,10 @@
 ﻿using System;
-using DatabaseInterpreter.Model;
+using Databases.Model.DatabaseObject;
 using KellermanSoftware.CompareNetObjects;
 using KellermanSoftware.CompareNetObjects.TypeComparers;
-using StringHelper = DatabaseInterpreter.Utility.StringHelper;
+using StringHelper = Databases.Interpreter.Utility.Helper.StringHelper;
 
-namespace DatabaseManager.Core
+namespace Databases.Manager.Compare
 {
     public class TableColumnComparer : BaseTypeComparer
     {

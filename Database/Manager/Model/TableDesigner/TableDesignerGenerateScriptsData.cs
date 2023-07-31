@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
-using DatabaseInterpreter.Model;
+using Databases.Model.DatabaseObject;
 
-namespace DatabaseManager.Model
+namespace Databases.Manager.Model.TableDesigner
 {
     public class TableDesignerGenerateScriptsData
     {
         public Table Table { get; set; }
-        public List<Script> Scripts { get; set; } = new List<Script>();
+        public List<Databases.Model.Script.Script> Scripts { get; set; } = new List<Databases.Model.Script.Script>();
     }
 }

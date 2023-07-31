@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Linq;
-using DatabaseConverter.Core.Model;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
 using Databases.Config;
+using Databases.Converter.Model.Mappings;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Model.Enum;
 
-namespace DatabaseConverter.Core
+namespace Databases.Converter.Helper
 {
     public class DatetimeHelper
     {

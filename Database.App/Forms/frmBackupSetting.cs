@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using DatabaseInterpreter.Model;
-using DatabaseManager.Core;
 using DatabaseManager.Helper;
 using DatabaseManager.Model;
+using Databases.Manager.Manager;
+using Databases.Manager.Model.Setting;
+using Databases.Model.Enum;
 
 namespace DatabaseManager;
 

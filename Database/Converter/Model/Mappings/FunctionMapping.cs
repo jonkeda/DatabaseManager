@@ -1,4 +1,4 @@
-﻿namespace DatabaseConverter.Model
+﻿namespace Databases.Converter.Model.Mappings
 {
     public class FunctionMapping
     {

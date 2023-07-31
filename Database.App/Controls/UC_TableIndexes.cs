@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseManager.Core;
 using DatabaseManager.Helper;
 using DatabaseManager.Model;
+using Databases.Interpreter;
+using Databases.Manager.Helper;
+using Databases.Manager.Manager;
+using Databases.Manager.Model.TableDesigner;
+using Databases.Model.DatabaseObject;
+using Databases.Model.Enum;
+using Databases.Model.Schema;
 
 namespace DatabaseManager.Controls;
 

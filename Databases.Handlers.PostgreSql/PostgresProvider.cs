@@ -1,4 +1,6 @@
-﻿namespace DatabaseInterpreter.Core
+﻿using Databases.Interpreter;
+
+namespace Databases.Handlers.PostgreSql
 {
     public class PostgresProvider : IDbProvider
     {

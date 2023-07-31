@@ -2,10 +2,17 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
+using Databases.Interpreter;
+using Databases.Interpreter.Helper;
+using Databases.Manager.Script;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DatabaseObject.Fiction;
+using Databases.Model.Dependency;
+using Databases.Model.Enum;
+using Databases.Model.Option;
+using Databases.Model.Schema;
 
-namespace DatabaseManager.Core
+namespace Databases.Manager.Denpendency
 {
     public class DepencencyFetcher
     {

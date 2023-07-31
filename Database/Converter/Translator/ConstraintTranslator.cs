@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
 using Databases.Config;
+using Databases.Converter.Helper;
+using Databases.Interpreter;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DataType;
+using Databases.Model.Enum;
 
-namespace DatabaseConverter.Core
+namespace Databases.Converter.Translator
 {
     public class ConstraintTranslator : DbObjectTokenTranslator
     {

@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Utility;
 using Databases.Interpreter.Builder;
+using Databases.Interpreter.Utility.Helper;
 using Microsoft.Data.Sqlite;
 
 namespace DatabaseManager.Profile

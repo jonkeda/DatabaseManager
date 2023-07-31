@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Windows.Forms;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Core;
 using DatabaseManager.Forms;
 using DatabaseManager.Model;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Interpreter.Utility.Model;
+using Databases.Manager.Manager;
+using Databases.Manager.Model.Diagnose;
+using Databases.Model.Connection;
+using Databases.Model.Enum;
 
 namespace DatabaseManager;
 

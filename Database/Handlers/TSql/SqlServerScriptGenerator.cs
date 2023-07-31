@@ -2,11 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
+using Databases.Interpreter;
 using Databases.Interpreter.Builder;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DatabaseObject.Fiction;
+using Databases.Model.Enum;
+using Databases.Model.Option;
+using Databases.Model.Schema;
+using Databases.Model.Script;
+using Databases.ScriptGenerator;
 
-namespace DatabaseInterpreter.Core
+namespace Databases.Handlers.TSql
 {
     public class SqlServerScriptGenerator : DbScriptGenerator
     {

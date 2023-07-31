@@ -2,13 +2,16 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
-using DatabaseConverter.Model;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
+using Databases.Converter.Model;
 using Databases.Exceptions;
+using Databases.Interpreter;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Interpreter.Utility.Model;
+using Databases.Model.DatabaseObject;
+using Databases.Model.Enum;
+using Databases.Model.Schema;
 
-namespace DatabaseConverter.Core
+namespace Databases.Converter.Translator
 {
     public class ViewTranslator : DbObjectTokenTranslator
     {

@@ -4,13 +4,18 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Core;
 using DatabaseManager.Helper;
 using DatabaseManager.Model;
-using View = DatabaseInterpreter.Model.View;
+using Databases.Interpreter.Helper;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Manager.Model.Diagnose;
+using Databases.Manager.Script;
+using Databases.Model.Connection;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DatabaseObject.Fiction;
+using Databases.Model.Enum;
+using Databases.Model.Option;
+using View = Databases.Model.DatabaseObject.View;
 
 namespace DatabaseManager.Forms;
 

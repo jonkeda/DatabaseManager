@@ -4,7 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using DatabaseInterpreter.Utility;
+using Databases.Interpreter.Utility.Helper;
 
 namespace DatabaseManager.Forms;
 

@@ -1,4 +1,4 @@
-﻿namespace DatabaseConverter.Core.Model.Functions
+﻿namespace Databases.Converter.Model.Functions
 {
     public struct DateAdd
     {

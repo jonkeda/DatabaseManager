@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
-using DatabaseInterpreter.Model;
+using Databases.Model.Enum;
 using Databases.SqlAnalyser;
 using Databases.SqlAnalyser.Model.Script;
-using SqlAnalyser.Model;
 
-namespace SqlAnalyser.Core
+namespace Databases.Handlers.Sqlite
 {
     public class SqliteScriptBuildFactory : ScriptBuildFactory
     {

@@ -3,19 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using DatabaseConverter.Model;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
 using Databases.Config;
+using Databases.Converter.Helper;
+using Databases.Converter.Model;
+using Databases.Converter.ScriptToken;
 using Databases.Exceptions;
+using Databases.Interpreter;
+using Databases.Interpreter.Helper;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DatabaseObject.Fiction;
+using Databases.Model.Enum;
 using Databases.SqlAnalyser;
 using Databases.SqlAnalyser.Model;
 using Databases.SqlAnalyser.Model.Script;
 using Databases.SqlAnalyser.Model.Token;
-using SqlAnalyser.Model;
 
-namespace DatabaseConverter.Core
+namespace Databases.Converter.Translator
 {
     public class ScriptTranslator<T> : DbObjectTokenTranslator
         where T : ScriptDbObject

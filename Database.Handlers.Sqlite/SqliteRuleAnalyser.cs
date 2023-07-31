@@ -3,17 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
-using DatabaseInterpreter.Model;
+using Databases.Model.Schema;
 using Databases.SqlAnalyser;
 using Databases.SqlAnalyser.Model;
 using Databases.SqlAnalyser.Model.DatabaseObject;
 using Databases.SqlAnalyser.Model.Script;
 using Databases.SqlAnalyser.Model.Statement;
 using Databases.SqlAnalyser.Model.Token;
-using SqlAnalyser.Model;
 using static SqliteParser;
 
-namespace SqlAnalyser.Core
+namespace Databases.Handlers.Sqlite
 {
     public class SqliteRuleAnalyser : SqlRuleAnalyser
     {

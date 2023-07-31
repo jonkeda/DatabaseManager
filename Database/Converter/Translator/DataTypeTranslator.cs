@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using DatabaseConverter.Model;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
 using Databases.Config;
+using Databases.Converter.Model.Mappings;
+using Databases.Interpreter;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Model.DataType;
 using NCalc;
 
-namespace DatabaseConverter.Core
+namespace Databases.Converter.Translator
 {
     public class DataTypeTranslator : DbObjectTokenTranslator
     {

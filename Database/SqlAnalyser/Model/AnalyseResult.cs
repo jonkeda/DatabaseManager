@@ -1,7 +1,6 @@
-﻿using Databases.SqlAnalyser.Model;
-using Databases.SqlAnalyser.Model.Script;
+﻿using Databases.SqlAnalyser.Model.Script;
 
-namespace SqlAnalyser.Model
+namespace Databases.SqlAnalyser.Model
 {
     public class AnalyseResult
     {

@@ -2,9 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using DatabaseInterpreter.Model;
 using DatabaseManager.Helper;
 using DatabaseManager.Model;
+using Databases.Manager.Model.TableDesigner;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DatabaseObject.Fiction;
+using Databases.Model.Enum;
+using Databases.Model.Schema;
 
 namespace DatabaseManager.Controls;
 

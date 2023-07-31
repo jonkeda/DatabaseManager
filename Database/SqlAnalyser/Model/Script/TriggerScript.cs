@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
-using Databases.SqlAnalyser.Model.Script;
 using Databases.SqlAnalyser.Model.Token;
 
-namespace SqlAnalyser.Model
+namespace Databases.SqlAnalyser.Model.Script
 {
     public class TriggerScript : CommonScript
     {

@@ -5,8 +5,9 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Model.DataTable;
+using Databases.Model.DataType;
 using Microsoft.SqlServer.Types;
 
 namespace DatabaseManager.Helper;

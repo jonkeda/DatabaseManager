@@ -1,6 +1,6 @@
-﻿using DatabaseInterpreter.Model;
+﻿using Databases.Model.DatabaseObject;
 
-namespace DatabaseManager.Model
+namespace Databases.Manager.Model.TableDesigner
 {
     public class TableDesignerInfo : Table
     {

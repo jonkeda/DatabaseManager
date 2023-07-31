@@ -4,14 +4,12 @@ using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Core;
 using DatabaseManager.Model;
 using Databases.Config;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Manager.Manager;
+using Databases.Model.Enum;
 using Databases.SqlAnalyser.Model;
-using SqlAnalyser.Model;
 
 namespace DatabaseManager.Helper;
 

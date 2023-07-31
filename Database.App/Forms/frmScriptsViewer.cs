@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
-using DatabaseInterpreter.Model;
 using DatabaseManager.Helper;
+using Databases.Model.Enum;
 
 namespace DatabaseManager;
 

@@ -3,6 +3,8 @@ using System.Linq;
 using System.Windows.Forms;
 using DatabaseManager.Helper;
 using DatabaseManager.Model;
+using Databases.Manager.Helper;
+using Databases.Manager.Model.Query;
 
 namespace DatabaseManager;
 

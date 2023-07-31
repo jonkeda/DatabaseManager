@@ -1,5 +1,5 @@
 ﻿using System;
-using DatabaseInterpreter.Model;
+using Databases.Model.DatabaseObject;
 
 namespace Databases.Exceptions
 {

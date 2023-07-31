@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using DatabaseInterpreter.Model;
+using Databases.Model.Schema;
 
 namespace DatabaseManager;
 

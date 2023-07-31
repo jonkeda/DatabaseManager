@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using DatabaseInterpreter.Model;
 using Databases.Handlers;
+using Databases.Model.Enum;
 using Databases.SqlAnalyser.Model;
 using Databases.SqlAnalyser.Model.Script;
 using Databases.SqlAnalyser.Model.Statement;
-using SqlAnalyser.Model;
 
 namespace Databases.SqlAnalyser
 {

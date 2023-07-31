@@ -1,8 +1,7 @@
 ﻿using Databases.SqlAnalyser;
 using Databases.SqlAnalyser.Model;
-using SqlAnalyser.Model;
 
-namespace SqlAnalyser.Core
+namespace Databases.Handlers.MySql
 {
     public class MySqlAnalyser : SqlAnalyserBase
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DatabaseInterpreter.Utility
+namespace Databases.Interpreter.Utility.Helper
 {
     public class ExceptionHelper
     {

@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
 using DatabaseManager.Model;
 using Databases.Interpreter.Builder;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Model.Connection;
 
 namespace DatabaseManager.Profile
 {

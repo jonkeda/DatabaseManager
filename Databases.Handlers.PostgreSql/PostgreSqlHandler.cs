@@ -1,12 +1,14 @@
 ﻿using System.Data.Common;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseManager.Core;
+using Databases.Interpreter;
+using Databases.Manager.Diagnosis;
+using Databases.Model.Connection;
+using Databases.Model.Enum;
+using Databases.Model.Option;
+using Databases.ScriptGenerator;
 using Databases.SqlAnalyser;
 using Npgsql;
-using SqlAnalyser.Core;
 
-namespace Databases.Handlers.TSql
+namespace Databases.Handlers.PostgreSql
 {
     public class PostgreSqlHandler : SqlHandler<
         PostgreSqlScriptBuildFactory,

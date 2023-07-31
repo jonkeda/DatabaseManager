@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using DatabaseInterpreter.Model;
 using Databases.Handlers;
+using Databases.Model.Connection;
+using Databases.Model.Enum;
+using Databases.Model.Option;
 
-namespace DatabaseInterpreter.Core
+namespace Databases.Interpreter.Helper
 {
     public class DbInterpreterHelper
     {

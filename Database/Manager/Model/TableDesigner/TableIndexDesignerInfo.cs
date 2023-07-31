@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
-using DatabaseInterpreter.Model;
+using Databases.Model.DatabaseObject;
 
-namespace DatabaseManager.Model
+namespace Databases.Manager.Model.TableDesigner
 {
     public class TableIndexDesignerInfo
     {

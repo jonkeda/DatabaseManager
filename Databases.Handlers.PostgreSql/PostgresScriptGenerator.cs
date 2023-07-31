@@ -2,10 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using DatabaseInterpreter.Model;
+using Databases.Interpreter;
 using Databases.Interpreter.Builder;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DatabaseObject.Fiction;
+using Databases.Model.Enum;
+using Databases.Model.Option;
+using Databases.Model.Schema;
+using Databases.Model.Script;
+using Databases.ScriptGenerator;
 
-namespace DatabaseInterpreter.Core
+namespace Databases.Handlers.PostgreSql
 {
     public class PostgresScriptGenerator : DbScriptGenerator
     {

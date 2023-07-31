@@ -1,10 +1,11 @@
 ﻿using System.IO;
-using DatabaseInterpreter.Model;
-using DatabaseManager.Helper;
-using DatabaseManager.Model;
 using Databases.Handlers;
+using Databases.Manager.Helper;
+using Databases.Manager.Model.Setting;
+using Databases.Model.Connection;
+using Databases.Model.Enum;
 
-namespace DatabaseManager.Core
+namespace Databases.Manager.Backup
 {
     public abstract class DbBackup
     {

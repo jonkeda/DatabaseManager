@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
-using DatabaseInterpreter.Model;
-using Databases;
+using Databases.Model.Enum;
 
-namespace DatabaseManager.Model
+namespace Databases.Manager.Model.Setting
 {
     public class Setting : DbInterpreterSetting
     {

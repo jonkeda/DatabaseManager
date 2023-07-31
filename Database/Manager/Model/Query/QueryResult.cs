@@ -1,4 +1,4 @@
-﻿namespace DatabaseManager.Model
+﻿namespace Databases.Manager.Model.Query
 {
     public class QueryResult
     {

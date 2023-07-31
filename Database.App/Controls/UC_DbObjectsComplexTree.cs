@@ -4,15 +4,27 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Core;
 using DatabaseManager.Forms;
 using DatabaseManager.Helper;
 using DatabaseManager.Model;
 using DatabaseManager.Profile;
-using View = DatabaseInterpreter.Model.View;
+using Databases.Interpreter;
+using Databases.Interpreter.Helper;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Interpreter.Utility.Model;
+using Databases.Manager.Helper;
+using Databases.Manager.Manager;
+using Databases.Manager.Model.DbObjectDisplay;
+using Databases.Manager.Model.Setting;
+using Databases.Manager.Script;
+using Databases.Manager.Statistic;
+using Databases.Model.Connection;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DatabaseObject.Fiction;
+using Databases.Model.Enum;
+using Databases.Model.Option;
+using Databases.Model.Schema;
+using View = Databases.Model.DatabaseObject.View;
 
 namespace DatabaseManager.Controls;
 
@@ -333,7 +345,7 @@ public partial class UC_DbObjectsComplexTree : UserControl, IObserver<FeedbackIn
                 nameof(DbObjectTreeFolderType.Indexes), true));
     }
 
-    private void AddDatabaseFakeNodes(TreeNode databaseNode, DatabaseInterpreter.Model.Database database)
+    private void AddDatabaseFakeNodes(TreeNode databaseNode, Database database)
     {
         ClearNodes(databaseNode);
 

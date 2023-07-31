@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using DatabaseInterpreter.Model;
-using DatabaseManager.Model;
+using Databases.Manager.Model;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DatabaseObject.Fiction;
+using Databases.Model.Schema;
 using KellermanSoftware.CompareNetObjects;
 
-namespace DatabaseManager.Core
+namespace Databases.Manager.Compare
 {
     public class DbCompare
     {

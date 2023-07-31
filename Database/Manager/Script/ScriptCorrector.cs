@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseManager.Model;
+using Databases.Interpreter;
+using Databases.Manager.Model.DbObjectDisplay;
+using Databases.Manager.Model.Diagnose;
+using Databases.Model.DatabaseObject;
+using Databases.Model.Script;
 
-namespace DatabaseManager.Core
+namespace Databases.Manager.Script
 {
     public class ScriptCorrector
     {
@@ -23,7 +25,7 @@ namespace DatabaseManager.Core
         public async Task<IEnumerable<ScriptDiagnoseResult>> CorrectNotMatchNames(ScriptDiagnoseType scriptDiagnoseType,
             IEnumerable<ScriptDiagnoseResult> results)
         {
-            var scripts = new List<Script>();
+            var scripts = new List<Databases.Model.Script.Script>();
 
             var dictDifinition = new Dictionary<int, string>();
 

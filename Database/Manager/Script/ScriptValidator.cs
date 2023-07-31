@@ -1,8 +1,8 @@
-﻿using DatabaseConverter.Core;
-using DatabaseInterpreter.Model;
+﻿using Databases.Converter.Helper;
+using Databases.Model.Enum;
 using Databases.SqlAnalyser.Model;
 
-namespace DatabaseManager.Core
+namespace Databases.Manager.Script
 {
     public class ScriptValidator
     {

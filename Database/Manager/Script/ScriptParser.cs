@@ -2,10 +2,10 @@
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using DatabaseInterpreter.Core;
-using DatabaseManager.Model;
+using Databases.Interpreter;
+using Databases.Manager.Model;
 
-namespace DatabaseManager.Core
+namespace Databases.Manager.Script
 {
     public class ScriptParser
     {

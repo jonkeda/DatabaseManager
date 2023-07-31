@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
 using DatabaseManager.Data;
 using DatabaseManager.Model;
 using Databases.Config;
+using Databases.Model.DatabaseObject;
+using Databases.Model.Enum;
 
 namespace DatabaseManager.Helper;
 

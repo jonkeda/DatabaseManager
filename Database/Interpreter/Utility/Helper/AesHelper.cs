@@ -3,7 +3,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace DatabaseInterpreter.Utility
+namespace Databases.Interpreter.Utility.Helper
 {
     public class AesHelper
     {

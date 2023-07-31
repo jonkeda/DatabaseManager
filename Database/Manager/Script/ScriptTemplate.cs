@@ -1,10 +1,12 @@
 ﻿using System.IO;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Model;
+using Databases.Interpreter;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Manager.Model.DbObjectDisplay;
+using Databases.Model.DatabaseObject;
+using Databases.Model.Enum;
+using Databases.Model.Schema;
 
-namespace DatabaseManager.Core
+namespace Databases.Manager.Script
 {
     public class ScriptTemplate
     {

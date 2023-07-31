@@ -1,10 +1,11 @@
 ﻿using System;
 using System.IO;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseManager.Model;
+using Databases.Manager.Backup;
+using Databases.Manager.Model.Setting;
+using Databases.Model.Connection;
+using Databases.Model.Option;
 
-namespace DatabaseManager.Core
+namespace Databases.Handlers.TSql
 {
     public class SqlServerBackup : DbBackup
     {

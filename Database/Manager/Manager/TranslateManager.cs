@@ -2,14 +2,21 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using DatabaseConverter.Core;
-using DatabaseConverter.Core.Model;
-using DatabaseConverter.Model;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
+using Databases.Converter;
+using Databases.Converter.Helper;
+using Databases.Converter.Model;
+using Databases.Converter.Translator;
+using Databases.Interpreter;
+using Databases.Interpreter.Helper;
+using Databases.Interpreter.Utility.Model;
+using Databases.Manager.Script;
+using Databases.Model.Connection;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DatabaseObject.Fiction;
+using Databases.Model.Enum;
+using Databases.Model.Option;
 
-namespace DatabaseManager.Core
+namespace Databases.Manager.Manager
 {
     public class TranslateManager
     {

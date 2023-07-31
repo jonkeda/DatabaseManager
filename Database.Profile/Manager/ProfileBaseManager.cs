@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
+using Databases.Interpreter;
+using Databases.Interpreter.Helper;
+using Databases.Model.Connection;
+using Databases.Model.Enum;
+using Databases.Model.Option;
 using Microsoft.Data.Sqlite;
 
 namespace DatabaseManager.Profile

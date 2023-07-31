@@ -4,14 +4,16 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Core;
 using DatabaseManager.Data;
 using DatabaseManager.Forms;
 using DatabaseManager.Helper;
 using DatabaseManager.Profile;
+using Databases.Interpreter.Helper;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Manager.Helper;
+using Databases.Manager.Manager;
+using Databases.Model.Connection;
+using Databases.Model.Enum;
 
 namespace DatabaseManager.Controls;
 

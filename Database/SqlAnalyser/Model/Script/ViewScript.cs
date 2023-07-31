@@ -1,6 +1,4 @@
-﻿using Databases.SqlAnalyser.Model.Script;
-
-namespace SqlAnalyser.Model
+﻿namespace Databases.SqlAnalyser.Model.Script
 {
     public class ViewScript : CommonScript
     { }

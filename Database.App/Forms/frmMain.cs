@@ -3,12 +3,14 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using DatabaseInterpreter.Utility;
 using DatabaseManager.Controls;
-using DatabaseManager.Core;
 using DatabaseManager.Forms;
 using DatabaseManager.Helper;
 using DatabaseManager.Model;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Interpreter.Utility.Model;
+using Databases.Manager.Manager;
+using Databases.Manager.Model.DbObjectDisplay;
 
 namespace DatabaseManager;
 

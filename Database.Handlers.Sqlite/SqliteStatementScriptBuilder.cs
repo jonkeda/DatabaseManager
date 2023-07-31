@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Model.Enum;
 using Databases.SqlAnalyser;
 using Databases.SqlAnalyser.Model.DatabaseObject;
 using Databases.SqlAnalyser.Model.Statement;
 using Databases.SqlAnalyser.Model.Statement.Cursor;
 using Databases.SqlAnalyser.Model.Token;
 
-namespace SqlAnalyser.Core
+namespace Databases.Handlers.Sqlite
 {
     public class SqliteStatementScriptBuilder : FullStatementScriptBuilder
     {

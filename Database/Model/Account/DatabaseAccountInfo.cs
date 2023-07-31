@@ -1,4 +1,4 @@
-﻿namespace DatabaseInterpreter.Model
+﻿namespace Databases.Model.Account
 {
     public class DatabaseAccountInfo : DatabaseServerInfo
     {

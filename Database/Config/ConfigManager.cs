@@ -1,5 +1,5 @@
 ﻿using System.IO;
-using DatabaseInterpreter.Utility;
+using Databases.Interpreter.Utility.Helper;
 
 namespace Databases.Config
 {

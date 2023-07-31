@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Xml.Linq;
-using DatabaseInterpreter.Utility;
+using Databases.Interpreter.Utility.Helper;
 
-namespace DatabaseConverter.Model
+namespace Databases.Converter.Model.Mappings
 {
     public class DataTypeMapping
     {

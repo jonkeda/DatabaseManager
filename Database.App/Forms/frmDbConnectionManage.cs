@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
 using DatabaseManager.Forms;
 using DatabaseManager.Helper;
 using DatabaseManager.Profile;
+using Databases.Interpreter.Helper;
+using Databases.Manager.Helper;
+using Databases.Model.Enum;
 
 namespace DatabaseManager;
 

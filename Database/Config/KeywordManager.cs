@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using DatabaseInterpreter.Model;
+using Databases.Model.Enum;
 
 namespace Databases.Config
 {

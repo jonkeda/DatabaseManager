@@ -2,18 +2,22 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using DatabaseConverter.Core.Model;
-using DatabaseConverter.Model;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
 using Databases.Config;
+using Databases.Converter.Helper;
+using Databases.Converter.Model;
+using Databases.Converter.Model.Mappings;
+using Databases.Converter.Translator;
+using Databases.Interpreter;
+using Databases.Interpreter.Helper;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DatabaseObject.Fiction;
+using Databases.Model.Enum;
 using Databases.SqlAnalyser.Model.Script;
 using Databases.SqlAnalyser.Model.Statement;
 using Databases.SqlAnalyser.Model.Token;
-using SqlAnalyser.Model;
 
-namespace DatabaseConverter.Core
+namespace Databases.Converter.ScriptToken
 {
     public class ScriptTokenProcessor : IDisposable
     {

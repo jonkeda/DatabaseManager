@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DatabaseInterpreter.Model
+namespace Databases.Model.Script
 {
     public class NewLineSript : Script
     {

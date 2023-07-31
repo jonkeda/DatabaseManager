@@ -4,13 +4,18 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Core;
 using DatabaseManager.Data;
 using DatabaseManager.Helper;
 using DatabaseManager.Model;
+using Databases.Interpreter;
+using Databases.Interpreter.Helper;
+using Databases.Interpreter.Utility.Model;
+using Databases.Manager.Manager;
+using Databases.Manager.Model.DbObjectDisplay;
+using Databases.Manager.Model.Query;
+using Databases.Manager.Script;
+using Databases.Model.Option;
+using Databases.Model.Schema;
 
 namespace DatabaseManager.Controls;
 

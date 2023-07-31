@@ -1,4 +1,6 @@
-﻿namespace DatabaseInterpreter.Model
+﻿using Databases.Model.Account;
+
+namespace Databases.Model.Connection
 {
     public class ConnectionInfo : DatabaseAccountInfo
     {

@@ -1,8 +1,9 @@
 ﻿using System.Text;
-using DatabaseInterpreter.Model;
-using Databases.Interpreter.Builder;
+using Databases.Connection;
+using Databases.Interpreter;
+using Databases.Model.Connection;
 
-namespace DatabaseInterpreter.Core
+namespace Databases.Handlers.PostgreSql
 {
     public class PostgresConnectionBuilder : IConnectionBuilder
     {

@@ -2,10 +2,17 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
 using DatabaseManager.Model;
 using DatabaseManager.Profile;
+using Databases.Handlers.MySql;
+using Databases.Handlers.PlSql;
+using Databases.Handlers.PostgreSql;
+using Databases.Interpreter.Helper;
+using Databases.Manager.Model;
+using Databases.Model.Account;
+using Databases.Model.Connection;
+using Databases.Model.Enum;
+using Databases.Model.Option;
 
 namespace DatabaseManager.Controls;
 

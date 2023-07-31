@@ -5,16 +5,24 @@ using System.Data.Common;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using DatabaseConverter.Core;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Model;
+using Databases.Converter.Helper;
 using Databases.Exceptions;
+using Databases.Interpreter;
+using Databases.Interpreter.Helper;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Interpreter.Utility.Model;
+using Databases.Manager.Model.DbObjectDisplay;
+using Databases.Manager.Model.Query;
+using Databases.Model.Command;
+using Databases.Model.Connection;
+using Databases.Model.DatabaseObject;
+using Databases.Model.Enum;
+using Databases.Model.Option;
+using Databases.Model.Script;
 using Databases.SqlAnalyser.Model.Statement;
 using Databases.SqlAnalyser.Model.Token;
 
-namespace DatabaseManager.Core
+namespace Databases.Manager.Script
 {
     public class ScriptRunner
     {
@@ -218,7 +226,7 @@ namespace DatabaseManager.Core
             }
         }
 
-        public async Task Run(DbInterpreter dbInterpreter, IEnumerable<Script> scripts)
+        public async Task Run(DbInterpreter dbInterpreter, IEnumerable<Databases.Model.Script.Script> scripts)
         {
             using (var dbConnection = dbInterpreter.CreateConnection())
             {
@@ -226,7 +234,7 @@ namespace DatabaseManager.Core
 
                 var transaction = dbConnection.BeginTransaction();
 
-                Func<Script, bool> isValidScript = s =>
+                Func<Databases.Model.Script.Script, bool> isValidScript = s =>
                 {
                     return !(s is NewLineSript || s is SpliterScript || string.IsNullOrEmpty(s.Content) ||
                              s.Content == dbInterpreter.ScriptsDelimiter);

@@ -1,10 +1,12 @@
 ﻿using System;
-using DatabaseConverter.Core.Model.Functions;
-using DatabaseConverter.Model;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
+using Databases.Converter.Helper;
+using Databases.Converter.Model;
+using Databases.Converter.Model.Functions;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Model.Enum;
+using Databases.Model.Function;
 
-namespace DatabaseConverter.Core.Functions
+namespace Databases.Converter.Translator.Functions
 {
     public class DateDiffTranslator : SpecificFunctionTranslatorBase
     {

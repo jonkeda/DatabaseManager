@@ -2,13 +2,15 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Model;
 using Databases.Interpreter.Builder;
+using Databases.Interpreter.Helper;
+using Databases.Interpreter.Utility.Model;
+using Databases.Manager.Model.Statistic;
+using Databases.Model.Connection;
+using Databases.Model.Enum;
+using Databases.Model.Option;
 
-namespace DatabaseManager.Core
+namespace Databases.Manager.Statistic
 {
     public class DbStatistic
     {

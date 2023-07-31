@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Data.Common;
 using System.Threading;
+using Databases.Model.DatabaseObject;
+using Databases.Model.Enum;
 
-namespace DatabaseInterpreter.Model
+namespace Databases.Model.BulkCopy
 {
     public class BulkCopyInfo
     {

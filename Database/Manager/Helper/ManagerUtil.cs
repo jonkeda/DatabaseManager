@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
-using DatabaseInterpreter.Model;
+using Databases.Model.Enum;
 using Humanizer;
 
-namespace DatabaseManager.Helper
+namespace Databases.Manager.Helper
 {
     public class ManagerUtil
     {

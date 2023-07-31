@@ -1,8 +1,10 @@
-﻿using DatabaseConverter.Core.Model.Functions;
-using DatabaseConverter.Model;
-using DatabaseInterpreter.Model;
+﻿using Databases.Converter.Helper;
+using Databases.Converter.Model;
+using Databases.Converter.Model.Functions;
+using Databases.Model.Enum;
+using Databases.Model.Function;
 
-namespace DatabaseConverter.Core.Functions
+namespace Databases.Converter.Translator.Functions
 {
     public class DateExtractTranslator : SpecificFunctionTranslatorBase
     {

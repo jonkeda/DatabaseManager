@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
 using DatabaseManager.Profile;
+using Databases.Interpreter.Helper;
+using Databases.Model.Connection;
+using Databases.Model.Enum;
+using Databases.Model.Option;
 
 namespace DatabaseManager.Controls;
 

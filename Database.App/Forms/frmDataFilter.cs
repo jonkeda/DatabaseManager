@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using DatabaseManager.Core;
 using DatabaseManager.Model;
+using Databases.Manager.Condition;
+using Databases.Manager.Model.Query;
 
 namespace DatabaseManager;
 

@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
-using DatabaseInterpreter.Model;
+using Databases.Model.DatabaseObject;
+using Databases.Model.Schema;
 
-namespace DatabaseManager.Model
+namespace Databases.Manager.Model
 {
     public class DbDifference
     {

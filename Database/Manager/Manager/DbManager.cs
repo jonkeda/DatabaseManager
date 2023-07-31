@@ -4,13 +4,23 @@ using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Threading.Tasks;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Helper;
-using DatabaseManager.Model;
+using Databases.Interpreter;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Interpreter.Utility.Model;
+using Databases.Manager.Backup;
+using Databases.Manager.Diagnosis;
+using Databases.Manager.Helper;
+using Databases.Manager.Model.Diagnose;
+using Databases.Manager.Model.Setting;
+using Databases.Model.Command;
+using Databases.Model.Connection;
+using Databases.Model.DatabaseObject;
+using Databases.Model.Enum;
+using Databases.Model.Option;
+using Databases.Model.Schema;
+using Databases.ScriptGenerator;
 
-namespace DatabaseManager.Core
+namespace Databases.Manager.Manager
 {
     public class DbManager
     {

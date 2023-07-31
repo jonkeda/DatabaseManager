@@ -3,7 +3,7 @@ using System.Data;
 using System.Data.Common;
 using System.Threading;
 
-namespace DatabaseInterpreter.Model
+namespace Databases.Model.Command
 {
     public class CommandInfo
     {

@@ -5,7 +5,7 @@ using Databases.SqlAnalyser.Model.Script;
 using Databases.SqlAnalyser.Model.Statement;
 using Databases.SqlAnalyser.Model.Token;
 
-namespace DatabaseConverter.Core
+namespace Databases.Converter.ScriptToken
 {
     public class ScriptTokenExtracter
     {

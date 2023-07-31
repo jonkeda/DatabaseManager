@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Model;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Manager.Model.TableDesigner;
+using Databases.Model.DatabaseObject;
+using Databases.Model.Enum;
 
-namespace DatabaseManager.Core
+namespace Databases.Manager.Manager
 {
     public class IndexManager
     {

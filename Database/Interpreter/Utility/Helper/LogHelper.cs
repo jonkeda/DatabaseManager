@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
-using DatabaseInterpreter.Model;
+using Databases.Model.Enum;
 
-namespace DatabaseInterpreter.Utility
+namespace Databases.Interpreter.Utility.Helper
 {
     public class LogHelper
     {

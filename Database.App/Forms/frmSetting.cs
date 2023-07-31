@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseManager.Core;
 using DatabaseManager.Helper;
 using DatabaseManager.Profile;
 using Databases;
+using Databases.Interpreter;
+using Databases.Manager.Manager;
+using Databases.Model.Enum;
 
 //using DatabaseManager.Controls.Model;
 

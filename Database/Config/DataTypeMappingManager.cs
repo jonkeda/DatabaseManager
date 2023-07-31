@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using DatabaseConverter.Model;
-using DatabaseInterpreter.Model;
+using Databases.Converter.Model.Mappings;
+using Databases.Model.Enum;
 
 namespace Databases.Config
 {

@@ -2,6 +2,7 @@
 using System.Windows.Forms;
 using DatabaseManager.Helper;
 using DatabaseManager.Model;
+using Databases.Manager.Model.DbObjectDisplay;
 
 namespace DatabaseManager;
 

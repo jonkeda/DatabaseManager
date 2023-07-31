@@ -2,7 +2,8 @@
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using DatabaseInterpreter.Model;
+using Databases.Model.Enum;
+using Databases.Model.Option;
 
 namespace Databases.Config
 {

@@ -1,7 +1,6 @@
 ﻿using System;
-using DatabaseInterpreter.Model;
+using Databases.Model.DatabaseObject;
 using Databases.SqlAnalyser.Model;
-using SqlAnalyser.Model;
 
 namespace Databases.SqlAnalyser
 {

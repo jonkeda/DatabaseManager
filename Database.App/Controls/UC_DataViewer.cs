@@ -5,13 +5,15 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
-using DatabaseManager.Core;
 using DatabaseManager.Helper;
 using DatabaseManager.Model;
-using View = DatabaseInterpreter.Model.View;
+using Databases.Interpreter.Helper;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Manager.Condition;
+using Databases.Manager.Model.DbObjectDisplay;
+using Databases.Model.DatabaseObject;
+using Databases.Model.Option;
+using View = Databases.Model.DatabaseObject.View;
 
 namespace DatabaseManager.Controls;
 

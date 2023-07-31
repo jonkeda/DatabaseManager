@@ -6,16 +6,31 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using DatabaseConverter.Core.Model;
-using DatabaseConverter.Model;
-using DatabaseConverter.Profile;
-using DatabaseInterpreter.Core;
-using DatabaseInterpreter.Model;
-using DatabaseInterpreter.Utility;
+using Databases.Converter.Helper;
+using Databases.Converter.Model;
+using Databases.Converter.Profile;
+using Databases.Converter.Translator;
 using Databases.Exceptions;
+using Databases.Interpreter;
 using Databases.Interpreter.Builder;
+using Databases.Interpreter.Helper;
+using Databases.Interpreter.Utility.Helper;
+using Databases.Interpreter.Utility.Model;
+using Databases.Model.BulkCopy;
+using Databases.Model.Command;
+using Databases.Model.DatabaseObject;
+using Databases.Model.DatabaseObject.Fiction;
+using Databases.Model.Enum;
+using Databases.Model.Option;
+using Databases.Model.Schema;
+using Databases.Model.Script;
+using Databases.ScriptGenerator;
+using DatabaseObject = Databases.Model.DatabaseObject.DatabaseObject;
+using DatabaseSchema = Databases.Model.DatabaseObject.DatabaseSchema;
+using TableColumn = Databases.Model.DatabaseObject.TableColumn;
+using UserDefinedType = Databases.Model.DatabaseObject.UserDefinedType;
 
-namespace DatabaseConverter.Core
+namespace Databases.Converter
 {
     public class DbConverter : IDisposable
     {
@@ -655,7 +670,7 @@ namespace DatabaseConverter.Core
                 if (executeScriptOnTargetServer ||
                     targetInterpreter.Option.ScriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToFile))
                 {
-                    var dictTableDataTransferredCount = new Dictionary<Table, long>();
+                    var dictTableDataTransferredCount = new Dictionary<Databases.Model.DatabaseObject.Table, long>();
 
                     sourceInterpreter.OnDataRead += async tableDataReadInfo =>
                     {
@@ -835,7 +850,7 @@ namespace DatabaseConverter.Core
         }
 
         private (Dictionary<string, object> Paramters, string Script) GenerateScripts(
-            DbScriptGenerator targetDbScriptGenerator, (Table Table, List<TableColumn> Columns) targetTableAndColumns,
+            DbScriptGenerator targetDbScriptGenerator, (Databases.Model.DatabaseObject.Table Table, List<TableColumn> Columns) targetTableAndColumns,
             List<Dictionary<string, object>> data)
         {
             var sb = new StringBuilder();
@@ -913,7 +928,7 @@ namespace DatabaseConverter.Core
             return commandInfo;
         }
 
-        private BulkCopyInfo GetBulkCopyInfo(Table table, SchemaInfo schemaInfo, DbTransaction transaction = null)
+        private BulkCopyInfo GetBulkCopyInfo(Databases.Model.DatabaseObject.Table table, SchemaInfo schemaInfo, DbTransaction transaction = null)
         {
             var tableName = GetMappedTableName(table.Name);
 
@@ -981,7 +996,7 @@ namespace DatabaseConverter.Core
             CancellationTokenSource?.Cancel();
         }
 
-        private (Table Table, List<TableColumn> Columns) GetTargetTableColumns(SchemaInfo targetSchemaInfo,
+        private (Databases.Model.DatabaseObject.Table Table, List<TableColumn> Columns) GetTargetTableColumns(SchemaInfo targetSchemaInfo,
             string targetSchema, Table sourceTable, List<TableColumn> sourceColumns)
         {
             var mappedTableName = GetMappedTableName(sourceTable.Name);
@@ -1048,6 +1063,10 @@ namespace DatabaseConverter.Core
         public void Feedback(object owner, string content, FeedbackInfoType infoType = FeedbackInfoType.Info,
             bool enableLog = true)
         {
+            if (OnFeedback == null)
+            {
+                return;
+            }
             if (infoType == FeedbackInfoType.Error)
             {
                 HasError = true;

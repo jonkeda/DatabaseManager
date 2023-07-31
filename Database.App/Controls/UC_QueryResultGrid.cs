@@ -2,8 +2,8 @@
 using System.Data;
 using System.Reflection;
 using System.Windows.Forms;
-using DatabaseInterpreter.Utility;
 using DatabaseManager.Helper;
+using Databases.Interpreter.Utility.Helper;
 
 namespace DatabaseManager.Controls;
 

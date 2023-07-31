@@ -10,13 +10,25 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Translator\SelectTests.in.sql" />
-    <None Remove="Translator\SelectTests.out.sql" />
+    <None Remove="Translator\Delete\DeleteTest1.PostgreSql.sql" />
+    <None Remove="Translator\Delete\DeleteTest1.TSql.sql" />
+    <None Remove="Translator\InsertTests.PostgreSql.sql" />
+    <None Remove="Translator\InsertTests.TSql.sql" />
+    <None Remove="Translator\SelectTests.PostgreSql.sql" />
+    <None Remove="Translator\SelectTests.TSql.sql" />
+    <None Remove="Translator\Update\UpdateTest1.PostgreSql.sql" />
+    <None Remove="Translator\Update\UpdateTest1.TSql.sql" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Translator\SelectTests.out.sql" />
-    <EmbeddedResource Include="Translator\SelectTests.in.sql" />
+    <EmbeddedResource Include="Translator\Delete\DeleteTest1.PostgreSql.sql" />
+    <EmbeddedResource Include="Translator\Delete\DeleteTest1.TSql.sql" />
+    <EmbeddedResource Include="Translator\InsertInto\InsertTest1.TSql.sql" />
+    <EmbeddedResource Include="Translator\InsertInto\InsertTest1.PostgreSql.sql" />
+    <EmbeddedResource Include="Translator\Select\SelectTest1.PostgreSql.sql" />
+    <EmbeddedResource Include="Translator\Select\SelectTest1.TSql.sql" />
+    <EmbeddedResource Include="Translator\Update\UpdateTest1.PostgreSql.sql" />
+    <EmbeddedResource Include="Translator\Update\UpdateTest1.TSql.sql" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,6 +45,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Database.Handlers.MySql\Databases.Handlers.MySql.csproj" />
+    <ProjectReference Include="..\Database.Handlers.PlSql\Databases.Handlers.PlSql.csproj" />
+    <ProjectReference Include="..\Database.Handlers.Sqlite\Databases.Handlers.Sqlite.csproj" />
+    <ProjectReference Include="..\Databases.Handlers.PostgreSql\Databases.Handlers.PostgreSql.csproj" />
     <ProjectReference Include="..\Database\Databases.csproj" />
   </ItemGroup>
 

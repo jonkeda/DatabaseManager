@@ -9,6 +9,7 @@ using DatabaseConverter.Model;
 using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
+using Databases.Config;
 using Databases.SqlAnalyser.Model.Script;
 using PoorMansTSqlFormatterRedux;
 
@@ -27,7 +28,7 @@ namespace DatabaseConverter.Core
         protected DatabaseType targetDbType;
         protected List<IEnumerable<VariableMapping>> variableMappings;
 
-        public DbObjectTranslator(DbInterpreter source, DbInterpreter target)
+        protected DbObjectTranslator(DbInterpreter source, DbInterpreter target)
         {
             sourceDbInterpreter = source;
             targetDbInterpreter = target;

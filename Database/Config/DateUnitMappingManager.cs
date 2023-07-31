@@ -2,23 +2,31 @@
 using System.IO;
 using System.Xml.Linq;
 using DatabaseConverter.Core.Model;
-using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Utility;
 
-namespace DatabaseConverter.Core
+namespace Databases.Config
 {
     public class DateUnitMappingManager : ConfigManager
     {
         public static List<DateUnitMapping> _dateUnitMappings;
         public static string DateUnitMappingFilePath => Path.Combine(ConfigRootFolder, "DateUnitMapping.xml");
 
+        private static readonly object LockObj = new object();
+
         public static List<DateUnitMapping> DateUnitMappings
         {
             get
             {
+                // ReSharper disable once InvertIf
                 if (_dateUnitMappings == null)
                 {
-                    _dateUnitMappings = GetDateUnitMappings();
+                    lock (LockObj)
+                    {
+                        if (_dateUnitMappings == null)
+                        {
+                            _dateUnitMappings = GetDateUnitMappings();
+                        }
+                    }
                 }
 
                 return _dateUnitMappings;

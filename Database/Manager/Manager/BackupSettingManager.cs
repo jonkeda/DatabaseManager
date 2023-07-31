@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using DatabaseInterpreter.Core;
 using DatabaseManager.Model;
+using Databases.Config;
 using Newtonsoft.Json;
 
 namespace DatabaseManager.Core

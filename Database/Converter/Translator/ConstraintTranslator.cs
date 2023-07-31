@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
+using Databases.Config;
 
 namespace DatabaseConverter.Core
 {

@@ -8,6 +8,7 @@ using Dapper;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 using Databases;
+using Databases.Config;
 using Databases.Exceptions;
 using Databases.Interpreter.Builder;
 using Npgsql;

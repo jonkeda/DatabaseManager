@@ -5,56 +5,59 @@ using System.Xml.Linq;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
 
-namespace DatabaseInterpreter.Core
+namespace Databases.Config
 {
     public class DataTypeManager : ConfigManager
     {
-        public const char ArugumentRangeItemDelimiter = ',';
-        public const char ArugumentRangeValueDelimiter = '~';
-        private static Dictionary<DatabaseType, List<DataTypeSpecification>> _dataTypeSpecifications;
+        public const char ArgumentRangeItemDelimiter = ',';
+        public const char ArgumentRangeValueDelimiter = '~';
+        private static readonly Dictionary<DatabaseType, List<DataTypeSpecification>> DataTypeSpecifications = new Dictionary<DatabaseType, List<DataTypeSpecification>>();
+
+        private static readonly object LockObj = new object();
 
         public static IEnumerable<DataTypeSpecification> GetDataTypeSpecifications(DatabaseType databaseType)
         {
-            if (_dataTypeSpecifications != null &&
-                _dataTypeSpecifications.TryGetValue(databaseType, out var specifications))
+            // ReSharper disable once InconsistentlySynchronizedField
+            if (DataTypeSpecifications.TryGetValue(databaseType, out var specifications1))
             {
-                return specifications;
+                return specifications1;
             }
-
-            var filePath = Path.Combine(ConfigRootFolder, $"DataTypeSpecification/{databaseType}.xml");
-
-            if (!File.Exists(filePath))
+            lock (LockObj)
             {
-                return Enumerable.Empty<DataTypeSpecification>();
+                if (DataTypeSpecifications.TryGetValue(databaseType, out var specifications))
+                {
+                    return specifications;
+                }
+
+                var filePath = Path.Combine(ConfigRootFolder, $"DataTypeSpecification/{databaseType}.xml");
+
+                if (!File.Exists(filePath))
+                {
+                    return Enumerable.Empty<DataTypeSpecification>();
+                }
+
+                var doc = XDocument.Load(filePath);
+
+                var functionSpecs = doc.Root.Elements("item").Select(item => new DataTypeSpecification
+                {
+                    Name = item.Attribute("name").Value,
+                    Format = item.Attribute("format")?.Value,
+                    Args = item.Attribute("args")?.Value,
+                    Range = item.Attribute("range")?.Value,
+                    Optional = IsTrueValue(item.Attribute("optional")),
+                    Default = item.Attribute("default")?.Value,
+                    DisplayDefault = item.Attribute("displayDefault")?.Value,
+                    AllowMax = IsTrueValue(item.Attribute("allowMax")),
+                    MapTo = item.Attribute("mapTo")?.Value,
+                    IndexForbidden = IsTrueValue(item.Attribute("indexForbidden")),
+                    AllowIdentity = IsTrueValue(item.Attribute("allowIdentity"))
+                }).ToList();
+
+                functionSpecs.ForEach(item => ParseArgument(item));
+                DataTypeSpecifications.Add(databaseType, functionSpecs);
+
+                return functionSpecs;
             }
-
-            var doc = XDocument.Load(filePath);
-
-            var functionSpecs = doc.Root.Elements("item").Select(item => new DataTypeSpecification
-            {
-                Name = item.Attribute("name").Value,
-                Format = item.Attribute("format")?.Value,
-                Args = item.Attribute("args")?.Value,
-                Range = item.Attribute("range")?.Value,
-                Optional = IsTrueValue(item.Attribute("optional")),
-                Default = item.Attribute("default")?.Value,
-                DisplayDefault = item.Attribute("displayDefault")?.Value,
-                AllowMax = IsTrueValue(item.Attribute("allowMax")),
-                MapTo = item.Attribute("mapTo")?.Value,
-                IndexForbidden = IsTrueValue(item.Attribute("indexForbidden")),
-                AllowIdentity = IsTrueValue(item.Attribute("allowIdentity"))
-            }).ToList();
-
-            functionSpecs.ForEach(item => ParseArgument(item));
-
-            if (_dataTypeSpecifications == null)
-            {
-                _dataTypeSpecifications = new Dictionary<DatabaseType, List<DataTypeSpecification>>();
-            }
-
-            _dataTypeSpecifications.Add(databaseType, functionSpecs);
-
-            return functionSpecs;
         }
 
         public static DataTypeSpecification GetDataTypeSpecification(DatabaseType databaseType, string dataType)
@@ -77,8 +80,8 @@ namespace DatabaseInterpreter.Core
 
             if (!string.IsNullOrEmpty(dataTypeSpecification.Range))
             {
-                var argItems = dataTypeSpecification.Args.Split(ArugumentRangeItemDelimiter);
-                var rangeItems = dataTypeSpecification.Range.Split(ArugumentRangeItemDelimiter);
+                var argItems = dataTypeSpecification.Args.Split(ArgumentRangeItemDelimiter);
+                var rangeItems = dataTypeSpecification.Range.Split(ArgumentRangeItemDelimiter);
 
                 var i = 0;
                 foreach (var argItem in argItems)
@@ -89,7 +92,7 @@ namespace DatabaseInterpreter.Core
                     {
                         var range = new ArgumentRange();
 
-                        var rangeValues = rangeItems[i].Split(ArugumentRangeValueDelimiter);
+                        var rangeValues = rangeItems[i].Split(ArgumentRangeValueDelimiter);
 
                         range.Min = int.Parse(rangeValues[0]);
 

@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace Database.Tests.Helpers;
+namespace Databases.Tests.Helpers;
 
 public class ResourceHelper
 {

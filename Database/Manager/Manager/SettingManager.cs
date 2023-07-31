@@ -1,8 +1,8 @@
 ﻿using System.IO;
-using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Utility;
 using DatabaseManager.Model;
 using Databases;
+using Databases.Config;
 using Newtonsoft.Json;
 
 namespace DatabaseManager.Core

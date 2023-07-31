@@ -7,6 +7,7 @@ using DatabaseConverter.Model;
 using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
+using Databases.Config;
 using Databases.Exceptions;
 using Databases.SqlAnalyser;
 using Databases.SqlAnalyser.Model;

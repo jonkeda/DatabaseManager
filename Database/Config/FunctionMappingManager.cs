@@ -4,23 +4,31 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using DatabaseConverter.Model;
-using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Utility;
 
-namespace DatabaseConverter.Core
+namespace Databases.Config
 {
     public class FunctionMappingManager : ConfigManager
     {
         public static List<IEnumerable<FunctionMapping>> _functionMappings;
         public static string FunctionMappingFilePath => Path.Combine(ConfigRootFolder, "FunctionMapping.xml");
 
+        private static readonly object LockObj = new object();
+
         public static List<IEnumerable<FunctionMapping>> FunctionMappings
         {
             get
             {
+                // ReSharper disable once InvertIf
                 if (_functionMappings == null)
                 {
-                    _functionMappings = GetFunctionMappings();
+                    lock (LockObj)
+                    {
+                        if (_functionMappings == null)
+                        {
+                            _functionMappings = GetFunctionMappings();
+                        }
+                    }
                 }
 
                 return _functionMappings;

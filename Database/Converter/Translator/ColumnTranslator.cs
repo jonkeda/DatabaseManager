@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using DatabaseInterpreter.Core;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
+using Databases.Config;
 
 namespace DatabaseConverter.Core
 {

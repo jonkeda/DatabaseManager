@@ -3,6 +3,7 @@ using System.Linq;
 using DatabaseConverter.Core.Model;
 using DatabaseInterpreter.Model;
 using DatabaseInterpreter.Utility;
+using Databases.Config;
 
 namespace DatabaseConverter.Core
 {

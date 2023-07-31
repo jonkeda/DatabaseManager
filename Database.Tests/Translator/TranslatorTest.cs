@@ -1,11 +1,33 @@
-﻿using Database.Tests.Helpers;
-using DatabaseInterpreter.Model;
+﻿using DatabaseInterpreter.Model;
 using DatabaseManager.Core;
+using Databases.Handlers.TSql;
+using Databases.Handlers;
+using Databases.Handlers.MySql;
+using Databases.Handlers.PlSql;
+using Databases.Handlers.Sqlite;
+using Databases.Tests.Helpers;
 
-namespace Database.Tests.Translator;
+namespace Databases.Tests.Translator;
 
 public abstract class TranslatorTest
 {
+    static TranslatorTest()
+    {
+        SqlHandler.RegisterHandler(new TSqlHandler());
+        SqlHandler.RegisterHandler(new PlSqlHandler());
+        SqlHandler.RegisterHandler(new MySqlHandler());
+        SqlHandler.RegisterHandler(new SqliteHandler());
+        SqlHandler.RegisterHandler(new PostgreSqlHandler());
+    }
+
+    protected void TranslateTSqlToPostgreSql(string name)
+    {
+        string namespaceName = GetType().Namespace!;
+        Translate($"{namespaceName}.{name}.TSql.sql",
+            $"{namespaceName}.{name}.PostgreSql.sql");
+
+    }
+
     protected void Translate(string inFilename, string outFilename)
     {
         var sourceScript = ResourceHelper.GetContent(GetType(), inFilename); ;

@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using DatabaseInterpreter.Utility;
 
-namespace DatabaseInterpreter.Core
+namespace Databases.Config
 {
     public class ConfigManager
     {

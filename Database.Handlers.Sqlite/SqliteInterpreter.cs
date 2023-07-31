@@ -223,7 +223,10 @@ namespace DatabaseInterpreter.Core
             sb.Append(GetFilterNamesCondition(filter, tableNames, "tbl_name"));
             sb.Append(GetFilterNamesCondition(filter, childrenNames, "name"));
 
-            if (dbObjectType == DatabaseObjectType.Index) sb.Append("AND name not like 'sqlite_autoindex%'");
+            if (dbObjectType == DatabaseObjectType.Index)
+            {
+                sb.Append("AND name not like 'sqlite_autoindex%'");
+            }
 
             sb.Append("ORDER BY tbl_name,name");
 
@@ -244,7 +247,10 @@ namespace DatabaseInterpreter.Core
         {
             if (filter?.TableNames == null)
             {
-                if (filter == null) filter = new SchemaInfoFilter();
+                if (filter == null)
+                {
+                    filter = new SchemaInfoFilter();
+                }
 
                 filter.TableNames = await GetTableNamesAsync();
             }
@@ -261,11 +267,15 @@ namespace DatabaseInterpreter.Core
             var tableNames = filter?.TableNames;
 
             if (tableNames != null)
+            {
                 for (var i = 0; i < tableNames.Length; i++)
                 {
                     var tableName = tableNames[i];
 
-                    if (i > 0) sb.Append("UNION ALL");
+                    if (i > 0)
+                    {
+                        sb.Append("UNION ALL");
+                    }
 
                     sb.Append($@"SELECT name AS Name,'{tableName}' AS TableName,
                                 TRIM(REPLACE(type,'AUTO_INCREMENT','')) AS DataType,
@@ -276,6 +286,7 @@ namespace DatabaseInterpreter.Core
                                 dflt_value AS DefaultValue, pk AS IsPrimaryKey, cid AS ""Order""
                                 FROM PRAGMA_TABLE_INFO('{tableName}')");
                 }
+            }
 
             return sb.Content;
         }
@@ -294,7 +305,10 @@ namespace DatabaseInterpreter.Core
         {
             if (filter?.TableNames == null)
             {
-                if (filter == null) filter = new SchemaInfoFilter();
+                if (filter == null)
+                {
+                    filter = new SchemaInfoFilter();
+                }
 
                 filter.TableNames = await GetTableNamesAsync();
             }
@@ -314,16 +328,21 @@ namespace DatabaseInterpreter.Core
             var tableNames = filter?.TableNames;
 
             if (tableNames != null)
+            {
                 for (var i = 0; i < tableNames.Length; i++)
                 {
                     var tableName = tableNames[i];
 
-                    if (i > 0) sb.Append("UNION ALL");
+                    if (i > 0)
+                    {
+                        sb.Append("UNION ALL");
+                    }
 
                     sb.Append($@"SELECT '{tableName}' as TableName, name AS ColumnName
                         FROM PRAGMA_TABLE_INFO('{tableName}')
                         WHERE pk>0");
                 }
+            }
 
             return sb.Content;
         }
@@ -331,7 +350,10 @@ namespace DatabaseInterpreter.Core
         private async Task MakeupTableChildrenNames(IEnumerable<TableColumnChild> columnChildren,
             SchemaInfoFilter filter = null)
         {
-            if (columnChildren == null || !columnChildren.Any()) return;
+            if (columnChildren == null || !columnChildren.Any())
+            {
+                return;
+            }
 
             var tablesSql = GetSqlForTableViews(DatabaseObjectType.Table, filter, true);
 
@@ -351,7 +373,10 @@ namespace DatabaseInterpreter.Core
                 {
                     var children = columnChildren.Where(item => item.TableName == tableName);
 
-                    foreach (var child in children) child.Name = name;
+                    foreach (var child in children)
+                    {
+                        child.Name = name;
+                    }
                 }
             }
         }
@@ -361,7 +386,10 @@ namespace DatabaseInterpreter.Core
         {
             var databaseObjects = new List<DatabaseObject>();
 
-            if (dbConnection == null) dbConnection = CreateConnection();
+            if (dbConnection == null)
+            {
+                dbConnection = CreateConnection();
+            }
 
             var tablesSql = GetSqlForTableViews(DatabaseObjectType.Table, filter, true);
 
@@ -370,9 +398,13 @@ namespace DatabaseInterpreter.Core
             var flag = "";
 
             if (dbObjectType == DatabaseObjectType.Index) //unique
+            {
                 flag = "UNIQUE";
+            }
             else if (dbObjectType == DatabaseObjectType.Constraint) //check constraint
+            {
                 flag = "CHECK";
+            }
 
             foreach (var table in tables)
             {
@@ -394,12 +426,17 @@ namespace DatabaseInterpreter.Core
 
                     var name = ExtractNameFromColumnDefintion(columnItems, dbObjectType);
 
-                    if (!string.IsNullOrEmpty(name)) objName = name;
+                    if (!string.IsNullOrEmpty(name))
+                    {
+                        objName = name;
+                    }
 
                     if (isTableConstraint)
                     {
                         if (dbObjectType == DatabaseObjectType.Index)
+                        {
                             columNames = ExtractColumnNamesFromTableConstraint(columnItems, index);
+                        }
                     }
                     else
                     {
@@ -458,7 +495,10 @@ namespace DatabaseInterpreter.Core
         {
             if (filter?.TableNames == null)
             {
-                if (filter == null) filter = new SchemaInfoFilter();
+                if (filter == null)
+                {
+                    filter = new SchemaInfoFilter();
+                }
 
                 filter = new SchemaInfoFilter { TableNames = await GetTableNamesAsync() };
             }
@@ -487,11 +527,15 @@ namespace DatabaseInterpreter.Core
                 var tableNames = filter?.TableNames;
 
                 if (tableNames != null)
+                {
                     for (var i = 0; i < tableNames.Length; i++)
                     {
                         var tableName = tableNames[i];
 
-                        if (i > 0) sb.Append("UNION ALL");
+                        if (i > 0)
+                        {
+                            sb.Append("UNION ALL");
+                        }
 
                         sb.Append($@"SELECT ""table"" AS ReferencedTableName, ""to"" AS ReferencedColumnName,
                                 '{tableName}' AS TableName, ""from"" AS ColumnName,
@@ -499,6 +543,7 @@ namespace DatabaseInterpreter.Core
                                 CASE WHEN on_delete='CASCADE' THEN 1 ELSE 0 END AS DeleteCascade
                                 FROM PRAGMA_foreign_key_list('{tableName}')");
                     }
+                }
             }
 
             return sb.Content;
@@ -524,9 +569,13 @@ namespace DatabaseInterpreter.Core
                 if (item.Type == null)
                 {
                     if (item.IsUnique)
+                    {
                         item.Type = "Unique";
+                    }
                     else
+                    {
                         item.Type = "Normal";
+                    }
                 }
             });
 
@@ -536,7 +585,10 @@ namespace DatabaseInterpreter.Core
             {
                 var column = columns.FirstOrDefault(item => item1.Name == item.Name);
 
-                if (column != null) item1.ColumnName = column.ColumnName;
+                if (column != null)
+                {
+                    item1.ColumnName = column.ColumnName;
+                }
             }
 
             var uniqueIndexes = await GetTableChildren(DatabaseObjectType.Index, null, filter);
@@ -546,7 +598,10 @@ namespace DatabaseInterpreter.Core
             foreach (var unique in uniqueIndexes)
             {
                 if (!string.IsNullOrEmpty(unique.Name) && items.Any(item =>
-                        item.TableName == (unique as TableIndexItem).TableName && item.Name == unique.Name)) continue;
+                        item.TableName == (unique as TableIndexItem).TableName && item.Name == unique.Name))
+                {
+                    continue;
+                }
 
                 uniqueItems.Add(unique as TableIndexItem);
             }
@@ -569,7 +624,10 @@ namespace DatabaseInterpreter.Core
 
             foreach (var item in indexes)
             {
-                if (i > 0) sb.Append("UNION ALL");
+                if (i > 0)
+                {
+                    sb.Append("UNION ALL");
+                }
 
                 sb.Append($"SELECT '{item.Name}' AS Name, name AS ColumnName FROM PRAGMA_INDEX_INFO('{item.Name}')");
 
@@ -595,7 +653,10 @@ namespace DatabaseInterpreter.Core
 
             var dbObjects = await GetTableChildren(DatabaseObjectType.Constraint, dbConnection, filter);
 
-            foreach (var dbObject in dbObjects) constraints.Add(dbObject as TableConstraint);
+            foreach (var dbObject in dbObjects)
+            {
+                constraints.Add(dbObject as TableConstraint);
+            }
 
             return constraints;
         }
@@ -778,23 +839,34 @@ namespace DatabaseInterpreter.Core
                 var c = innerContent[i];
 
                 if (c == '\'')
+                {
                     singleQuotationCharCount++;
+                }
                 else if (c == '(')
+                {
                     leftParenthesisesCount++;
+                }
                 else if (c == ')')
+                {
                     rightParenthesisesCount++;
+                }
                 else if (c == ',')
+                {
                     if (singleQuotationCharCount % 2 == 0 && leftParenthesisesCount == rightParenthesisesCount)
                     {
                         columns.Add(sb.ToString());
                         sb.Clear();
                         continue;
                     }
+                }
 
                 sb.Append(c);
             }
 
-            if (sb.Length > 0) columns.Add(sb.ToString());
+            if (sb.Length > 0)
+            {
+                columns.Add(sb.ToString());
+            }
 
             #endregion
 
@@ -813,21 +885,32 @@ namespace DatabaseInterpreter.Core
                 foreach (var c in column)
                 {
                     if (c == '\'')
+                    {
                         singleQuotationCharCount++;
+                    }
                     else if (c == '(')
+                    {
                         leftParenthesisesCount++;
+                    }
                     else if (c == ')')
+                    {
                         rightParenthesisesCount++;
+                    }
                     else if (c == ' ')
+                    {
                         if (singleQuotationCharCount % 2 == 0 && leftParenthesisesCount == rightParenthesisesCount)
                         {
                             var item = sb.ToString().Trim();
 
-                            if (item.Length > 0) columnItems.Add(item);
+                            if (item.Length > 0)
+                            {
+                                columnItems.Add(item);
+                            }
 
                             sb.Clear();
                             continue;
                         }
+                    }
 
                     sb.Append(c);
                 }
@@ -857,7 +940,10 @@ namespace DatabaseInterpreter.Core
             {
                 var name = ExtractNameFromColumnDefintion(item, dbObjectType);
 
-                if (!string.IsNullOrEmpty(name)) return name;
+                if (!string.IsNullOrEmpty(name))
+                {
+                    return name;
+                }
             }
 
             return string.Empty;
@@ -874,15 +960,24 @@ namespace DatabaseInterpreter.Core
 
                 if (dbObjectType == DatabaseObjectType.PrimaryKey &&
                     (index = FindIndexInList(columnItems, "PRIMARY")) > 0)
+                {
                     matched = true;
+                }
                 else if (dbObjectType == DatabaseObjectType.ForeignKey &&
                          (index = FindIndexInList(columnItems, "REFERENCES")) > 0)
+                {
                     matched = true;
+                }
                 else if (dbObjectType == DatabaseObjectType.Constraint &&
                          (index = FindIndexInList(columnItems, "CHECK")) > 0)
+                {
                     matched = true;
+                }
                 else if (dbObjectType == DatabaseObjectType.Index &&
-                         (index = FindIndexInList(columnItems, "UNIQUE")) > 0) matched = true;
+                         (index = FindIndexInList(columnItems, "UNIQUE")) > 0)
+                {
+                    matched = true;
+                }
 
                 if (matched)
                 {
@@ -938,7 +1033,10 @@ namespace DatabaseInterpreter.Core
             {
                 var item = list[i].Trim().ToUpper();
 
-                if (item == value || item.StartsWith($"{value}(")) return i;
+                if (item == value || item.StartsWith($"{value}("))
+                {
+                    return i;
+                }
             }
 
             return -1;
@@ -950,7 +1048,10 @@ namespace DatabaseInterpreter.Core
             {
                 var item = list[i].Trim().ToUpper();
 
-                if (item == value || item.StartsWith($"{value}(")) yield return i;
+                if (item == value || item.StartsWith($"{value}("))
+                {
+                    yield return i;
+                }
             }
         }
 
@@ -971,8 +1072,10 @@ namespace DatabaseInterpreter.Core
             var requiredClause = column.IsRequired ? "NOT NULL" : "NULL";
 
             if (column.IsComputed)
+            {
                 return
                     $"{GetQuotedString(column.Name)} {dataType} GENERATED ALWAYS AS ({column.ComputeExp}) STORED {requiredClause}";
+            }
 
             var identityClause = Option.TableScriptsGenerateOption.GenerateIdentity && column.IsIdentity
                 ? "AUTO_INCREMENT"
@@ -996,7 +1099,10 @@ namespace DatabaseInterpreter.Core
         {
             var dataLength = GetColumnDataLength(column);
 
-            if (!string.IsNullOrEmpty(dataLength)) dataLength = $"({dataLength})";
+            if (!string.IsNullOrEmpty(dataLength))
+            {
+                dataLength = $"({dataLength})";
+            }
 
             var dataType = $"{column.DataType} {dataLength}";
 
@@ -1017,13 +1123,22 @@ namespace DatabaseInterpreter.Core
             {
                 var args = dataTypeSpec.Args.ToLower().Trim();
 
-                if (string.IsNullOrEmpty(args)) return string.Empty;
+                if (string.IsNullOrEmpty(args))
+                {
+                    return string.Empty;
+                }
 
                 if (args == "precision,scale")
                 {
                     if (dataTypeInfo.Args != null && !dataTypeInfo.Args.Contains(","))
+                    {
                         return $"{column.Precision ?? 0},{column.Scale ?? 0}";
-                    if (column.Precision.HasValue && column.Scale.HasValue) return $"{column.Precision},{column.Scale}";
+                    }
+
+                    if (column.Precision.HasValue && column.Scale.HasValue)
+                    {
+                        return $"{column.Precision},{column.Scale}";
+                    }
                 }
             }
 

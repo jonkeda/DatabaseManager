@@ -9,18 +9,23 @@ namespace DatabaseManager.Core
 {
     public class ScriptParser
     {
-        private readonly DbInterpreter dbInterpreter;
-
-        private static readonly Regex AsPattern = new Regex(@"\b(AS|IS)\b", 
+        private static readonly Regex AsPattern = new Regex(@"\b(AS|IS)\b",
             RegexOptions.Compiled);
-        private static readonly Regex CreateAlterScriptPattern = new Regex( @"\b(CREATE|ALTER).+(VIEW|FUNCTION|PROCEDURE|TRIGGER)\b", 
+
+        private static readonly Regex CreateAlterScriptPattern = new Regex(
+            @"\b(CREATE|ALTER).+(VIEW|FUNCTION|PROCEDURE|TRIGGER)\b",
             RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
-        private static readonly Regex DmlPattern = new Regex(@"\b(CREATE|ALTER|INSERT|UPDATE|DELETE|TRUNCATE|INTO)\b", 
+
+        private static readonly Regex DmlPattern = new Regex(@"\b(CREATE|ALTER|INSERT|UPDATE|DELETE|TRUNCATE|INTO)\b",
             RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
-        private static readonly Regex RoutinePattern = new Regex(@"\b(BEGIN|END|DECLARE|SET|GOTO)\b", 
+
+        private static readonly Regex RoutinePattern = new Regex(@"\b(BEGIN|END|DECLARE|SET|GOTO)\b",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         private static readonly Regex SelectPattern = new Regex("SELECT(.[\n]?)+(FROM)?",
             RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
+
+        private readonly DbInterpreter dbInterpreter;
 
         public ScriptParser(DbInterpreter dbInterpreter, string script)
         {

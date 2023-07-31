@@ -3,7 +3,6 @@ using System.Linq;
 using DatabaseInterpreter.Utility;
 using Databases.SqlAnalyser.Model.Statement;
 using Databases.SqlAnalyser.Model.Statement.Cursor;
-using SqlAnalyser.Model;
 
 namespace SqlAnalyser.Core
 {
@@ -16,6 +15,7 @@ namespace SqlAnalyser.Core
             var statementsNeedToRemove = new List<FetchCursorStatement>();
 
             foreach (var statement in statements)
+            {
                 if (statement is FetchCursorStatement fetch)
                 {
                     fetchCursorStatement = fetch;
@@ -38,6 +38,7 @@ namespace SqlAnalyser.Core
                         @while.Statements.RemoveAt(index + 1);
                     }
                 }
+            }
 
             statements.RemoveAll(item => statementsNeedToRemove.Contains(item));
         }
@@ -45,10 +46,19 @@ namespace SqlAnalyser.Core
         public static UserVariableDataType DetectUserVariableDataType(string value)
         {
             if (DataTypeHelper.StartsWithN(value) || ValueHelper.IsStringValue(value))
+            {
                 return UserVariableDataType.String;
+            }
+
             if (int.TryParse(value, out _))
+            {
                 return UserVariableDataType.Integer;
-            if (decimal.TryParse(value, out _)) return UserVariableDataType.Decimal;
+            }
+
+            if (decimal.TryParse(value, out _))
+            {
+                return UserVariableDataType.Decimal;
+            }
 
             return UserVariableDataType.Unknown;
         }

@@ -488,17 +488,23 @@ namespace DatabaseInterpreter.Core
         {
             var isLowDbVersion = IsLowDbVersion(GetDbVersion(), "8.0.16");
 
-            if (isLowDbVersion) return string.Empty;
+            if (isLowDbVersion)
+            {
+                return string.Empty;
+            }
 
             var isSimpleMode = IsObjectFectchSimpleMode();
             var sb = CreateSqlBuilder();
 
             if (isSimpleMode)
+            {
                 sb.Append(
                     @"SELECT TC.CONSTRAINT_SCHEMA AS `Schema`,TC.TABLE_NAME AS `TableName`, TC.CONSTRAINT_NAME AS `Name`
                         FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC 
                         WHERE CONSTRAINT_TYPE='CHECK'");
+            }
             else
+            {
                 sb.Append(
                     $@"SELECT TC.CONSTRAINT_SCHEMA AS `Schema`,TC.TABLE_NAME AS `TableName`, TC.CONSTRAINT_NAME AS `Name`,
                          REPLACE(REPLACE(REPLACE(C.CHECK_CLAUSE,'\\',''),(SELECT CONCAT('_',DEFAULT_CHARACTER_SET_NAME) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ""INFORMATION_SCHEMA""),''),
@@ -506,6 +512,7 @@ namespace DatabaseInterpreter.Core
                          FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC
                          JOIN INFORMATION_SCHEMA.CHECK_CONSTRAINTS C ON TC.CONSTRAINT_CATALOG=C.CONSTRAINT_CATALOG AND TC.CONSTRAINT_SCHEMA=C.CONSTRAINT_SCHEMA AND TC.CONSTRAINT_NAME=C.CONSTRAINT_NAME
                          WHERE CONSTRAINT_TYPE='CHECK'");
+            }
 
             sb.Append($"AND TC.CONSTRAINT_SCHEMA='{ConnectionInfo.Database}'");
 
@@ -700,7 +707,10 @@ namespace DatabaseInterpreter.Core
         public override async Task BulkCopyAsync(DbConnection connection, DataTable dataTable,
             BulkCopyInfo bulkCopyInfo)
         {
-            if (dataTable == null || dataTable.Rows.Count <= 0) return;
+            if (dataTable == null || dataTable.Rows.Count <= 0)
+            {
+                return;
+            }
 
             var bulkCopy = new MySqlBulkCopy(connection as MySqlConnection,
                 bulkCopyInfo.Transaction as MySqlTransaction)
@@ -716,7 +726,10 @@ namespace DatabaseInterpreter.Core
                 i++;
             }
 
-            if (connection.State != ConnectionState.Open) await OpenConnectionAsync(connection);
+            if (connection.State != ConnectionState.Open)
+            {
+                await OpenConnectionAsync(connection);
+            }
 
             await bulkCopy.WriteToServerAsync(ConvertDataTable(dataTable, bulkCopyInfo),
                 bulkCopyInfo.CancellationToken);
@@ -735,7 +748,9 @@ namespace DatabaseInterpreter.Core
                     //|| item.DataType == typeof(StGeometry)
                 )
                )
+            {
                 return dataTable;
+            }
 
             Func<DataColumn, TableColumn> getTableColumn = column =>
             {
@@ -754,11 +769,17 @@ namespace DatabaseInterpreter.Core
                 {
                     var value = row[i];
 
-                    if (value == null) continue;
+                    if (value == null)
+                    {
+                        continue;
+                    }
 
                     var type = value.GetType();
 
-                    if (type == typeof(DBNull)) continue;
+                    if (type == typeof(DBNull))
+                    {
+                        continue;
+                    }
 
                     Type newColumnType = null;
                     object newValue = null;
@@ -838,7 +859,10 @@ namespace DatabaseInterpreter.Core
                         {
                             var sourcedDbType = bulkCopyInfo.SourceDatabaseType;
 
-                            if (sourcedDbType == DatabaseType.MySql) newValue = MySqlGeometry.FromMySql(bytes);
+                            if (sourcedDbType == DatabaseType.MySql)
+                            {
+                                newValue = MySqlGeometry.FromMySql(bytes);
+                            }
                         }
                         else if (value is string)
                         {
@@ -847,18 +871,28 @@ namespace DatabaseInterpreter.Core
                     }
 
                     if (DataTypeHelper.IsGeometryType(dataType) && newColumnType != null && newValue == null)
+                    {
                         newValue = DBNull.Value;
+                    }
 
                     if (newColumnType != null && !changedColumns.ContainsKey(i))
+                    {
                         changedColumns.Add(i, new DataTableColumnChangeInfo { Type = newColumnType });
+                    }
 
-                    if (newValue != null) changedValues.Add((rowIndex, i), newValue);
+                    if (newValue != null)
+                    {
+                        changedValues.Add((rowIndex, i), newValue);
+                    }
                 }
 
                 rowIndex++;
             }
 
-            if (changedColumns.Count == 0) return dataTable;
+            if (changedColumns.Count == 0)
+            {
+                return dataTable;
+            }
 
             var dtChanged = DataTableHelper.GetChangedDataTable(dataTable, changedColumns, changedValues);
 
@@ -905,7 +939,9 @@ namespace DatabaseInterpreter.Core
             var isChar = DataTypeHelper.IsCharType(dataType.ToLower());
 
             if (isChar || DataTypeHelper.IsTextType(dataType.ToLower()))
+            {
                 dataType += $" CHARACTER SET {DbCharset} COLLATE {DbCharsetCollation} ";
+            }
 
             if (column.IsComputed && supportComputeColumn)
             {
@@ -940,7 +976,10 @@ namespace DatabaseInterpreter.Core
             {
                 var dataLength = GetColumnDataLength(column);
 
-                if (!string.IsNullOrEmpty(dataLength)) dataType += $"({dataLength})";
+                if (!string.IsNullOrEmpty(dataLength))
+                {
+                    dataType += $"({dataLength})";
+                }
             }
 
             return dataType.Trim();
@@ -958,20 +997,26 @@ namespace DatabaseInterpreter.Core
             var dataTypeSpec = GetDataTypeSpecification(dataTypeInfo.DataType);
 
             if (dataTypeSpec != null)
+            {
                 if (!string.IsNullOrEmpty(dataTypeSpec.Args))
                 {
                     if (string.IsNullOrEmpty(dataTypeInfo.Args))
                     {
                         if (isChar || isBinary)
+                        {
                             dataLength = column.MaxLength.ToString();
+                        }
                         else if (!IsNoLengthDataType(dataType))
+                        {
                             dataLength = GetDataTypePrecisionScale(column, dataTypeInfo.DataType);
+                        }
                     }
                     else
                     {
                         dataLength = dataTypeInfo.Args;
                     }
                 }
+            }
 
             return dataLength;
         }

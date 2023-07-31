@@ -16,8 +16,7 @@ namespace Databases.Handlers.PlSql
         OracleDiagnosis>
     {
         public PlSqlHandler() : base(DatabaseType.Oracle)
-        {
-        }
+        { }
 
         public override SqlAnalyserBase GetSqlAnalyser(string content)
         {
@@ -44,7 +43,10 @@ namespace Databases.Handlers.PlSql
         protected override DbProviderFactory CreateDbProviderFactory(string providerName)
         {
             if (providerName.Contains("oracle"))
+            {
                 return new OracleClientFactory();
+            }
+
             return null;
         }
     }

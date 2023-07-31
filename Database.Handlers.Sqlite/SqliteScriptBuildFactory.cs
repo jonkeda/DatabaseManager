@@ -30,7 +30,10 @@ namespace SqlAnalyser.Core
 
             result.BodyStartIndex = sb.Length;
 
-            foreach (var statement in script.Statements) sb.Append(BuildStatement(statement));
+            foreach (var statement in script.Statements)
+            {
+                sb.Append(BuildStatement(statement));
+            }
 
             result.BodyStopIndex = sb.Length - 1;
 
@@ -51,7 +54,10 @@ namespace SqlAnalyser.Core
 
             result.BodyStartIndex = sb.Length;
 
-            foreach (var statement in script.Statements) sb.AppendLine(BuildStatement(statement));
+            foreach (var statement in script.Statements)
+            {
+                sb.AppendLine(BuildStatement(statement));
+            }
 
             result.BodyStopIndex = sb.Length - 1;
 

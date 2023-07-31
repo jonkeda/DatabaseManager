@@ -10,8 +10,7 @@ namespace DatabaseInterpreter.Core
     public class SqliteScriptGenerator : DbScriptGenerator
     {
         public SqliteScriptGenerator(DbInterpreter dbInterpreter) : base(dbInterpreter)
-        {
-        }
+        { }
 
         #region Schema Script
 
@@ -60,7 +59,9 @@ namespace DatabaseInterpreter.Core
             #endregion
 
             if (option.ScriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToFile))
+            {
                 AppendScriptsToFile(sb.ToString().Trim(), GenerateScriptMode.Schema, true);
+            }
 
             return sb;
         }
@@ -153,7 +154,10 @@ namespace DatabaseInterpreter.Core
 
             var type = "";
 
-            if (index.Type == IndexType.Unique.ToString()) type = "UNIQUE";
+            if (index.Type == IndexType.Unique.ToString())
+            {
+                type = "UNIQUE";
+            }
 
             var sql =
                 $"CREATE {type} INDEX {GetQuotedString(index.Name)} ON {GetQuotedString(index.TableName)}({columnNames})";
@@ -218,6 +222,7 @@ namespace DatabaseInterpreter.Core
             var foreginKeyConstraint = new StringBuilder();
 
             if (option.TableScriptsGenerateOption.GenerateForeignKey && foreignKeys != null)
+            {
                 foreach (var foreignKey in foreignKeys)
                 {
                     var columnNames = string.Join(",",
@@ -231,23 +236,35 @@ namespace DatabaseInterpreter.Core
 
                     var fkConstraint = "";
 
-                    if (!string.IsNullOrEmpty(foreignKeyName)) fkConstraint = $"CONSTRAINT {foreignKeyName} ";
+                    if (!string.IsNullOrEmpty(foreignKeyName))
+                    {
+                        fkConstraint = $"CONSTRAINT {foreignKeyName} ";
+                    }
 
                     sbForeignKeyItem.Append(
                         $",{fkConstraint}FOREIGN KEY ({columnNames}) REFERENCES {GetQuotedString(foreignKey.ReferencedTableName)}({referenceColumnName})");
 
                     if (foreignKey.UpdateCascade)
+                    {
                         sbForeignKeyItem.Append(" ON UPDATE CASCADE");
+                    }
                     else
+                    {
                         sbForeignKeyItem.Append(" ON UPDATE NO ACTION");
+                    }
 
                     if (foreignKey.DeleteCascade)
+                    {
                         sbForeignKeyItem.Append(" ON DELETE CASCADE");
+                    }
                     else
+                    {
                         sbForeignKeyItem.Append(" ON DELETE NO ACTION");
+                    }
 
                     foreginKeyConstraint.AppendLine(sbForeignKeyItem.ToString());
                 }
+            }
 
             #endregion
 
@@ -256,8 +273,12 @@ namespace DatabaseInterpreter.Core
             var useColumnIndex = false;
 
             if (option.TableScriptsGenerateOption.GenerateIndex && indexes != null)
+            {
                 if (indexes.All(item => item.Columns.Count == 1 && item.IsUnique))
+                {
                     useColumnIndex = true;
+                }
+            }
 
             #endregion
 
@@ -266,7 +287,9 @@ namespace DatabaseInterpreter.Core
             var useColumnCheckConstraint = false;
 
             if (option.TableScriptsGenerateOption.GenerateConstraint && constraints != null)
+            {
                 useColumnCheckConstraint = true;
+            }
 
             #endregion
 
@@ -282,7 +305,9 @@ namespace DatabaseInterpreter.Core
                         item.IsUnique && item.Columns.Any(t => t.ColumnName == column.Name));
 
                     if (index != null)
+                    {
                         parsedColumn += $"{Environment.NewLine}CONSTRAINT {GetQuotedString(index.Name) ?? ""} UNIQUE";
+                    }
                 }
 
                 if (useColumnCheckConstraint)
@@ -290,8 +315,10 @@ namespace DatabaseInterpreter.Core
                     var checkConstraint = constraints.FirstOrDefault(item => item.ColumnName == column.Name);
 
                     if (checkConstraint != null)
+                    {
                         parsedColumn +=
                             $"{Environment.NewLine}CONSTRAINT {GetQuotedString(checkConstraint.Name) ?? ""} CHECK ({checkConstraint.Definition})";
+                    }
                 }
 
                 columnItems.Add(parsedColumn);
@@ -309,8 +336,12 @@ namespace DatabaseInterpreter.Core
             #region Index
 
             if (option.TableScriptsGenerateOption.GenerateIndex && indexes != null && !useColumnIndex)
+            {
                 foreach (var index in indexes)
+                {
                     sb.AppendLine(AddIndex(index));
+                }
+            }
 
             #endregion
 

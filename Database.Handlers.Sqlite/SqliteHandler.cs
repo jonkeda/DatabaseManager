@@ -16,8 +16,7 @@ namespace Databases.Handlers.Sqlite
         SqliteDiagnosis>
     {
         public SqliteHandler() : base(DatabaseType.Sqlite)
-        {
-        }
+        { }
 
         public override SqlAnalyserBase GetSqlAnalyser(string content)
         {
@@ -44,7 +43,10 @@ namespace Databases.Handlers.Sqlite
         protected override DbProviderFactory CreateDbProviderFactory(string providerName)
         {
             if (providerName.Contains("sqlite"))
+            {
                 return SqliteFactory.Instance;
+            }
+
             return null;
         }
     }

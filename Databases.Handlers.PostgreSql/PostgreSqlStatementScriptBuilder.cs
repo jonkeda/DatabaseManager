@@ -31,7 +31,270 @@ namespace SqlAnalyser.Core
             {
                 BuildSelectStatement(select, appendSeparator);
             }
+
             return this;
+        }
+
+
+        protected override void BuildSelectStatement(SelectStatement select, bool appendSeparator = true)
+        {
+            var isCreateTemporaryTable = false;
+
+            var intoTableName = AnalyserHelper.GetIntoTableName(select);
+
+            if (intoTableName != null)
+            {
+                isCreateTemporaryTable = true;
+
+                AppendLine($"CREATE TEMPORARY TABLE IF NOT EXISTS {intoTableName} AS (");
+            }
+
+            var isWith = select.WithStatements != null && select.WithStatements.Count > 0;
+
+            var selectColumns = $"SELECT {string.Join(",", select.Columns.Select(item => GetNameWithAlias(item)))}";
+
+            if (select.NoTableName && select.Columns.Any(item => AnalyserHelper.IsAssignNameColumn(item)))
+            {
+                foreach (var column in select.Columns)
+                {
+                    var symbol = column.Symbol;
+
+                    if (AnalyserHelper.IsAssignNameColumn(column))
+                    {
+                        var items = symbol.Split('=');
+
+                        var values = items.Skip(1);
+
+                        var strValue = "";
+
+                        if (values.Count() == 1)
+                        {
+                            strValue = GetSetVariableValue(items[0], items[1]);
+                        }
+                        else
+                        {
+                            strValue = string.Join("=", items.Skip(1));
+                        }
+
+                        symbol = $"{items[0]}:={strValue}";
+                    }
+
+                    AppendLine($"{symbol};");
+                }
+            }
+            else if (!isWith)
+            {
+                AppendLine(selectColumns);
+            }
+
+            if (!isCreateTemporaryTable && select.Intos != null && select.Intos.Count > 0)
+            {
+                Append("INTO ");
+                AppendLine(string.Join(",", select.Intos));
+            }
+
+            void AppendWith()
+            {
+                var i = 0;
+
+                foreach (var withStatement in select.WithStatements)
+                {
+                    if (i == 0)
+                    {
+                        AppendLine($"WITH {withStatement.Name}");
+                    }
+                    else
+                    {
+                        AppendLine($",{withStatement.Name}");
+                    }
+
+                    AppendLine("AS(");
+
+                    AppendChildStatements(withStatement.SelectStatements, false);
+
+                    AppendLine(")");
+
+                    i++;
+                }
+            }
+
+            void AppendFrom()
+            {
+                if (select.HasFromItems)
+                {
+                    BuildSelectStatementFromItems(select);
+                }
+                else if (select.TableName != null)
+                {
+                    AppendLine($"FROM {GetNameWithAlias(select.TableName)}");
+                }
+            }
+
+            if (isWith)
+            {
+                AppendWith();
+
+                AppendLine(selectColumns);
+            }
+
+            AppendFrom();
+
+            if (select.Where != null)
+            {
+                AppendLine($"WHERE {select.Where}");
+            }
+
+            if (select.GroupBy != null && select.GroupBy.Count > 0)
+            {
+                AppendLine($"GROUP BY {string.Join(",", select.GroupBy)}");
+            }
+
+            if (select.Having != null)
+            {
+                AppendLine($"HAVING {select.Having}");
+            }
+
+            if (select.OrderBy != null && select.OrderBy.Count > 0)
+            {
+                AppendLine($"ORDER BY {string.Join(",", select.OrderBy)}");
+            }
+
+            if (select.TopInfo != null)
+            {
+                AppendLine($"LIMIT {select.TopInfo.TopCount}");
+            }
+
+            if (select.LimitInfo != null)
+            {
+                AppendLine($"LIMIT {select.LimitInfo.RowCount} OFFSET {select.LimitInfo.StartRowIndex?.Symbol ?? "0"}");
+            }
+
+            if (select.UnionStatements != null)
+            {
+                foreach (var union in select.UnionStatements)
+                {
+                    Build(union, false).TrimSeparator();
+                    AppendLine();
+                }
+            }
+
+            if (isCreateTemporaryTable)
+            {
+                AppendLine(")");
+            }
+
+            if (appendSeparator)
+            {
+                AppendLine(";");
+            }
+        }
+
+        private string GetUnionTypeName(UnionType unionType)
+        {
+            switch (unionType)
+            {
+                case UnionType.UNION_ALL:
+                    return "UNION ALL";
+                case UnionType.EXCEPT:
+                    return nameof(UnionType.MINUS);
+                default:
+                    return unionType.ToString();
+            }
+        }
+
+        private void PrintMessage(string content)
+        {
+            AppendLine($"RAISE INFO '%',{content};");
+        }
+
+        private string GetSetVariableValue(string name, string value)
+        {
+            if (name != null && value != null && ValueHelper.IsStringValue(value))
+            {
+                var declareVariable =
+                    DeclareVariableStatements.FirstOrDefault(item => item.Name.Symbol?.Trim() == name.Trim());
+
+                var dataType = declareVariable?.DataType?.Symbol?.ToUpper();
+
+                if (dataType != null)
+                {
+                    if (dataType == "DATE")
+                    {
+                        value = $"{value}::DATE";
+                    }
+                    else if (dataType.Contains("TIMESTAMP"))
+                    {
+                        value = $"{value}::TIMESTAMP";
+                    }
+                }
+            }
+
+            return value;
+        }
+
+        public string BuildTable(TableInfo table)
+        {
+            var sb = new StringBuilder();
+
+            var columns = table.Columns;
+            var selectStatement = table.SelectStatement;
+
+            sb.AppendLine(
+                $"CREATE {(table.IsTemporary ? "TEMPORARY" : "")} TABLE {table.Name}{(columns.Count > 0 ? "(" : "AS")}");
+
+            if (columns.Count > 0)
+            {
+                var hasTableConstraints = table.HasTableConstraints;
+
+                var i = 0;
+
+                foreach (var column in columns)
+                {
+                    var name = column.Name.Symbol;
+                    var dataType = column.DataType?.Symbol ?? "";
+                    var require = column.IsNullable ? " NULL" : " NOT NULL";
+                    var seperator = i == table.Columns.Count - 1 ? hasTableConstraints ? "," : "" : ",";
+
+                    if (column.IsComputed)
+                    {
+                        sb.AppendLine(
+                            $"{name}{dataType}{require} GENERATED ALWAYS AS ({column.ComputeExp}) STORED{seperator}");
+                    }
+                    else
+                    {
+                        var identity = column.IsIdentity ? " GENERATED ALWAYS AS IDENTITY" : "";
+                        var defaultValue = string.IsNullOrEmpty(column.DefaultValue?.Symbol)
+                            ? ""
+                            : $" DEFAULT {StringHelper.GetParenthesisedString(column.DefaultValue.Symbol)}";
+                        var constraint = GetConstraints(column.Constraints, true);
+                        var strConstraint = string.IsNullOrEmpty(constraint) ? "" : $" {constraint}";
+
+                        sb.AppendLine(
+                            $"{name} {column.DataType}{defaultValue}{identity}{require}{strConstraint}{seperator}");
+                    }
+
+                    i++;
+                }
+
+                if (hasTableConstraints)
+                {
+                    sb.AppendLine(GetConstraints(table.Constraints));
+                }
+
+                sb.AppendLine(")");
+            }
+            else
+            {
+                var builder = new PostgreSqlStatementScriptBuilder();
+
+                builder.BuildSelectStatement(selectStatement, false);
+
+                sb.AppendLine(builder.ToString());
+            }
+
+            sb.Append(";");
+
+            return sb.ToString();
         }
 
         #region Statements
@@ -347,7 +610,7 @@ namespace SqlAnalyser.Core
                         if (!string.IsNullOrEmpty(dataType))
                         {
                             var declareVariable = new DeclareVariableStatement
-                            { Name = set.Key, DataType = new TokenInfo(dataType) };
+                                { Name = set.Key, DataType = new TokenInfo(dataType) };
 
                             DeclareVariableStatements.Add(declareVariable);
                         }
@@ -664,7 +927,6 @@ namespace SqlAnalyser.Core
             }
 
             AppendLine(";");
-            return; // false;
         }
 
         public override void Builds(InsertStatement insert)
@@ -707,267 +969,5 @@ namespace SqlAnalyser.Core
         }
 
         #endregion
-
-
-        protected override void BuildSelectStatement(SelectStatement select, bool appendSeparator = true)
-        {
-            var isCreateTemporaryTable = false;
-
-            var intoTableName = AnalyserHelper.GetIntoTableName(select);
-
-            if (intoTableName != null)
-            {
-                isCreateTemporaryTable = true;
-
-                AppendLine($"CREATE TEMPORARY TABLE IF NOT EXISTS {intoTableName} AS (");
-            }
-
-            var isWith = select.WithStatements != null && select.WithStatements.Count > 0;
-
-            var selectColumns = $"SELECT {string.Join(",", select.Columns.Select(item => GetNameWithAlias(item)))}";
-
-            if (select.NoTableName && select.Columns.Any(item => AnalyserHelper.IsAssignNameColumn(item)))
-            {
-                foreach (var column in select.Columns)
-                {
-                    var symbol = column.Symbol;
-
-                    if (AnalyserHelper.IsAssignNameColumn(column))
-                    {
-                        var items = symbol.Split('=');
-
-                        var values = items.Skip(1);
-
-                        var strValue = "";
-
-                        if (values.Count() == 1)
-                        {
-                            strValue = GetSetVariableValue(items[0], items[1]);
-                        }
-                        else
-                        {
-                            strValue = string.Join("=", items.Skip(1));
-                        }
-
-                        symbol = $"{items[0]}:={strValue}";
-                    }
-
-                    AppendLine($"{symbol};");
-                }
-            }
-            else if (!isWith)
-            {
-                AppendLine(selectColumns);
-            }
-
-            if (!isCreateTemporaryTable && select.Intos != null && select.Intos.Count > 0)
-            {
-                Append("INTO ");
-                AppendLine(string.Join(",", select.Intos));
-            }
-
-            void AppendWith()
-            {
-                var i = 0;
-
-                foreach (var withStatement in select.WithStatements)
-                {
-                    if (i == 0)
-                    {
-                        AppendLine($"WITH {withStatement.Name}");
-                    }
-                    else
-                    {
-                        AppendLine($",{withStatement.Name}");
-                    }
-
-                    AppendLine("AS(");
-
-                    AppendChildStatements(withStatement.SelectStatements, false);
-
-                    AppendLine(")");
-
-                    i++;
-                }
-            }
-
-            void AppendFrom()
-            {
-                if (select.HasFromItems)
-                {
-                    BuildSelectStatementFromItems(select);
-                }
-                else if (select.TableName != null)
-                {
-                    AppendLine($"FROM {GetNameWithAlias(select.TableName)}");
-                }
-            }
-
-            if (isWith)
-            {
-                AppendWith();
-
-                AppendLine(selectColumns);
-            }
-
-            AppendFrom();
-
-            if (select.Where != null)
-            {
-                AppendLine($"WHERE {select.Where}");
-            }
-
-            if (select.GroupBy != null && select.GroupBy.Count > 0)
-            {
-                AppendLine($"GROUP BY {string.Join(",", select.GroupBy)}");
-            }
-
-            if (select.Having != null)
-            {
-                AppendLine($"HAVING {select.Having}");
-            }
-
-            if (select.OrderBy != null && select.OrderBy.Count > 0)
-            {
-                AppendLine($"ORDER BY {string.Join(",", select.OrderBy)}");
-            }
-
-            if (select.TopInfo != null)
-            {
-                AppendLine($"LIMIT {select.TopInfo.TopCount}");
-            }
-
-            if (select.LimitInfo != null)
-            {
-                AppendLine($"LIMIT {select.LimitInfo.RowCount} OFFSET {select.LimitInfo.StartRowIndex?.Symbol ?? "0"}");
-            }
-
-            if (select.UnionStatements != null)
-            {
-                foreach (var union in select.UnionStatements)
-                {
-                    Build(union, false).TrimSeparator();
-                    AppendLine();
-                }
-            }
-
-            if (isCreateTemporaryTable)
-            {
-                AppendLine(")");
-            }
-
-            if (appendSeparator)
-            {
-                AppendLine(";");
-            }
-        }
-
-        private string GetUnionTypeName(UnionType unionType)
-        {
-            switch (unionType)
-            {
-                case UnionType.UNION_ALL:
-                    return "UNION ALL";
-                case UnionType.EXCEPT:
-                    return nameof(UnionType.MINUS);
-                default:
-                    return unionType.ToString();
-            }
-        }
-
-        private void PrintMessage(string content)
-        {
-            AppendLine($"RAISE INFO '%',{content};");
-        }
-
-        private string GetSetVariableValue(string name, string value)
-        {
-            if (name != null && value != null && ValueHelper.IsStringValue(value))
-            {
-                var declareVariable =
-                    DeclareVariableStatements.FirstOrDefault(item => item.Name.Symbol?.Trim() == name.Trim());
-
-                var dataType = declareVariable?.DataType?.Symbol?.ToUpper();
-
-                if (dataType != null)
-                {
-                    if (dataType == "DATE")
-                    {
-                        value = $"{value}::DATE";
-                    }
-                    else if (dataType.Contains("TIMESTAMP"))
-                    {
-                        value = $"{value}::TIMESTAMP";
-                    }
-                }
-            }
-
-            return value;
-        }
-
-        public string BuildTable(TableInfo table)
-        {
-            var sb = new StringBuilder();
-
-            var columns = table.Columns;
-            var selectStatement = table.SelectStatement;
-
-            sb.AppendLine(
-                $"CREATE {(table.IsTemporary ? "TEMPORARY" : "")} TABLE {table.Name}{(columns.Count > 0 ? "(" : "AS")}");
-
-            if (columns.Count > 0)
-            {
-                var hasTableConstraints = table.HasTableConstraints;
-
-                var i = 0;
-
-                foreach (var column in columns)
-                {
-                    var name = column.Name.Symbol;
-                    var dataType = column.DataType?.Symbol ?? "";
-                    var require = column.IsNullable ? " NULL" : " NOT NULL";
-                    var seperator = i == table.Columns.Count - 1 ? hasTableConstraints ? "," : "" : ",";
-
-                    if (column.IsComputed)
-                    {
-                        sb.AppendLine(
-                            $"{name}{dataType}{require} GENERATED ALWAYS AS ({column.ComputeExp}) STORED{seperator}");
-                    }
-                    else
-                    {
-                        var identity = column.IsIdentity ? " GENERATED ALWAYS AS IDENTITY" : "";
-                        var defaultValue = string.IsNullOrEmpty(column.DefaultValue?.Symbol)
-                            ? ""
-                            : $" DEFAULT {StringHelper.GetParenthesisedString(column.DefaultValue.Symbol)}";
-                        var constraint = GetConstraints(column.Constraints, true);
-                        var strConstraint = string.IsNullOrEmpty(constraint) ? "" : $" {constraint}";
-
-                        sb.AppendLine(
-                            $"{name} {column.DataType}{defaultValue}{identity}{require}{strConstraint}{seperator}");
-                    }
-
-                    i++;
-                }
-
-                if (hasTableConstraints)
-                {
-                    sb.AppendLine(GetConstraints(table.Constraints));
-                }
-
-                sb.AppendLine(")");
-            }
-            else
-            {
-                var builder = new PostgreSqlStatementScriptBuilder();
-
-                builder.BuildSelectStatement(selectStatement, false);
-
-                sb.AppendLine(builder.ToString());
-            }
-
-            sb.Append(";");
-
-            return sb.ToString();
-        }
     }
 }

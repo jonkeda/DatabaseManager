@@ -16,8 +16,7 @@ namespace Databases.Handlers.MySql
         MySqlDiagnosis>
     {
         public MySqlHandler() : base(DatabaseType.MySql)
-        {
-        }
+        { }
 
         public override SqlAnalyserBase GetSqlAnalyser(string content)
         {
@@ -43,7 +42,10 @@ namespace Databases.Handlers.MySql
         protected override DbProviderFactory CreateDbProviderFactory(string providerName)
         {
             if (providerName.Contains("mysql"))
+            {
                 return MySqlConnectorFactory.Instance;
+            }
+
             return null;
         }
     }

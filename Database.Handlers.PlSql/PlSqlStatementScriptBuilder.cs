@@ -37,7 +37,9 @@ namespace SqlAnalyser.Core
             if (type == PreparedStatementType.Prepare)
             {
                 if (Option.CollectSpecialStatementTypes.Contains(prepared.GetType()))
+                {
                     SpecialStatements.Add(prepared);
+                }
             }
             else if (type == PreparedStatementType.Execute)
             {
@@ -84,7 +86,9 @@ namespace SqlAnalyser.Core
             AppendLine($"DROP {objectType} {drop.ObjectName.NameWithSchema};");
 
             if (drop.ObjectType == DatabaseObjectType.Table)
+            {
                 ReplaceTemporaryTableContent(drop.ObjectName, startIndex);
+            }
         }
 
         public override void Builds(TruncateStatement truncate)
@@ -104,7 +108,9 @@ namespace SqlAnalyser.Core
         public override void Builds(FetchCursorStatement fetchCursor)
         {
             if (fetchCursor.Variables.Count > 0)
+            {
                 AppendLine($"FETCH {fetchCursor.CursorName} INTO {string.Join(",", fetchCursor.Variables)};");
+            }
         }
 
         public override void Builds(OpenCursorStatement openCursor)
@@ -130,12 +136,18 @@ namespace SqlAnalyser.Core
             else
             {
                 if (Option.OutputRemindInformation)
+                {
                     PrintMessage($"'{StringHelper.HandleSingleQuotationChar(sb.ToString())}'");
+                }
             }
 
             if (Option != null && Option.CollectDeclareStatement)
+            {
                 if (!DeclareCursorStatements.Any(item => item.CursorName.Symbol == declareCursor.CursorName.Symbol))
+                {
                     DeclareCursorStatements.Add(declareCursor);
+                }
+            }
         }
 
         public override void Builds(ExceptionStatement exception)
@@ -207,7 +219,10 @@ namespace SqlAnalyser.Core
                     {
                         var value = parameter.Value?.Symbol;
 
-                        if (!parameter.IsDescription) usings.Add(parameter);
+                        if (!parameter.IsDescription)
+                        {
+                            usings.Add(parameter);
+                        }
                     }
 
                     var strUsings = usings.Count == 0
@@ -303,9 +318,13 @@ namespace SqlAnalyser.Core
                     value = GetSetVariableValue(set.Key.Symbol, set.Value?.Symbol);
 
                     if (!AnalyserHelper.IsSubQuery(value))
+                    {
                         AppendLine($"{set.Key} := {value};");
+                    }
                     else
+                    {
                         AppendLine(StatementScriptBuilderHelper.ConvertToSelectIntoVariable(set.Key.Symbol, value));
+                    }
                 }
                 else if (set.IsSetCursorVariable && set.ValueStatement != null)
                 {
@@ -333,9 +352,13 @@ namespace SqlAnalyser.Core
             foreach (var item in @case.Items)
             {
                 if (item.Type != IfStatementType.ELSE)
+                {
                     AppendLine($"WHEN {item.Condition} THEN");
+                }
                 else
+                {
                     AppendLine("ELSE");
+                }
 
                 AppendLine("BEGIN");
                 AppendChildStatements(item.Statements);
@@ -390,7 +413,10 @@ namespace SqlAnalyser.Core
         {
             var sql = BuildTable(declareTable.TableInfo);
 
-            if (RoutineType == RoutineType.PROCEDURE) sql = GetExecuteImmediateSql(sql);
+            if (RoutineType == RoutineType.PROCEDURE)
+            {
+                sql = GetExecuteImmediateSql(sql);
+            }
 
             AppendLine(sql);
         }
@@ -410,10 +436,15 @@ namespace SqlAnalyser.Core
             else
             {
                 if (Option.OutputRemindInformation)
+                {
                     PrintMessage($"'{StringHelper.HandleSingleQuotationChar(sb.ToString())}'");
+                }
             }
 
-            if (Option != null && Option.CollectDeclareStatement) DeclareVariableStatements.Add(declareVar);
+            if (Option != null && Option.CollectDeclareStatement)
+            {
+                DeclareVariableStatements.Add(declareVar);
+            }
         }
 
         public override void Builds(DeleteStatement delete)
@@ -426,7 +457,10 @@ namespace SqlAnalyser.Core
             {
                 AppendLine($"DELETE FROM {GetNameWithAlias(delete.TableName)}");
 
-                if (delete.Condition != null) AppendLine($"WHERE {delete.Condition}");
+                if (delete.Condition != null)
+                {
+                    AppendLine($"WHERE {delete.Condition}");
+                }
             }
             else
             {
@@ -443,8 +477,13 @@ namespace SqlAnalyser.Core
                     if (i == 0)
                     {
                         if (fromItem.TableName != null && fromItem.TableName.Alias != null)
+                        {
                             alias = fromItem.TableName.Alias.Symbol;
-                        else if (fromItem.Alias != null) alias = fromItem.Alias.Symbol;
+                        }
+                        else if (fromItem.Alias != null)
+                        {
+                            alias = fromItem.Alias.Symbol;
+                        }
                     }
 
                     i++;
@@ -455,7 +494,10 @@ namespace SqlAnalyser.Core
 
                 BuildFromItems(delete.FromItems, null, true);
 
-                if (delete.Condition != null) AppendLine($"WHERE {delete.Condition}");
+                if (delete.Condition != null)
+                {
+                    AppendLine($"WHERE {delete.Condition}");
+                }
 
                 AppendLine(")");
             }
@@ -534,10 +576,16 @@ namespace SqlAnalyser.Core
                             lastHasNewLine = true;
                         }
 
-                        if (i < fromItemsCount - 1) sb.Append(",");
+                        if (i < fromItemsCount - 1)
+                        {
+                            sb.Append(",");
+                        }
                     }
 
-                    if (!lastHasNewLine) sb.AppendLine();
+                    if (!lastHasNewLine)
+                    {
+                        sb.AppendLine();
+                    }
                 }
                 else
                 {
@@ -553,9 +601,13 @@ namespace SqlAnalyser.Core
                         foreach (var joinItem in fromItem.JoinItems)
                         {
                             if (j == 0)
+                            {
                                 sb.Append("FROM");
+                            }
                             else
+                            {
                                 sb.Append(joinItem.Type + " JOIN");
+                            }
 
                             var joinTableName = j == 0 ? $" JOIN {fromItem.TableName.NameWithAlias}" : "";
 
@@ -570,7 +622,9 @@ namespace SqlAnalyser.Core
                 }
 
                 if (update.Condition != null && update.Condition.Symbol != null)
+                {
                     sb.AppendLine($" WHERE {update.Condition}");
+                }
 
                 sb.Append(")");
 
@@ -581,7 +635,10 @@ namespace SqlAnalyser.Core
                 update.SetItems = nameValues;
             }
 
-            if (tableNames.Count == 0 && update.TableNames.Count > 0) tableNames.AddRange(update.TableNames);
+            if (tableNames.Count == 0 && update.TableNames.Count > 0)
+            {
+                tableNames.AddRange(update.TableNames);
+            }
 
             Append($" {string.Join(",", tableNames.Select(item => item.NameWithAlias))}", false);
 
@@ -595,7 +652,10 @@ namespace SqlAnalyser.Core
 
                 BuildUpdateSetValue(item);
 
-                if (k < update.SetItems.Count - 1) Append(",");
+                if (k < update.SetItems.Count - 1)
+                {
+                    Append(",");
+                }
 
                 AppendLine(Indent);
 
@@ -628,7 +688,10 @@ namespace SqlAnalyser.Core
                     }
                 }
 
-                if (!hasOtherTableOrAlias) AppendLine($"WHERE {update.Condition}");
+                if (!hasOtherTableOrAlias)
+                {
+                    AppendLine($"WHERE {update.Condition}");
+                }
             }
 
             AppendLine(";");
@@ -643,12 +706,18 @@ namespace SqlAnalyser.Core
             AppendLine($"INSERT INTO {insert.TableName}");
 
             if (insert.Columns.Count > 0)
+            {
                 AppendLine($"({string.Join(",", insert.Columns.Select(item => item.ToString()))})");
+            }
 
             if (insert.SelectStatements != null && insert.SelectStatements.Count > 0)
+            {
                 AppendChildStatements(insert.SelectStatements);
+            }
             else
+            {
                 AppendLine($"VALUES({string.Join(",", insert.Values.Select(item => item))});");
+            }
 
             ReplaceTemporaryTableContent(insert.TableName, startIndex);
         }
@@ -716,9 +785,13 @@ namespace SqlAnalyser.Core
                         value = GetSetVariableValue(variable, value);
 
                         if (!AnalyserHelper.IsSubQuery(value))
+                        {
                             symbol = $"{variable}:={value}";
+                        }
                         else
+                        {
                             symbol = StatementScriptBuilderHelper.ConvertToSelectIntoVariable(variable, value);
+                        }
                     }
 
                     AppendLine($"{symbol};");
@@ -736,6 +809,7 @@ namespace SqlAnalyser.Core
                 var columnNames = new List<string>();
 
                 foreach (var column in select.Columns)
+                {
                     if (column.Symbol.Contains("="))
                     {
                         var items = column.Symbol.Split('=');
@@ -745,6 +819,7 @@ namespace SqlAnalyser.Core
                         variables.Add(variable);
                         columnNames.Add(columName);
                     }
+                }
 
                 AppendLine($"SELECT {string.Join(",", columnNames)} INTO {string.Join(",", variables)}");
             }
@@ -760,8 +835,12 @@ namespace SqlAnalyser.Core
             }
 
             if (!handled)
+            {
                 if (select.TableName == null && !select.HasFromItems)
+                {
                     select.TableName = new TableName("DUAL");
+                }
+            }
 
             Action appendWith = () =>
             {
@@ -770,9 +849,13 @@ namespace SqlAnalyser.Core
                 foreach (var withStatement in select.WithStatements)
                 {
                     if (i == 0)
+                    {
                         AppendLine($"WITH {withStatement.Name}");
+                    }
                     else
+                    {
                         AppendLine($",{withStatement.Name}");
+                    }
 
                     AppendLine("AS(");
 
@@ -787,8 +870,13 @@ namespace SqlAnalyser.Core
             Action appendFrom = () =>
             {
                 if (select.HasFromItems)
+                {
                     BuildSelectStatementFromItems(select);
-                else if (select.TableName != null) AppendLine($"FROM {GetNameWithAlias(select.TableName)}");
+                }
+                else if (select.TableName != null)
+                {
+                    AppendLine($"FROM {GetNameWithAlias(select.TableName)}");
+                }
             };
 
             if (isWith)
@@ -800,32 +888,55 @@ namespace SqlAnalyser.Core
 
             appendFrom();
 
-            if (select.Where != null) AppendLine($"WHERE {select.Where}");
+            if (select.Where != null)
+            {
+                AppendLine($"WHERE {select.Where}");
+            }
 
             if (select.GroupBy != null && select.GroupBy.Count > 0)
+            {
                 AppendLine($"GROUP BY {string.Join(",", select.GroupBy)}");
+            }
 
-            if (select.Having != null) AppendLine($"HAVING {select.Having}");
+            if (select.Having != null)
+            {
+                AppendLine($"HAVING {select.Having}");
+            }
 
             if (select.OrderBy != null && select.OrderBy.Count > 0)
+            {
                 AppendLine($"ORDER BY {string.Join(",", select.OrderBy)}");
+            }
 
-            if (select.TopInfo != null) AppendLine($"FETCH NEXT {select.TopInfo.TopCount} ROWS ONLY");
+            if (select.TopInfo != null)
+            {
+                AppendLine($"FETCH NEXT {select.TopInfo.TopCount} ROWS ONLY");
+            }
 
             if (select.LimitInfo != null)
+            {
                 AppendLine(
                     $"OFFSET {select.LimitInfo.StartRowIndex?.Symbol ?? "0"} ROWS FETCH NEXT {select.LimitInfo.RowCount} ROWS ONLY");
+            }
 
             if (select.UnionStatements != null)
+            {
                 foreach (var union in select.UnionStatements)
                 {
                     Build(union, false).TrimSeparator();
                     AppendLine();
                 }
+            }
 
-            if (isCreateTemporaryTable) AppendLine(")");
+            if (isCreateTemporaryTable)
+            {
+                AppendLine(")");
+            }
 
-            if (appendSeparator) AppendLine(";");
+            if (appendSeparator)
+            {
+                AppendLine(";");
+            }
 
             if (isCreateTemporaryTable)
             {
@@ -865,7 +976,10 @@ namespace SqlAnalyser.Core
 
             var tableName = table.Name.Symbol;
 
-            if (!table.IsGlobal) tableName = GetPrivateTemporaryTableName(tableName);
+            if (!table.IsGlobal)
+            {
+                tableName = GetPrivateTemporaryTableName(tableName);
+            }
 
             var columns = table.Columns;
             var selectStatement = table.SelectStatement;
@@ -908,11 +1022,17 @@ namespace SqlAnalyser.Core
                     i++;
                 }
 
-                if (hasTableConstraints) sb.AppendLine(GetConstraints(table.Constraints));
+                if (hasTableConstraints)
+                {
+                    sb.AppendLine(GetConstraints(table.Constraints));
+                }
 
                 sb.AppendLine(")");
 
-                if (!table.IsGlobal) sb.Append("ON COMMIT DROP DEFINITION");
+                if (!table.IsGlobal)
+                {
+                    sb.Append("ON COMMIT DROP DEFINITION");
+                }
             }
             else
             {
@@ -936,9 +1056,15 @@ namespace SqlAnalyser.Core
             {
                 var newTableName = prefix + tableName;
 
-                if (!Replacements.ContainsKey(tableName)) Replacements.Add(tableName, newTableName);
+                if (!Replacements.ContainsKey(tableName))
+                {
+                    Replacements.Add(tableName, newTableName);
+                }
 
-                if (!TemporaryTableNames.Contains(tableName)) TemporaryTableNames.Add(tableName);
+                if (!TemporaryTableNames.Contains(tableName))
+                {
+                    TemporaryTableNames.Add(tableName);
+                }
 
                 return newTableName;
             }
@@ -962,8 +1088,12 @@ namespace SqlAnalyser.Core
                 var dataType = declareVariable?.DataType?.Symbol?.ToUpper();
 
                 if (dataType != null)
+                {
                     if (dataType == "DATE" || dataType.Contains("TIMESTAMP"))
+                    {
                         value = $"TO_DATE({value}, {format})";
+                    }
+                }
             }
 
             return value;
@@ -976,7 +1106,10 @@ namespace SqlAnalyser.Core
 
         private bool IsTemporaryTable(TokenInfo tableName)
         {
-            if (tableName == null || tableName.Symbol == null) return false;
+            if (tableName == null || tableName.Symbol == null)
+            {
+                return false;
+            }
 
             var strTableName = tableName.Symbol;
 
@@ -1000,11 +1133,17 @@ namespace SqlAnalyser.Core
 
         protected override bool IsInvalidTableName(string tableName)
         {
-            if (tableName == null) return false;
+            if (tableName == null)
+            {
+                return false;
+            }
 
             tableName = GetTrimedQuotationValue(tableName);
 
-            if (tableName.ToUpper() == "DUAL" && !(this is PlSqlStatementScriptBuilder)) return true;
+            if (tableName.ToUpper() == "DUAL" && !(this is PlSqlStatementScriptBuilder))
+            {
+                return true;
+            }
 
             return false;
         }

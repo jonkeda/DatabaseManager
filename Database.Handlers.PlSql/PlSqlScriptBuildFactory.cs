@@ -95,11 +95,19 @@ namespace SqlAnalyser.Core
 
                     var parenthesesIndex = dataType.IndexOf("(", StringComparison.Ordinal);
 
-                    if (parenthesesIndex > 0) dataType = dataType.Substring(0, parenthesesIndex);
+                    if (parenthesesIndex > 0)
+                    {
+                        dataType = dataType.Substring(0, parenthesesIndex);
+                    }
 
                     if (parameterType.HasFlag(ParameterType.IN) && parameterType.HasFlag(ParameterType.OUT))
+                    {
                         strParameterType = "IN OUT";
-                    else if (parameterType != ParameterType.NONE) strParameterType = parameterType.ToString();
+                    }
+                    else if (parameterType != ParameterType.NONE)
+                    {
+                        strParameterType = parameterType.ToString();
+                    }
 
                     sb.AppendLine(
                         $"{parameter.Name} {strParameterType} {dataType}{defaultValue}{(i == script.Parameters.Count - 1 ? "" : ",")}");
@@ -137,8 +145,7 @@ namespace SqlAnalyser.Core
             sb.AppendLine("BEGIN");
 
             if (script.ReturnTable != null)
-            {
-            }
+            { }
 
             result.BodyStartIndex = sb.Length;
 
@@ -182,7 +189,10 @@ namespace SqlAnalyser.Core
 
             result.BodyStartIndex = sb.Length;
 
-            foreach (var statement in script.Statements) sb.AppendLine(BuildStatement(statement));
+            foreach (var statement in script.Statements)
+            {
+                sb.AppendLine(BuildStatement(statement));
+            }
 
             result.BodyStopIndex = sb.Length - 1;
 
@@ -203,17 +213,24 @@ namespace SqlAnalyser.Core
             sb.AppendLine($"{script.Time} {events} ON {script.TableName}");
             sb.AppendLine("FOR EACH ROW");
 
-            if (script.Condition != null) sb.AppendLine($"WHEN ({script.Condition})");
+            if (script.Condition != null)
+            {
+                sb.AppendLine($"WHEN ({script.Condition})");
+            }
 
             foreach (var statement in script.Statements.Where(item => item is DeclareVariableStatement))
+            {
                 sb.AppendLine(BuildStatement(statement));
+            }
 
             sb.AppendLine("BEGIN");
 
             result.BodyStartIndex = sb.Length;
 
             foreach (var statement in script.Statements.Where(item => !(item is DeclareVariableStatement)))
+            {
                 sb.AppendLine(BuildStatement(statement));
+            }
 
             result.BodyStopIndex = sb.Length - 1;
 

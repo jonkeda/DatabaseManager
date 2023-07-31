@@ -51,17 +51,17 @@ namespace Databases.SqlAnalyser
                 tableName = fromItems.FirstOrDefault(item => item.TableName != null &&
                                                              (tableNameOrAliases.Contains(
                                                                   item.TableName.Symbol.ToLower())
-                                                              || item.TableName.Alias != null &&
+                                                              || (item.TableName.Alias != null &&
                                                                   tableNameOrAliases.Contains(item.TableName.Alias
-                                                                      .Symbol.ToLower())))?.TableName;
+                                                                      .Symbol.ToLower()))))?.TableName;
             }
 
             if (tableName == null && tableNames != null)
             {
                 tableName = tableNames.FirstOrDefault(item => tableNameOrAliases.Contains(item.Symbol.ToLower())
-                                                              || item.Alias != null &&
+                                                              || (item.Alias != null &&
                                                                   tableNameOrAliases.Contains(
-                                                                      item.Alias.Symbol.ToLower()));
+                                                                      item.Alias.Symbol.ToLower())));
             }
 
             return tableName;

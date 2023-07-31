@@ -11,8 +11,7 @@ namespace DatabaseInterpreter.Core
     public class OracleScriptGenerator : DbScriptGenerator
     {
         public OracleScriptGenerator(DbInterpreter dbInterpreter) : base(dbInterpreter)
-        {
-        }
+        { }
 
         #region Schema Script
 
@@ -95,7 +94,9 @@ namespace DatabaseInterpreter.Core
             #endregion
 
             if (option.ScriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToFile))
+            {
                 AppendScriptsToFile(sb.ToString(), GenerateScriptMode.Schema, true);
+            }
 
             return sb;
         }
@@ -133,14 +134,19 @@ namespace DatabaseInterpreter.Core
                 var type = value.GetType();
                 var dataType = column.DataType.ToLower();
 
-                if (dataType == "clob") return true;
+                if (dataType == "clob")
+                {
+                    return true;
+                }
 
                 if (type == typeof(string))
                 {
                     var str = value.ToString();
 
                     if (str.Length > 1000 || (str.Contains(OracleInterpreter.SEMICOLON_FUNC) && str.Length > 500))
+                    {
                         return true;
+                    }
                 }
                 else if (type.Name == nameof(TimeSpan))
                 {
@@ -185,7 +191,9 @@ namespace DatabaseInterpreter.Core
             var clause = dbInterpreter.ParseColumn(table, newColumn);
 
             if (DataTypeHelper.IsGeometryType(newColumn.DataType))
+            {
                 clause = clause.Replace(dbInterpreter.ParseDataType(newColumn), "");
+            }
 
             return new AlterDbObjectScript<TableColumn>($"ALTER TABLE {GetQuotedString(table.Name)} MODIFY {clause}");
         }
@@ -245,7 +253,10 @@ USING INDEX
 ALTER TABLE {GetQuotedFullTableName(foreignKey)} ADD CONSTRAINT {fkName} FOREIGN KEY ({columnNames})
 REFERENCES {GetQuotedString(foreignKey.ReferencedTableName)}({referenceColumnName})");
 
-            if (foreignKey.DeleteCascade) sb.AppendLine("ON DELETE CASCADE");
+            if (foreignKey.DeleteCascade)
+            {
+                sb.AppendLine("ON DELETE CASCADE");
+            }
 
             sb.Append(scriptsDelimiter);
 
@@ -273,8 +284,13 @@ REFERENCES {GetQuotedString(foreignKey.ReferencedTableName)}({referenceColumnNam
             var type = "";
 
             if (index.Type == IndexType.Unique.ToString())
+            {
                 type = "UNIQUE";
-            else if (index.Type == IndexType.Bitmap.ToString()) type = "BITMAP";
+            }
+            else if (index.Type == IndexType.Bitmap.ToString())
+            {
+                type = "BITMAP";
+            }
 
             var reverse = index.Type == IndexType.Reverse.ToString() ? "REVERSE" : "";
 
@@ -385,10 +401,15 @@ CREATE TABLE {quotedTableName}(
 
             if (this.option.TableScriptsGenerateOption.GenerateComment)
             {
-                if (!string.IsNullOrEmpty(table.Comment)) sb.AppendLine(SetTableComment(table));
+                if (!string.IsNullOrEmpty(table.Comment))
+                {
+                    sb.AppendLine(SetTableComment(table));
+                }
 
                 foreach (var column in columns.Where(item => !string.IsNullOrEmpty(item.Comment)))
+                {
                     sb.AppendLine(SetTableColumnComment(table, column));
+                }
             }
 
             #endregion
@@ -396,15 +417,21 @@ CREATE TABLE {quotedTableName}(
             #region Primary Key
 
             if (this.option.TableScriptsGenerateOption.GeneratePrimaryKey && primaryKey != null)
+            {
                 sb.AppendLine(AddPrimaryKey(primaryKey));
+            }
 
             #endregion
 
             #region Foreign Key
 
             if (this.option.TableScriptsGenerateOption.GenerateForeignKey && foreignKeys != null)
+            {
                 foreach (var foreignKey in foreignKeys)
+                {
                     sb.AppendLine(AddForeignKey(foreignKey));
+                }
+            }
 
             #endregion
 
@@ -424,20 +451,32 @@ CREATE TABLE {quotedTableName}(
 
                     //primary key column can't be indexed twice if they have same name and same order
                     if (primaryKeyColumnNames != null && primaryKeyColumnNames.SequenceEqual(indexColumnNames))
+                    {
                         continue;
+                    }
 
                     var strIndexColumnNames = string.Join(",", indexColumnNames);
 
                     //Avoid duplicated indexes for one index.
-                    if (indexColumns.Contains(strIndexColumnNames)) continue;
+                    if (indexColumns.Contains(strIndexColumnNames))
+                    {
+                        continue;
+                    }
 
                     if (index.Type == nameof(IndexType.Unique) || index.IsUnique)
                         //create a constraint, if the column has foreign key, it's required.
+                    {
                         sb.AppendLine(AddUniqueConstraint(index));
+                    }
                     else
+                    {
                         sb.AppendLine(AddIndex(index));
+                    }
 
-                    if (!indexColumns.Contains(strIndexColumnNames)) indexColumns.Add(strIndexColumnNames);
+                    if (!indexColumns.Contains(strIndexColumnNames))
+                    {
+                        indexColumns.Add(strIndexColumnNames);
+                    }
                 }
             }
 
@@ -446,8 +485,12 @@ CREATE TABLE {quotedTableName}(
             #region Constraint
 
             if (this.option.TableScriptsGenerateOption.GenerateConstraint && constraints != null)
+            {
                 foreach (var constraint in constraints)
+                {
                     sb.AppendLine(AddCheckConstraint(constraint));
+                }
+            }
 
             #endregion
 
@@ -516,7 +559,10 @@ CREATE TABLE {quotedTableName}(
                     }
                 }
 
-                foreach (var cmd in cmds) yield return new Script(cmd);
+                foreach (var cmd in cmds)
+                {
+                    yield return new Script(cmd);
+                }
             }
         }
 

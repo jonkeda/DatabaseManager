@@ -25,6 +25,7 @@ namespace SqlAnalyser.Core
             {
                 BuildSelectStatement(select, appendSeparator);
             }
+
             return this;
         }
 

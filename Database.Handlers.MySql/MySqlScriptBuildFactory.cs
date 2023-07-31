@@ -54,9 +54,15 @@ namespace SqlAnalyser.Core
 
                 foreach (var declareStatement in declareStatements)
                 {
-                    if (declareStatement is DeclareCursorStatement) hasDeclareCursor = true;
+                    if (declareStatement is DeclareCursorStatement)
+                    {
+                        hasDeclareCursor = true;
+                    }
 
-                    if (declareStatement is DeclareCursorHandlerStatement) hasDeclareCursorHanlder = true;
+                    if (declareStatement is DeclareCursorHandlerStatement)
+                    {
+                        hasDeclareCursorHanlder = true;
+                    }
                 }
 
                 if (hasDeclareCursor && !hasDeclareCursorHanlder)
@@ -103,7 +109,10 @@ namespace SqlAnalyser.Core
                 StatementBuilder.Option.CollectSpecialStatementTypes.Clear();
                 StatementBuilder.SpecialStatements.Clear();
 
-                if (beginIndex.HasValue) sb.Insert(beginIndex.Value, "sp:");
+                if (beginIndex.HasValue)
+                {
+                    sb.Insert(beginIndex.Value, "sp:");
+                }
 
                 if (result != null)
                 {
@@ -134,8 +143,13 @@ namespace SqlAnalyser.Core
                     var strParameterType = "";
 
                     if (parameterType.HasFlag(ParameterType.IN) && parameterType.HasFlag(ParameterType.OUT))
+                    {
                         strParameterType = "INOUT";
-                    else if (parameterType != ParameterType.NONE) strParameterType = parameterType.ToString();
+                    }
+                    else if (parameterType != ParameterType.NONE)
+                    {
+                        strParameterType = parameterType.ToString();
+                    }
 
                     sb.AppendLine(
                         $"{strParameterType} {parameter.Name} {parameter.DataType}{(i == script.Parameters.Count - 1 ? "" : ",")}");
@@ -161,13 +175,18 @@ namespace SqlAnalyser.Core
             result.BodyStartIndex = sb.Length;
 
             if (script.ReturnTable != null)
+            {
                 sb.AppendLine((StatementBuilder as MySqlStatementScriptBuilder).BuildTable(script.ReturnTable));
+            }
 
             StatementBuilder.Option.CollectSpecialStatementTypes.Add(typeof(LeaveStatement));
 
             PreHandle(script.Statements);
 
-            foreach (var statement in script.Statements) sb.AppendLine(BuildStatement(statement, script.Type));
+            foreach (var statement in script.Statements)
+            {
+                sb.AppendLine(BuildStatement(statement, script.Type));
+            }
 
             result.BodyStopIndex = sb.Length - 1;
 
@@ -190,7 +209,10 @@ namespace SqlAnalyser.Core
 
             result.BodyStartIndex = sb.Length;
 
-            foreach (var statement in script.Statements) sb.AppendLine(BuildStatement(statement));
+            foreach (var statement in script.Statements)
+            {
+                sb.AppendLine(BuildStatement(statement));
+            }
 
             result.BodyStopIndex = sb.Length - 1;
 
@@ -221,11 +243,16 @@ namespace SqlAnalyser.Core
             result.BodyStartIndex = sb.Length;
 
             foreach (var statement in script.Statements.Where(item => item is DeclareVariableStatement))
+            {
                 sb.AppendLine(BuildStatement(statement));
+            }
 
             foreach (var statement in script.Statements.Where(item => !(item is DeclareVariableStatement)))
             {
-                if (statement is LeaveStatement) hasLeaveStatement = true;
+                if (statement is LeaveStatement)
+                {
+                    hasLeaveStatement = true;
+                }
 
                 sb.AppendLine(BuildStatement(statement, RoutineType.TRIGGER));
             }
@@ -234,7 +261,10 @@ namespace SqlAnalyser.Core
 
             sb.AppendLine("END");
 
-            if (hasLeaveStatement) sb.Insert(beginIndex, "sp:");
+            if (hasLeaveStatement)
+            {
+                sb.Insert(beginIndex, "sp:");
+            }
 
             result.Script = sb.ToString();
 

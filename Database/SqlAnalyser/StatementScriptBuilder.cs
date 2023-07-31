@@ -535,6 +535,5 @@ namespace Databases.SqlAnalyser
                 sb.Append($"{(hasName ? "CONSTRAINT" : "")} {(!hasName ? "" : $"{name} ")}{definition}".Trim());
             }
         }
-        
     }
 }

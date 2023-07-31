@@ -11,25 +11,34 @@ namespace DatabaseManager.Core
     public class MySqlBackup : DbBackup
     {
         public MySqlBackup()
-        {
-        }
+        { }
 
         public MySqlBackup(BackupSetting setting, ConnectionInfo connectionInfo) : base(setting, connectionInfo)
-        {
-        }
+        { }
 
         public override string Backup()
         {
-            if (Setting == null) throw new ArgumentException("There is no backup setting for MySql.");
+            if (Setting == null)
+            {
+                throw new ArgumentException("There is no backup setting for MySql.");
+            }
 
             var exeFilePath = Setting.ClientToolFilePath;
 
-            if (string.IsNullOrEmpty(exeFilePath)) throw new ArgumentNullException("client backup file path is empty.");
+            if (string.IsNullOrEmpty(exeFilePath))
+            {
+                throw new ArgumentNullException("client backup file path is empty.");
+            }
 
             if (!File.Exists(exeFilePath))
+            {
                 throw new ArgumentException($"The backup file path is not existed:{Setting.ClientToolFilePath}.");
+            }
+
             if (Path.GetFileName(exeFilePath).ToLower() != "mysqldump.exe")
+            {
                 throw new ArgumentException("The backup file should be mysqldump.exe");
+            }
 
             var fileNameWithoutExt = ConnectionInfo.Database + "_" + DateTime.Now.ToString("yyyyMMddHHmmss");
             var fileName = fileNameWithoutExt + ".sql";
@@ -57,7 +66,10 @@ namespace DatabaseManager.Core
 
             var zipFilePath = Path.Combine(saveFolder, fileNameWithoutExt + ".zip");
 
-            if (Setting.ZipFile) saveFilePath = ZipFile(saveFilePath, zipFilePath);
+            if (Setting.ZipFile)
+            {
+                saveFilePath = ZipFile(saveFilePath, zipFilePath);
+            }
 
             return saveFilePath;
         }

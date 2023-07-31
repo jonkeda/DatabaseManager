@@ -10,8 +10,7 @@ namespace DatabaseInterpreter.Core
     public class MySqlScriptGenerator : DbScriptGenerator
     {
         public MySqlScriptGenerator(DbInterpreter dbInterpreter) : base(dbInterpreter)
-        {
-        }
+        { }
 
         #region Data Script
 
@@ -79,7 +78,9 @@ namespace DatabaseInterpreter.Core
             #endregion
 
             if (option.ScriptOutputMode.HasFlag(GenerateScriptOutputMode.WriteToFile))
+            {
                 AppendScriptsToFile(sb.ToString(), GenerateScriptMode.Schema, true);
+            }
 
             return sb;
         }
@@ -87,7 +88,10 @@ namespace DatabaseInterpreter.Core
         private void RestrictColumnLength<T>(IEnumerable<TableColumn> columns, IEnumerable<T> children)
             where T : SimpleColumn
         {
-            if (children == null) return;
+            if (children == null)
+            {
+                return;
+            }
 
             var childColumns = columns.Where(item => children.Any(t => item.Name == t.ColumnName)).ToList();
 
@@ -95,14 +99,18 @@ namespace DatabaseInterpreter.Core
             {
                 if (DataTypeHelper.IsCharType(item.DataType) &&
                     item.MaxLength > MySqlInterpreter.KeyIndexColumnMaxLength)
+                {
                     item.MaxLength = MySqlInterpreter.KeyIndexColumnMaxLength;
+                }
             });
         }
 
         private string GetRestrictedLengthName(string name)
         {
             if (name != null && name.Length > MySqlInterpreter.NameMaxLength)
+            {
                 return name.Substring(0, MySqlInterpreter.NameMaxLength);
+            }
 
             return name;
         }
@@ -161,8 +169,12 @@ namespace DatabaseInterpreter.Core
                 $"ALTER TABLE {GetQuotedString(primaryKey.TableName)} ADD CONSTRAINT {GetQuotedString(GetRestrictedLengthName(primaryKey.Name))} PRIMARY KEY ({columnNames})";
 
             if (option.TableScriptsGenerateOption.GenerateComment)
+            {
                 if (!string.IsNullOrEmpty(primaryKey.Comment))
+                {
                     sql += $" COMMENT '{TransferSingleQuotationString(primaryKey.Comment)}'";
+                }
+            }
 
             return new CreateDbObjectScript<TablePrimaryKey>(sql + scriptsDelimiter);
         }
@@ -183,14 +195,22 @@ namespace DatabaseInterpreter.Core
                 $"ALTER TABLE {GetQuotedString(foreignKey.TableName)} ADD CONSTRAINT {GetQuotedString(GetRestrictedLengthName(foreignKey.Name))} FOREIGN KEY ({columnNames}) REFERENCES {GetQuotedString(foreignKey.ReferencedTableName)}({referenceColumnName})";
 
             if (foreignKey.UpdateCascade)
+            {
                 sql += " ON UPDATE CASCADE";
+            }
             else
+            {
                 sql += " ON UPDATE NO ACTION";
+            }
 
             if (foreignKey.DeleteCascade)
+            {
                 sql += " ON DELETE CASCADE";
+            }
             else
+            {
                 sql += " ON DELETE NO ACTION";
+            }
 
             return new CreateDbObjectScript<TableForeignKey>(sql + scriptsDelimiter);
         }
@@ -208,15 +228,24 @@ namespace DatabaseInterpreter.Core
             var type = "";
 
             if (index.Type == IndexType.Unique.ToString())
+            {
                 type = "UNIQUE";
-            else if (index.Type == IndexType.FullText.ToString()) type = "FULLTEXT";
+            }
+            else if (index.Type == IndexType.FullText.ToString())
+            {
+                type = "FULLTEXT";
+            }
 
             var sql =
                 $"ALTER TABLE {GetQuotedString(index.TableName)} ADD {type} INDEX {GetQuotedString(GetRestrictedLengthName(index.Name))} ({columnNames})";
 
             if (option.TableScriptsGenerateOption.GenerateComment)
+            {
                 if (!string.IsNullOrEmpty(index.Comment))
+                {
                     sql += $" COMMENT '{TransferSingleQuotationString(index.Comment)}'";
+                }
+            }
 
             return new CreateDbObjectScript<TableIndex>(sql + scriptsDelimiter);
         }
@@ -339,24 +368,36 @@ DEFAULT CHARSET={dbCharSet}" + (string.IsNullOrEmpty(option) ? "" : Environment.
             #region Foreign Key
 
             if (this.option.TableScriptsGenerateOption.GenerateForeignKey)
+            {
                 foreach (var foreignKey in foreignKeys)
+                {
                     sb.AppendLine(AddForeignKey(foreignKey));
+                }
+            }
 
             #endregion
 
             #region Index
 
             if (this.option.TableScriptsGenerateOption.GenerateIndex)
+            {
                 foreach (var index in indexes)
+                {
                     sb.AppendLine(AddIndex(index));
+                }
+            }
 
             #endregion
 
             #region Constraint
 
             if (this.option.TableScriptsGenerateOption.GenerateConstraint && constraints != null)
+            {
                 foreach (var constraint in constraints)
+                {
                     sb.AppendLine(AddCheckConstraint(constraint));
+                }
+            }
 
             #endregion
 

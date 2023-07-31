@@ -31,7 +31,10 @@ namespace DatabaseInterpreter.Core
 
         protected override string GetUserDefinedColumnName(string columnName, string columnDataType)
         {
-            if (!IsLowDbVersion()) columnName = $@"JSON_OBJECT({columnName}) AS {columnName}"; //JSON_OBJECT -> v12.2
+            if (!IsLowDbVersion())
+            {
+                columnName = $@"JSON_OBJECT({columnName}) AS {columnName}"; //JSON_OBJECT -> v12.2
+            }
 
             /*
                 // TODO
@@ -119,7 +122,10 @@ namespace DatabaseInterpreter.Core
 
         private string GetSchemaBySchemaFilter(SchemaInfoFilter filter)
         {
-            if (filter != null && !string.IsNullOrEmpty(filter.Schema)) return filter.Schema;
+            if (filter != null && !string.IsNullOrEmpty(filter.Schema))
+            {
+                return filter.Schema;
+            }
 
             return GetDbSchema();
         }
@@ -169,7 +175,9 @@ namespace DatabaseInterpreter.Core
             var notShowBuiltinDatabaseCondition = GetExcludeBuiltinDbNamesCondition("TABLESPACE_NAME", false);
 
             if (!string.IsNullOrEmpty(notShowBuiltinDatabaseCondition))
+            {
                 notShowBuiltinDatabaseCondition += " AND CONTENTS <>'UNDO'";
+            }
 
             var sql =
                 $@"SELECT TABLESPACE_NAME AS ""Name"" FROM USER_TABLESPACES WHERE TABLESPACE_NAME IN(SELECT DEFAULT_TABLESPACE FROM USER_USERS WHERE UPPER(USERNAME)=UPPER('{GetCurrentUserName()}')) {notShowBuiltinDatabaseCondition}";
@@ -220,13 +228,17 @@ namespace DatabaseInterpreter.Core
             var sb = CreateSqlBuilder();
 
             if (isSimpleMode)
+            {
                 sb.Append(@"SELECT T.OWNER AS ""Schema"",T.TYPE_NAME AS ""TypeName""
                         FROM ALL_TYPES T");
+            }
             else
+            {
                 sb.Append(
                     @"SELECT T.OWNER AS ""Schema"",T.TYPE_NAME AS ""TypeName"",TA.ATTR_NAME AS ""Name"", TA.ATTR_TYPE_NAME AS ""DataType"",TA.LENGTH AS ""MaxLength"",TA.PRECISION AS ""Precision"",TA.SCALE AS ""Scale""
                         FROM ALL_TYPES T
                         JOIN ALL_TYPE_ATTRS TA ON T.OWNER = TA.OWNER AND T.TYPE_NAME = TA.TYPE_NAME");
+            }
 
             sb.Append($"WHERE UPPER(T.OWNER)=UPPER('{GetSchemaBySchemaFilter(filter)}')");
 
@@ -325,9 +337,13 @@ namespace DatabaseInterpreter.Core
             }
 
             if (isSimpleMode)
+            {
                 sb.Append("ORDER BY P.OBJECT_NAME");
+            }
             else
+            {
                 sb.Append("ORDER BY S.NAME");
+            }
 
             return sb.Content;
         }
@@ -357,13 +373,17 @@ namespace DatabaseInterpreter.Core
             var sb = CreateSqlBuilder();
 
             if (isSimpleMode)
+            {
                 sb.Append(@"SELECT T.OWNER AS ""Schema"", T.TABLE_NAME AS ""Name""
                          FROM ALL_TABLES T");
+            }
             else
+            {
                 sb.Append(@"SELECT T.OWNER AS ""Schema"", T.TABLE_NAME AS ""Name"", C.COMMENTS AS ""Comment"",
                           1 AS ""IdentitySeed"", 1 AS ""IdentityIncrement""
                           FROM ALL_TABLES T
                           LEFT JOIN USER_TAB_COMMENTS C ON T.TABLE_NAME= C.TABLE_NAME");
+            }
 
             sb.Append($" WHERE UPPER(OWNER)=UPPER('{GetSchemaBySchemaFilter(filter)}')" + tablespaceCondition);
 
@@ -428,8 +448,12 @@ namespace DatabaseInterpreter.Core
                  WHERE UPPER(C.OWNER)=UPPER('{GetSchemaBySchemaFilter(filter)}') AND C.HIDDEN_COLUMN='NO'{userGeneratedCondition}");
 
             if (IsBuiltinDatabase())
+            {
                 if (isSimpleMode)
+                {
                     sb.Append("AND C.TABLE_NAME NOT LIKE '%$%' AND C.COLUMN_NAME NOT LIKE '%#%'");
+                }
+            }
 
             sb.Append(GetFilterNamesCondition(filter, filter?.TableNames, "C.TABLE_NAME"));
 
@@ -546,7 +570,10 @@ namespace DatabaseInterpreter.Core
         public override Task<List<TableTrigger>> GetTableTriggersAsync(SchemaInfoFilter filter = null)
         {
             if (IsObjectFectchSimpleMode())
+            {
                 return GetDbObjectsAsync<TableTrigger>(GetSqlForTableTriggers(filter));
+            }
+
             return GetTriggerDefinition(GetDbObjectsAsync<TableTrigger>(GetSqlForTableTriggers(filter)));
         }
 
@@ -554,14 +581,19 @@ namespace DatabaseInterpreter.Core
             SchemaInfoFilter filter = null)
         {
             if (IsObjectFectchSimpleMode())
+            {
                 return GetDbObjectsAsync<TableTrigger>(dbConnection, GetSqlForTableTriggers(filter));
+            }
+
             return GetTriggerDefinition(GetDbObjectsAsync<TableTrigger>(dbConnection, GetSqlForTableTriggers(filter)));
         }
 
         private Task<List<TableTrigger>> GetTriggerDefinition(Task<List<TableTrigger>> tableTriggers)
         {
             foreach (var trigger in tableTriggers.Result)
+            {
                 trigger.Definition = trigger.CreateClause + trigger.Definition;
+            }
 
             return tableTriggers;
         }
@@ -829,8 +861,10 @@ namespace DatabaseInterpreter.Core
                         AND UPPER({owner})=UPPER('{GetSchemaBySchemaFilter(filter)}')");
 
             if (!includeViewTableUsages)
+            {
                 sb.Append(
                     "AND NOT (d.TYPE= 'VIEW' AND d.REFERENCED_TYPE='TABLE') AND NOT (d.TYPE= 'VIEW' AND d.REFERENCED_TYPE='VIEW')");
+            }
 
             var typeColumn = !isFilterForReferenced ? "TYPE" : "REFERENCED_TYPE";
             var nameColumn = !isFilterForReferenced ? "NAME" : "REFERENCED_NAME";
@@ -858,7 +892,10 @@ namespace DatabaseInterpreter.Core
                 filterNames = filter.TableNames;
             }
 
-            if (typeName != null) sb.Append($"AND d.{typeColumn} ='{typeName}'");
+            if (typeName != null)
+            {
+                sb.Append($"AND d.{typeColumn} ='{typeName}'");
+            }
 
             sb.Append(GetFilterNamesCondition(filter, filterNames, $"d.{nameColumn}"));
 
@@ -874,7 +911,8 @@ namespace DatabaseInterpreter.Core
         public override async Task BulkCopyAsync(DbConnection connection, DataTable dataTable,
             BulkCopyInfo bulkCopyInfo)
         {
-            if (!(connection is OracleConnection conn)) return;
+            if (!(connection is OracleConnection conn))
+            { }
             /*
             using (var bulkCopy = new OracleBulkCopy(conn, bulkCopyInfo.Transaction as OracleTransaction))
             {
@@ -898,7 +936,9 @@ namespace DatabaseInterpreter.Core
                                      || item.DataType == typeof(byte[])
                                      || item.DataType == typeof(PgGeom.Geometry)
                 ))
+            {
                 return dataTable;
+            }
 
             var changedColumns = new Dictionary<int, DataTableColumnChangeInfo>();
             var changedValues = new Dictionary<(int RowIndex, int ColumnIndex), dynamic>();
@@ -923,6 +963,7 @@ namespace DatabaseInterpreter.Core
                         dynamic newValue = null;
 
                         if (type != typeof(DBNull))
+                        {
                             if (type == typeof(BitArray))
                             {
                                 newColumnType = typeof(byte[]);
@@ -933,6 +974,7 @@ namespace DatabaseInterpreter.Core
 
                                 newValue = bytes;
                             }
+                        }
                         /* else if (type == typeof(SqlGeography))
                              {
                                  if (dataType == "sdo_geometry")
@@ -1011,19 +1053,29 @@ namespace DatabaseInterpreter.Core
                           }*/
 
                         if (DataTypeHelper.IsGeometryType(dataType) && newColumnType != null && newValue == null)
+                        {
                             newValue = DBNull.Value;
+                        }
 
                         if (newColumnType != null && !changedColumns.ContainsKey(i))
+                        {
                             changedColumns.Add(i, new DataTableColumnChangeInfo { Type = newColumnType });
+                        }
 
-                        if (newValue != null) changedValues.Add((rowIndex, i), newValue);
+                        if (newValue != null)
+                        {
+                            changedValues.Add((rowIndex, i), newValue);
+                        }
                     }
                 }
 
                 rowIndex++;
             }
 
-            if (changedColumns.Count == 0) return dataTable;
+            if (changedColumns.Count == 0)
+            {
+                return dataTable;
+            }
 
             var dtChanged = DataTableHelper.GetChangedDataTable(dataTable, changedColumns, changedValues);
 
@@ -1044,7 +1096,10 @@ namespace DatabaseInterpreter.Core
         {
             var sql = $@"SELECT COUNT(1) FROM {GetDbSchema()}.{GetQuotedString(dbObject.Name)}";
 
-            if (!string.IsNullOrEmpty(whereClause)) sql += whereClause;
+            if (!string.IsNullOrEmpty(whereClause))
+            {
+                sql += whereClause;
+            }
 
             return base.GetTableRecordCountAsync(connection, sql);
         }
@@ -1104,10 +1159,12 @@ namespace DatabaseInterpreter.Core
             var defaultValueClause = "";
 
             if (column.DefaultValue != null && !ValueHelper.IsSequenceNextVal(column.DefaultValue))
+            {
                 defaultValueClause =
                     Option.TableScriptsGenerateOption.GenerateDefaultValue && !string.IsNullOrEmpty(column.DefaultValue)
                         ? " DEFAULT " + StringHelper.GetParenthesisedString(GetColumnDefaultValue(column))
                         : "";
+            }
 
             var scriptComment = string.IsNullOrEmpty(column.ScriptComment) ? "" : $"/*{column.ScriptComment}*/";
 
@@ -1119,7 +1176,10 @@ namespace DatabaseInterpreter.Core
 
         public override string ParseDataType(TableColumn column)
         {
-            if (DataTypeHelper.IsUserDefinedType(column)) return GetQuotedString(column.DataType);
+            if (DataTypeHelper.IsUserDefinedType(column))
+            {
+                return GetQuotedString(column.DataType);
+            }
 
             var dataType = column.DataType;
 
@@ -1140,15 +1200,23 @@ namespace DatabaseInterpreter.Core
                             var argItems = args.Split(',');
 
                             foreach (var argItem in argItems)
+                            {
                                 if (argItem == "dayScale")
+                                {
                                     format = format.Replace("$dayScale$",
                                         (column.Precision.HasValue ? column.Precision.Value : 0).ToString());
+                                }
                                 else if (argItem == "precision")
+                                {
                                     format = format.Replace("$precision$",
                                         (column.Precision.HasValue ? column.Precision.Value : 0).ToString());
+                                }
                                 else if (argItem == "scale")
+                                {
                                     format = format.Replace("$scale$",
                                         (column.Scale.HasValue ? column.Scale.Value : 0).ToString());
+                                }
+                            }
 
                             dataType = format;
                             applied = true;
@@ -1161,9 +1229,13 @@ namespace DatabaseInterpreter.Core
                             var dataTypeSchema = column.DataTypeSchema?.ToUpper();
 
                             if (!string.IsNullOrEmpty(dataTypeSchema) && GeometryTypeSchemas.Contains(dataTypeSchema))
+                            {
                                 dataType = $"{dataTypeSchema}.{dataType}";
+                            }
                             else
+                            {
                                 dataType = $@"MDSYS.{dataType}";
+                            }
 
                             applied = true;
                         }
@@ -1174,7 +1246,10 @@ namespace DatabaseInterpreter.Core
                 {
                     var dataLength = GetColumnDataLength(column);
 
-                    if (!string.IsNullOrEmpty(dataLength)) dataType += $"({dataLength})";
+                    if (!string.IsNullOrEmpty(dataLength))
+                    {
+                        dataType += $"({dataLength})";
+                    }
                 }
             }
 
@@ -1192,6 +1267,7 @@ namespace DatabaseInterpreter.Core
             var dataTypeSpec = GetDataTypeSpecification(dataTypeInfo.DataType);
 
             if (dataTypeSpec != null)
+            {
                 if (!string.IsNullOrEmpty(dataTypeSpec.Args))
                 {
                     if (string.IsNullOrEmpty(dataTypeInfo.Args))
@@ -1200,7 +1276,10 @@ namespace DatabaseInterpreter.Core
                         {
                             var length = column.MaxLength;
 
-                            if (length > 0 && DataTypeHelper.StartsWithN(dataType)) length = length / 2;
+                            if (length > 0 && DataTypeHelper.StartsWithN(dataType))
+                            {
+                                length = length / 2;
+                            }
 
                             dataLength = length.ToString();
                         }
@@ -1226,7 +1305,10 @@ namespace DatabaseInterpreter.Core
                             }
                             else if (column.MaxLength > 0)
                             {
-                                if (dataTypeSpec.Args == "length") dataLength = column.MaxLength.ToString();
+                                if (dataTypeSpec.Args == "length")
+                                {
+                                    dataLength = column.MaxLength.ToString();
+                                }
                             }
                         }
                     }
@@ -1235,6 +1317,7 @@ namespace DatabaseInterpreter.Core
                         dataLength = dataTypeInfo.Args;
                     }
                 }
+            }
 
             return dataLength;
         }

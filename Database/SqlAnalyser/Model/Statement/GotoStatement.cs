@@ -14,6 +14,5 @@ namespace Databases.SqlAnalyser.Model.Statement
         {
             builder.Builds(this);
         }
-
     }
 }

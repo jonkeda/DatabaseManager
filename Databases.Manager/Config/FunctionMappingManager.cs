@@ -1,0 +1,68 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Xml.Linq;
+using Databases.Converter.Model.Mappings;
+using Databases.Interpreter.Utility.Helper;
+
+namespace Databases.Config
+{
+    public class FunctionMappingManager : ConfigManager
+    {
+        public static List<IEnumerable<FunctionMapping>> _functionMappings;
+        public static string FunctionMappingFilePath => Path.Combine(ConfigRootFolder, "FunctionMapping.xml");
+
+        private static readonly object LockObj = new object();
+
+        public static List<IEnumerable<FunctionMapping>> FunctionMappings
+        {
+            get
+            {
+                // ReSharper disable once InvertIf
+                if (_functionMappings == null)
+                {
+                    lock (LockObj)
+                    {
+                        if (_functionMappings == null)
+                        {
+                            _functionMappings = GetFunctionMappings();
+                        }
+                    }
+                }
+
+                return _functionMappings;
+            }
+        }
+
+        public static List<IEnumerable<FunctionMapping>> GetFunctionMappings()
+        {
+            var functionMappingDoc = XDocument.Load(FunctionMappingFilePath);
+
+            return functionMappingDoc.Root.Elements("mapping").Select(item =>
+                    item.Elements().Select(t =>
+                        new FunctionMapping
+                        {
+                            DbType = t.Name.ToString(),
+                            Function = t.Value,
+                            Direction = ParseDirection(t),
+                            Args = t.Attribute("args")?.Value,
+                            IsFixedArgs = ValueHelper.IsTrueValue(t.Attribute("isFixedArgs")?.Value),
+                            Expression = t.Attribute("expression")?.Value,
+                            Replacements = t.Attribute("replacements")?.Value,
+                            Defaults = t.Attribute("defaults")?.Value,
+                            Translator = t.Attribute("translator")?.Value,
+                            Specials = t.Attribute("specials")?.Value
+                        }))
+                .ToList();
+        }
+
+        private static FunctionMappingDirection ParseDirection(XElement element)
+        {
+            return string.IsNullOrEmpty(element.Attribute("direction")?.Value)
+                ? FunctionMappingDirection.INOUT
+                : (FunctionMappingDirection)Enum.Parse(typeof(FunctionMappingDirection),
+                    element.Attribute("direction").Value.ToUpper());
+        }
+    }
+}
